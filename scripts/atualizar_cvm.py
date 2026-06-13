@@ -21,24 +21,40 @@ TABLES = {
 
 UNIQUE_KEYS = ["cnpj_fundo_classe", "data_referencia", "versao"]
 
+COLUMN_MAP = {"cnpj_fundo": "cnpj_fundo_classe"}
+
+
+def get_db_columns(table_name: str) -> set:
+    r = supabase.table(table_name).select("*").limit(1).execute()
+    if not r.data:
+        return set()
+    return {k for k in r.data[0].keys() if k != "id"}
+
 
 def download_zip(year: int) -> bytes:
     url = f"{CVM_BASE}/inf_mensal_fii_{year}.zip"
-    print(f"Downloading {url}...")
+    print(f"  Downloading...")
     resp = httpx.get(url, follow_redirects=True, timeout=120)
     resp.raise_for_status()
     return resp.content
 
 
-def parse_csv(data: bytes, csv_filename: str) -> list[dict]:
+def parse_csv(data: bytes, csv_filename: str, db_cols: set) -> list[dict]:
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         with z.open(csv_filename) as f:
             text = f.read().decode("latin-1")
             reader = csv.DictReader(io.StringIO(text), delimiter=";")
             rows = []
             for row in reader:
-                clean = {k.lower(): v.strip() if v else None for k, v in row.items()}
-                clean.pop(None, None)
+                clean = {}
+                for k, v in row.items():
+                    if not k:
+                        continue
+                    name = k.lower().strip()
+                    name = COLUMN_MAP.get(name, name)
+                    if name not in db_cols:
+                        continue
+                    clean[name] = v.strip() if v else None
                 rows.append(clean)
             return rows
 
@@ -48,17 +64,30 @@ def upsert_rows(table_name: str, rows: list[dict]):
         print(f"  Nothing to insert.")
         return
 
+    seen = set()
+    deduped = []
+    for row in rows:
+        key = tuple(row.get(k) for k in UNIQUE_KEYS)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(row)
+
     batch_size = 500
     total = 0
-    for i in range(0, len(rows), batch_size):
-        batch = rows[i : i + batch_size]
+    for i in range(0, len(deduped), batch_size):
+        batch = deduped[i : i + batch_size]
         supabase.table(table_name).upsert(batch, on_conflict=",".join(UNIQUE_KEYS)).execute()
         total += len(batch)
-    print(f"  Synced {total} rows (upsert).")
+    print(f"  Synced {total} rows.")
 
 
 def main():
     current_year = datetime.now().year
+
+    db_cols_cache = {}
+    for db_table in TABLES:
+        db_cols_cache[db_table] = get_db_columns(db_table)
+
     for year in range(2016, current_year + 1):
         print(f"\n=== Year {year} ===")
         try:
@@ -69,12 +98,13 @@ def main():
 
         for db_table, csv_prefix in TABLES.items():
             csv_filename = f"{csv_prefix}_{year}.csv"
-            print(f"  Processing {csv_filename} -> {db_table}")
+            db_cols = db_cols_cache[db_table]
+            print(f"  {csv_filename}")
             try:
-                rows = parse_csv(zip_data, csv_filename)
+                rows = parse_csv(zip_data, csv_filename, db_cols)
                 upsert_rows(db_table, rows)
             except KeyError:
-                print(f"  File not found in zip, skipping.")
+                print(f"  Not in zip, skipping.")
                 continue
 
 
