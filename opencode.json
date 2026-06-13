@@ -1,0 +1,26 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-5",
+  "small_model": "anthropic/claude-haiku-4-5",
+  "permission": {
+    "bash": "ask",
+    "write": "ask",
+    "edit": "ask"
+  },
+  "formatter": true,
+  "lsp": true,
+  "commands": {
+    "test": {
+      "template": "Run the test suite and report any failures. Focus on failing tests and suggest fixes.",
+      "description": "Run tests"
+    },
+    "lint": {
+      "template": "Run the linter, report all errors and warnings, and fix any issues found.",
+      "description": "Run linter and fix"
+    },
+    "build": {
+      "template": "Build the project and report any compilation errors.",
+      "description": "Build the project"
+    }
+  }
+}

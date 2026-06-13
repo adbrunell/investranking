@@ -1,0 +1,4 @@
+- Use `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` from environment variables
+- Never hardcode keys or commit .env files
+- Use Supabase JS client for all database operations
+- Follow Row Level Security (RLS) policies for data access
