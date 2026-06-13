@@ -16,3 +16,6 @@ Investment ranking platform to track and rank investment assets.
 - Follow existing code patterns and conventions
 - Write tests for new features
 - Use TypeScript for type safety
+
+## Tools
+- The `supabase` MCP server is available for database queries, schema exploration, migrations, and docs search. Use it when you need to inspect the database, run SQL, or look up Supabase docs.

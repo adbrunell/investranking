@@ -9,6 +9,13 @@
   },
   "formatter": true,
   "lsp": true,
+  "mcp": {
+    "supabase": {
+      "type": "remote",
+      "url": "https://mcp.supabase.com/mcp?read_only=true",
+      "enabled": true
+    }
+  },
   "commands": {
     "test": {
       "template": "Run the test suite and report any failures. Focus on failing tests and suggest fixes.",
