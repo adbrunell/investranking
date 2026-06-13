@@ -11,12 +11,16 @@
   "lsp": true,
   "mcp": {
     "supabase": {
-      "type": "remote",
-      "url": "https://mcp.supabase.com/mcp?read_only=true&project_ref={env:SUPABASE_PROJECT_REF}",
-      "enabled": true
+      "type": "local",
+      "command": ["npx", "-y", "@supabase/mcp-server-supabase"],
+      "enabled": true,
+      "environment": {
+        "SUPABASE_ACCESS_TOKEN": "{env:SUPABASE_ACCESS_TOKEN}",
+        "SUPABASE_PROJECT_REF": "{env:SUPABASE_PROJECT_REF}"
+      }
     }
   },
-  "commands": {
+  "command": {
     "test": {
       "template": "Run the test suite and report any failures. Focus on failing tests and suggest fixes.",
       "description": "Run tests"
