@@ -19,3 +19,8 @@ Investment ranking platform to track and rank investment assets.
 
 ## Tools
 - The `supabase` MCP server is available for database queries, schema exploration, migrations, and docs search. Use it when you need to inspect the database, run SQL, or look up Supabase docs.
+
+## Scripts
+- `scripts/atualizar_cvm.py` - Downloads CVM FII data and upserts into Supabase
+- `scripts/run_all.ps1` - Loads .env and runs the CVM update script
+- Install dependencies: `cd scripts; python -m venv .venv; .venv\Scripts\pip install -r requirements.txt`
