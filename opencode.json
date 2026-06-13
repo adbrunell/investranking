@@ -12,7 +12,7 @@
   "mcp": {
     "supabase": {
       "type": "remote",
-      "url": "https://mcp.supabase.com/mcp?read_only=true",
+      "url": "https://mcp.supabase.com/mcp?read_only=true&project_ref={env:SUPABASE_PROJECT_REF}",
       "enabled": true
     }
   },
