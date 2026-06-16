@@ -296,7 +296,7 @@ async function fetchFromHistorico(){
       tipo:info.classe||''
     })
   }
-  return out
+  return out.filter(f=>f!=null&&f.price!=null&&Math.abs(f.change)<=100)
 }
 
 function buildSegmentSelect(){
