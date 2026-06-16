@@ -261,6 +261,44 @@ async function fetchFromSupabase(){
   return[]
 }
 
+async function fetchFromHistorico(){
+  let hist=await api(REST+'/b3_cotacoes_historico?select=ticker,data,fechamento,volume&order=data.desc&limit=3000')
+  if(!hist||!hist.length)return[]
+  let map={}
+  for(let r of hist){
+    if(!r.ticker||r.fechamento==null)continue
+    if(!map[r.ticker])map[r.ticker]=[]
+    if(map[r.ticker].length<2)map[r.ticker].push(r)
+  }
+  let masterMap={}
+  try{
+    let r0=await fetch(REST+'/00_Master?select=Ticker,Classe&limit=1000',{headers:{...H,Prefer:'count=exact'}})
+    let rows0=await r0.json()
+    rows0.forEach(r=>{if(r.Ticker)masterMap[r.Ticker]={classe:r.Classe}})
+  }catch(e){}
+  let out=[]
+  for(let ticker in map){
+    let vals=map[ticker]
+    if(vals.length<2)continue
+    let latest=vals[0],prev=vals[1]
+    let info=masterMap[ticker]||{}
+    let change=((latest.fechamento-prev.fechamento)/prev.fechamento)*100
+    out.push({
+      ticker,
+      price:parseFloat(latest.fechamento),
+      prevClose:parseFloat(prev.fechamento),
+      change:Math.round(change*100)/100,
+      volume:parseFloat(latest.volume)||0,
+      ultTransacao:'',
+      dataRef:latest.data||'',
+      segmento:info.classe||'',
+      categoria:info.classe||'',
+      tipo:info.classe||''
+    })
+  }
+  return out
+}
+
 function buildSegmentSelect(){
 try{
 let sel=document.getElementById('segmento')
@@ -319,7 +357,18 @@ applyFilter()
 return
 }
 
-// 2. Try Google Sheets directly (fallback)
+// 2. Try b3_cotacoes_historico (fallback — dias sem pregao)
+let fromHist=await fetchFromHistorico()
+if(fromHist.length>0){
+fundos=fromHist
+dataSource='Hist\u00f3rico'
+ld.style.display='none'
+buildSegmentSelect()
+applyFilter()
+return
+}
+
+// 3. Try Google Sheets directly (fallback)
 let fromSheet=await fetchFromSheet()
 if(fromSheet.length>0){
 fundos=fromSheet
@@ -330,7 +379,7 @@ applyFilter()
 return
 }
 
-// 3. No data available at all
+// 4. No data available at all
 throw new Error('Nenhuma cotacao disponivel')
 }catch(e){ld.textContent='Erro: '+e.message}
 }
