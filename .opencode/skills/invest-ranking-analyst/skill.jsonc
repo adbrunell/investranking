@@ -1,0 +1,5 @@
+{
+  "name": "invest-ranking-analyst",
+  "description": "Use for Invest Ranking tasks — B3/CVM/FNET data, FIIs, ações, financial indicators, ranking algorithms, scraper/ETL scripts. Trigger when designing rankings, validating data, calculating DY/PVP/FFO/etc, or reasoning about asset metrics.",
+  "instructions": "SKILL.md"
+}

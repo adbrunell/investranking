@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking de Cotações</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--bg:#111318;--surface:#1a1d24;--surface2:#1f232b;--border:#2a2e36;--text:#e2e5e9;--text-muted:#8a909a;--accent:#ffde59;--accent-bg:rgba(255,222,89,0.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);padding:0 16px 16px;font-family:'Segoe UI',system-ui,sans-serif}
+.container{max-width:1600px;margin:0 auto;min-height:100vh}
+.header{position:sticky;top:0;z-index:100;background:rgba(17,19,24,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:44px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 -16px 10px;padding:0 20px}
+.header h1{font-size:18px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:8px}
+.sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.search{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 14px;color:var(--text);font-size:13px;outline:none;width:160px;font-family:inherit}
+.search:focus{border-color:var(--accent)}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.tab{background:transparent;border:none;color:var(--text-muted);padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative}
+.tab:hover{color:var(--text)}
+.tab:active{transform:scale(.92)}
+.tab.active{background:var(--surface2);color:var(--text);font-weight:500}
+.seg-group{display:flex;gap:3px;background:rgba(255,255,255,0.04);border-radius:22px;padding:3px;border:1px solid rgba(255,255,255,0.06);position:relative}
+.seg-group .tab{border-radius:18px;padding:5px 14px}
+.seg-group .tab.active{background:rgba(255,255,255,0.1);box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+#chart-wrap{width:100%;height:calc(100vh - 88px);min-height:300px;position:relative;overflow:hidden}
+@media(max-width:768px){#chart-wrap{height:calc(100vh - 80px)}}
+@media(max-width:480px){#chart-wrap{height:calc(100vh - 70px);min-height:200px}}
+#chart-wrap svg{display:block;width:100%;height:100%}
+.loading{display:flex;align-items:center;justify-content:center;height:60vh;color:var(--text-muted);font-size:16px}
+.tile{cursor:pointer}
+.picker-wrap{position:relative}
+.picker-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:5px 12px 5px 14px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;max-width:180px}
+.picker-btn:hover{border-color:rgba(255,255,255,0.2)}
+.picker-btn:active{transform:scale(.96)}
+.picker-btn i{font-size:10px;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.picker-btn.open i{transform:rotate(180deg)}
+.picker-drop{position:absolute;top:calc(100% + 4px);left:0;background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;z-index:50;opacity:0;transform:translateY(-6px) scale(.95);pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);min-width:180px;max-height:280px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+.picker-drop.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.picker-scroll{overflow-y:auto;max-height:280px;padding:4px}
+.picker-scroll::-webkit-scrollbar{width:3px}
+.picker-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.picker-item{padding:7px 12px;border-radius:10px;font-size:13px;cursor:pointer;transition:all .15s;color:var(--text-muted)}
+.details-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none}
+.details-overlay.show{display:block}
+.details-panel{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:100vw;background:var(--surface);border-left:1px solid var(--border);z-index:201;transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.details-panel.open{transform:translateX(0)}
+.details-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.details-header>div{display:flex;flex-direction:column;gap:2px}
+.details-ticker{font-size:18px;font-weight:600;color:var(--accent)}
+.details-sub{font-size:12px;color:var(--text-muted)}
+.details-close{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .2s}
+.details-close:hover{background:rgba(255,255,255,0.06);color:var(--text)}
+.details-close:active{transform:scale(.85)}
+.details-body{flex:1;overflow-y:auto;padding:16px 20px}
+.details-body::-webkit-scrollbar{width:4px}
+.details-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.loading-sm{text-align:center;padding:40px 0;color:var(--text-muted);font-size:13px}
+.details-section{margin-bottom:16px}
+.details-section h3{font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.details-item{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.03);margin-bottom:6px;font-size:12px;line-height:1.4}
+.details-item strong{color:var(--text)}
+.details-item .date{color:var(--text-muted);font-size:11px}
+.details-item a{color:var(--accent);text-decoration:none;font-size:11px;display:inline-block;margin-top:4px}
+.details-item a:hover{text-decoration:underline}
+.details-empty{padding:20px 0;text-align:center;color:var(--text-muted);font-size:12px}
+.picker-item:hover{background:rgba(255,255,255,0.06);color:var(--text)}
+.picker-item.active{background:var(--accent-bg);color:var(--accent);font-weight:500}
+.tile:hover rect{stroke:rgba(255,255,255,0.3);stroke-width:1.5;filter:brightness(1.05)}
+.tile text{pointer-events:none;user-select:none;font-weight:500}
+footer{padding:8px 0 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)}
+
+.menu-mobile{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px;display:none;transition:all .2s}
+.menu-mobile:active{transform:scale(.9)}
+.view-toggle{background:none;border:1px solid var(--border);color:var(--text-muted);font-size:15px;cursor:pointer;padding:4px 10px;border-radius:8px;transition:all .2s;display:flex;align-items:center;gap:4px}
+.view-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.view-toggle:active{transform:scale(.9)}
+@media(max-width:768px){
+body{padding:8px}
+.menu-mobile{display:block}
+.header h1{font-size:16px}
+.controls{display:none;width:100%;flex-direction:column;gap:6px;padding:8px 0}
+.controls.open{display:flex}
+.controls .seg-group,.controls .picker-wrap,.controls .search{width:100%;max-width:none}
+.controls .picker-btn{max-width:none;justify-content:space-between}
+.search{width:100%!important;font-size:12px;padding:5px 10px}
+.tab{font-size:12px;padding:4px 10px}
+#chart-wrap{min-height:200px}
+footer{font-size:10px}
+}
+@media(max-width:480px){
+body{padding:4px}
+.header h1{font-size:15px}
+.controls{gap:4px}
+.search{width:90px;font-size:11px;padding:4px 8px}
+.btn{font-size:11px;padding:4px 10px}
+.tab{font-size:11px;padding:3px 8px}
+.sub{font-size:10px}
+footer{display:none}
+}
+.tooltip{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;pointer-events:none;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.5);display:none;min-width:160px}
+.tooltip .tt-ticker{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.tooltip .tt-row{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+.tooltip .tt-label{color:var(--text-muted)}
+.tooltip .tt-value{color:var(--text);font-weight:500}
+.tooltip .tt-value.up{color:#2bc16e}
+.tooltip .tt-value.down{color:#ee6363}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div style="display:flex;align-items:center;gap:8px">
+<h1>Ranking <span style="font-weight:400;color:var(--text)">de Cota&ccedil;&otilde;es</span></h1>
+<button class="view-toggle" id="viewToggle" onclick="toggleView()" title="Alternar visualiza\u00e7\u00e3o"><i class="fas fa-chart-bar" id="viewIcon"></i></button>
+<button class="menu-mobile" id="menuMobile" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+</div>
+<div class="sub" id="data-info" style="padding-left:0"></div>
+<div class="controls" id="controls">
+    <div class="stats" id="stats"></div>
+    <div class="seg-group">
+    <button class="tab active" data-asset="fiis" onclick="setAsset('fiis')">FIIs</button>
+    <button class="tab" data-asset="fiagro" onclick="setAsset('fiagro')">Fiagro</button>
+    <button class="tab" data-asset="fiinfra" onclick="setAsset('fiinfra')">FI-Infra</button>
+    <button class="tab" data-asset="acoes" onclick="setAsset('acoes')">Ações</button>
+    </div>
+    <div class="picker-wrap">
+    <button class="picker-btn" id="pickerBtn" onclick="togglePicker()"><span id="pickerLabel">Todos</span><i class="fas fa-chevron-down" id="pickerArrow"></i></button>
+    <div class="picker-drop" id="pickerDrop"><div class="picker-scroll" id="pickerScroll"></div></div>
+    <select id="segmento" style="display:none"></select>
+    </div>
+    <div class="seg-group">
+    <button class="tab active" data-mode="all" onclick="setMode('all')">Tudo</button>
+    <button class="tab" data-mode="gains" onclick="setMode('gains')">Altas</button>
+    <button class="tab" data-mode="losses" onclick="setMode('losses')">Baixas</button>
+    </div>
+    <input class="search" id="search" placeholder="Procurar..." oninput="onSearch()">
+    </div>
+</div>
+<div id="chart-wrap"><div id="loading" class="loading">Carregando dados...</div><svg id="svg"></svg></div>
+<footer><span id="update-time"></span></footer>
+</div>
+
+<!-- DETAILS PANEL -->
+<div id="detailsPanel" class="details-panel">
+<div class="details-header"><div><span id="detailsTicker"></span><span class="details-sub" id="detailsPrice"></span></div><button class="details-close" onclick="closeDetails()"><i class="fas fa-times"></i></button></div>
+<div class="details-body" id="detailsBody"><div class="loading-sm">Carregando...</div></div>
+</div>
+<div id="detailsOverlay" class="details-overlay" onclick="closeDetails()"></div>
+<div id="tooltip" class="tooltip">
+  <div class="tt-ticker" id="tt-ticker"></div>
+  <div class="tt-row"><span class="tt-label">Fech. anterior</span><span class="tt-value" id="tt-prev"></span></div>
+  <div class="tt-row"><span class="tt-label">Cotação</span><span class="tt-value" id="tt-price"></span></div>
+  <div class="tt-row"><span class="tt-label">Variação</span><span class="tt-value" id="tt-change"></span></div>
+  <div class="tt-row"><span class="tt-label">Volume</span><span class="tt-value" id="tt-volume"></span></div>
+  <div class="tt-row"><span class="tt-label">Atualização</span><span class="tt-value" id="tt-time"></span></div>
+</div>
+
+<script>
+const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
+const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
+const SHEET='https://docs.google.com/spreadsheets/d/e/2PACX-1vTNLjiN89VFLlcuyAc9p9KnbJ2kadE2-j3BIU9KMqLd0LQkkWjruQBMtAwipOSWp2aSFMWIw1bwmqyA/pub?gid=37231345&single=true&output=csv'
+let fundos=[],filtered=[],curData=[],mode='all',searchQuery='',dataSource='',lastUpdated='',selectedSegment='',selectedAsset='fiis'
+
+async function api(u){let r=await fetch(u,{headers:H});if(!r.ok)throw new Error(r.status);return r.json()}
+
+function parseBrNumber(s){
+if(!s||typeof s!='string')return null
+let n=s.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,'')
+return parseFloat(n)
+}
+
+function parseCSVLine(line){
+let cols=[],cur='',inQ=false
+for(let i=0;i<line.length;i++){
+let c=line[i]
+if(c=='"'){inQ=!inQ;continue}
+if(c==','&&!inQ){cols.push(cur.trim());cur='';continue}
+cur+=c
+}
+if(cur.trim())cols.push(cur.trim())
+return cols
+}
+
+async function fetchFromSheet(){
+let r=await fetch(SHEET)
+if(!r.ok)throw new Error('Sheet HTTP '+r.status)
+let csv=await r.text()
+let lines=csv.split('\n')
+let results=[]
+for(let i=1;i<lines.length;i++){
+if(!lines[i].trim())continue
+let cols=parseCSVLine(lines[i])
+if(cols.length<9)continue
+let ticker=cols[1].trim().toUpperCase()
+let priceRaw=cols[7].trim()
+let changeRaw=cols[8].trim()
+if(!ticker||!priceRaw||!changeRaw)continue
+let price=parseBrNumber(priceRaw)
+let change=parseBrNumber(changeRaw)
+if(price==null||change==null||Math.abs(change)>=100)continue
+results.push({ticker,price,change})
+}
+return results
+}
+
+function parseBr(s){
+if(!s||typeof s!='string')return null
+let n=s.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,'')
+return parseFloat(n)
+}
+
+async function fetchFromSupabase(){
+  let data=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,horario_ultima_transacao,data_referencia&tipo=not.is.null&order=data_referencia.desc&limit=1000')
+  if(!data.length)return[]
+  let batch=data.filter(r=>r.preco_ultimo_negocio)
+  if(batch.length>0){
+    lastUpdated=data[0].atualizado_em
+    let masterMap={}
+    try{
+      let PAGE=1000
+      let r0=await fetch(REST+'/00_Master?select=Ticker,Classe&limit='+PAGE,{headers:{...H,Prefer:'count=exact'}})
+      let rows0=await r0.json()
+      rows0.forEach(r=>{if(r.Ticker)masterMap[r.Ticker]={classe:r.Classe}})
+      let cr=r0.headers.get('content-range')
+      if(cr){
+        let m=cr.match(/\/(\d+)$/)
+        if(m){
+          let tot=+m[1]
+          for(let o=PAGE;o<tot;o+=PAGE){
+            try{
+              let ac=new AbortController();setTimeout(()=>ac.abort(),8000);let rn=await fetch(REST+'/00_Master?select=Ticker,Classe&limit='+PAGE+'&offset='+o,{headers:{...H,Prefer:'count=exact'},signal:ac.signal})
+              if(rn.ok){let rnj=await rn.json();rnj.forEach(x=>{if(x.Ticker)masterMap[x.Ticker]={classe:x.Classe}})}
+            }catch(e2){}
+          }
+        }
+      }
+    }catch(e){console.warn('MasterMap:',e)}
+    return batch.map(r=>{
+      let ticker=r.codigo_instrumento
+      let info=masterMap[ticker]||{}
+      let varNum=parseFloat(r.variacao)
+      return{
+        ticker,
+        price:parseFloat(r.preco_ultimo_negocio),
+        prevClose:r.fechamento_anterior?parseFloat(r.fechamento_anterior):null,
+        change:!isNaN(varNum)?varNum*100:0,
+        volume:parseFloat(r.volume_total)||0,
+        ultTransacao:r.horario_ultima_transacao||'',
+        dataRef:r.data_referencia||'',
+        segmento:info.classe||'',
+        categoria:info.classe||'',
+        tipo:info.classe||''
+      }
+    }).filter(f=>f!=null&&f.price!=null&&Math.abs(f.change)<=100)
+  }
+  return[]
+}
+
+function buildSegmentSelect(){
+try{
+let sel=document.getElementById('segmento')
+let sc=document.getElementById('pickerScroll')
+let current=sel.value
+let classeFiltro
+if(selectedAsset==='fiis')classeFiltro=f=>f.tipo==='FII'
+else if(selectedAsset==='fiagro')classeFiltro=f=>f.tipo==='Fiagro'
+else if(selectedAsset==='fiinfra')classeFiltro=f=>f.tipo==='FI-Infra'
+else if(selectedAsset==='acoes')classeFiltro=f=>f.tipo==='Ação'
+else classeFiltro=()=>true
+let filtrados=fundos.filter(classeFiltro)
+let segs=[...new Set(filtrados.map(f=>f.segmento).filter(s=>s))].sort()
+let items=[{value:'',label:'Todos'}]
+for(let s of segs)items.push({value:s,label:s})
+sel.innerHTML=items.map(i=>'<option value="'+i.value+'">'+i.label+'</option>').join('')
+sel.value=current||''
+sc.innerHTML=items.map(i=>'<div class="picker-item'+(i.value===(current||'')?' active':'')+'" data-val="'+i.value+'" onclick="pickSegment(\''+i.value+'\',this)">'+i.label+'</div>').join('')
+document.getElementById('pickerLabel').textContent=items.find(i=>i.value===(current||''))?.label||'Todos'
+}catch(e){console.warn('Segment error:',e)}
+}
+function togglePicker(){
+let d=document.getElementById('pickerDrop')
+let b=document.getElementById('pickerBtn')
+let opening=!d.classList.contains('open')
+d.classList.toggle('open')
+b.classList.toggle('open')
+if(opening){
+let at=document.querySelector('.picker-item.active')
+if(at)setTimeout(function(){at.scrollIntoView({block:'center',behavior:'smooth'})},50)
+}
+}
+function pickSegment(val,el){
+document.getElementById('segmento').value=val
+selectedSegment=val
+document.getElementById('pickerLabel').textContent=el.textContent
+document.getElementById('pickerDrop').classList.remove('open')
+document.getElementById('pickerBtn').classList.remove('open')
+document.querySelectorAll('.picker-item').forEach(i=>i.classList.remove('active'))
+el.classList.add('active')
+applyFilter()
+}
+
+async function loadData(){
+let ld=document.getElementById('loading')
+ld.style.display='flex';ld.textContent='Carregando...'
+try{
+// 1. Try Supabase b3_cotacoes_aovivo (atualizado pelo scraper)
+let fromDb=await fetchFromSupabase()
+if(fromDb.length>0){
+fundos=fromDb
+dataSource='Tempo real'
+ld.style.display='none'
+buildSegmentSelect()
+applyFilter()
+return
+}
+
+// 2. Try Google Sheets directly (fallback)
+let fromSheet=await fetchFromSheet()
+if(fromSheet.length>0){
+fundos=fromSheet
+dataSource='Google Finance'
+ld.style.display='none'
+buildSegmentSelect()
+applyFilter()
+return
+}
+
+// 3. No data available at all
+throw new Error('Nenhuma cotacao disponivel')
+}catch(e){ld.textContent='Erro: '+e.message}
+}
+
+function applyFilter(){
+filtered=[...fundos]
+if(selectedAsset==='fiis')filtered=filtered.filter(f=>f.tipo==='FII')
+else if(selectedAsset==='fiagro')filtered=filtered.filter(f=>f.tipo==='Fiagro')
+else if(selectedAsset==='fiinfra')filtered=filtered.filter(f=>f.tipo==='FI-Infra')
+else if(selectedAsset==='acoes')filtered=filtered.filter(f=>f.tipo==='Ação')
+let segFilter=getSegmentFilter(selectedSegment)
+if(segFilter)filtered=filtered.filter(segFilter)
+draw()
+}
+function onSearch(){
+searchQuery=document.getElementById('search').value.toUpperCase().trim()
+highlight()
+}
+function highlight(){
+if(chartView!=='mosaic')return
+let q=searchQuery
+d3.select('#svg').selectAll('g.tile').each(function(d){
+let match=!q||d.data.name.includes(q)
+d3.select(this).select('rect').transition().duration(200)
+.style('opacity',match?1:0.15)
+})
+}
+
+function setMode(m){
+mode=m
+document.querySelectorAll('[data-mode]').forEach(t=>t.classList.toggle('active',t.dataset.mode===m))
+applyFilter()
+}
+
+function getSegmentFilter(val){
+if(!val)return null
+if(val.startsWith('__')){
+let cat=val.replace('__','')
+return f=>f.categoria===cat
+}
+return f=>f.segmento===val
+}
+function onSegmentChange(){
+selectedSegment=document.getElementById('segmento').value
+applyFilter()
+}
+function setAsset(asset){
+selectedAsset=asset
+document.querySelectorAll('[data-asset]').forEach(b=>b.classList.toggle('active',b.dataset.asset===asset))
+selectedSegment=''
+buildSegmentSelect()
+applyFilter()
+}
+
+function toggleView(){
+let icon=document.getElementById('viewIcon')
+if(chartView==='mosaic'){
+chartView='bar'
+icon.className='fas fa-th'
+}else{
+chartView='mosaic'
+icon.className='fas fa-chart-bar'
+}
+d3.select('#svg').selectAll('*').remove()
+if(fundos.length)applyFilter()
+}
+
+function drawBarChart(chartData){
+let svg=d3.select('#svg')
+let wrap=document.getElementById('chart-wrap')
+wrap.style.height='auto';wrap.style.overflow='visible'
+let W=wrap.clientWidth
+data=chartData.slice().sort((a,b)=>b.change-a.change)
+let margin={top:20,right:60,bottom:10,left:130}
+let barH=18,gap=3
+let totalH=data.length*(barH+gap)+margin.top+margin.bottom
+wrap.style.height=Math.max(300,totalH)+'px'
+svg.attr('width',W).attr('height',totalH).style('width',W+'px').style('height',totalH+'px')
+let maxAbs=d3.max(data,d=>Math.abs(d.change))||1
+let w=W-margin.left-margin.right
+let xScale=d3.scaleLinear().domain([-maxAbs,maxAbs]).range([0,w]).nice()
+let zero=xScale(0)
+let yScale=d3.scaleBand().domain(data.map(d=>d.ticker)).range([margin.top,totalH-margin.bottom]).padding(.2)
+let g=svg.selectAll('.bg-bar').data(data,d=>d.ticker)
+g.exit().remove()
+let en=g.enter().append('g').attr('class','bg-bar')
+en.append('rect').attr('class','bar')
+en.append('text').attr('class','bar-label')
+en.append('text').attr('class','bar-value')
+g=en.merge(g)
+g.attr('transform',d=>'translate('+margin.left+','+yScale(d.ticker)+')')
+g.select('.bar').transition().duration(400).ease(d3.easeCubicOut)
+.attr('width',d=>Math.max(2,Math.abs(xScale(d.change)-zero)))
+.attr('height',yScale.bandwidth())
+.attr('x',d=>d.change>=0?zero:xScale(d.change))
+.attr('fill',d=>d.change>=0?'rgba(46,125,50,'+(.3+Math.min(Math.abs(d.change),maxAbs)/maxAbs*.5)+')':'rgba(180,50,50,'+(.3+Math.min(Math.abs(d.change),maxAbs)/maxAbs*.5)+')')
+g.select('.bar-label').attr('x',zero).attr('y',yScale.bandwidth()/2).attr('text-anchor',d=>d.change>=0?'end':'start').attr('dominant-baseline','middle').attr('fill','var(--accent)').attr('font-size','11px').attr('font-weight','600').text(d=>d.ticker)
+g.select('.bar-value').attr('x',d=>xScale(d.change)+4*(d.change>=0?1:-1)).attr('y',yScale.bandwidth()/2).attr('text-anchor',d=>d.change>=0?'start':'end').attr('dominant-baseline','middle').attr('fill',d=>d.change>=0?'#2bc16e':'#ee6363').attr('font-size','11px').attr('font-weight','600').text(d=>(d.change>0?'+':'')+d.change.toFixed(2)+'%')
+}
+
+function draw(){
+let wrap=document.getElementById('chart-wrap')
+let chartData=filtered.filter(f=>f.change!==0)
+if(mode==='gains')chartData=chartData.filter(f=>f.change>0)
+if(mode==='losses')chartData=chartData.filter(f=>f.change<0)
+d3.select('#svg').selectAll('*').remove()
+if(chartView==='bar'){drawBarChart(chartData);return}
+wrap.style.height='calc(100vh - 100px)';wrap.style.overflow='hidden'
+let W=wrap.clientWidth,H=wrap.clientHeight
+if(W<10||H<10)return
+
+let items=chartData
+let zeros=filtered.filter(f=>f.change===0)
+if(mode==='gains'||mode==='losses')zeros=[]
+document.getElementById('data-info').textContent=''
+document.getElementById('stats').innerHTML=''
+
+let all=[...items,...zeros]
+let vals=all.map(f=>Math.max(Math.abs(f.change)||0.001,0.001))
+curData=all
+
+// Build hierarchical data for D3 treemap
+let rootData={name:'root',children:all.map((f,i)=>({name:f.ticker,value:vals[i],change:f.change,price:f.price,volume:f.volume,prevClose:f.prevClose,ultTransacao:f.ultTransacao,dataRef:f.dataRef}))}
+
+let root=d3.hierarchy(rootData)
+.sum(d=>d.value)
+.sort((a,b)=>b.value-a.value)
+
+d3.treemap()
+.size([W,H])
+.padding(3)
+.round(true)
+(root)
+
+let svg=d3.select('#svg')
+svg.attr('width',W).attr('height',H)
+svg.style('width',W+'px').style('height',H+'px')
+
+let leaves=root.leaves()
+
+// Data join with key
+let cell=svg.selectAll('g.tile')
+.data(leaves,d=>d.data.name)
+
+// EXIT
+cell.exit()
+.transition().duration(400)
+.attr('transform',d=>{
+let cx=(d.x0+d.x1)/2,cy=(d.y0+d.y1)/2
+return 'translate('+cx+','+cy+')scale(0,0)'
+})
+.remove()
+
+// ENTER
+let enter=cell.enter().append('g')
+.attr('class','tile')
+.attr('transform','translate('+W/2+','+H/2+')scale(0,0)')
+.on('click',(event,d)=>{
+let fund=curData.find(f=>f.ticker===d.data.name)
+if(fund)showDetails(fund.ticker,fund.price,fund.change,fund.prevClose,fund.updatedAt)
+})
+
+enter.append('rect')
+.attr('rx',3).attr('ry',3)
+
+enter.append('text').attr('class','lbl-ticker')
+.attr('text-anchor','middle').attr('dominant-baseline','middle')
+.attr('fill','#fff').attr('font-weight','bold').attr('font-family','"Segoe UI",sans-serif')
+
+enter.append('text').attr('class','lbl-change')
+.attr('text-anchor','middle').attr('dominant-baseline','middle')
+.attr('fill','#fff').attr('font-family','"Segoe UI",sans-serif')
+
+enter.append('text').attr('class','lbl-price')
+.attr('text-anchor','middle').attr('dominant-baseline','middle')
+.attr('fill','rgba(255,255,255,0.7)').attr('font-family','"Segoe UI",sans-serif')
+
+// MERGE: update + enter
+cell=enter.merge(cell)
+
+// Update positions with transition
+cell.transition().duration(500).ease(d3.easeCubicOut)
+.attr('transform',d=>'translate('+d.x0+','+d.y0+')')
+
+cell.select('rect')
+.transition().duration(500).ease(d3.easeCubicOut)
+.attr('width',d=>Math.max(0,d.x1-d.x0))
+.attr('height',d=>Math.max(0,d.y1-d.y0))
+.attr('fill',d=>{
+let ch=d.data.change,a=Math.abs(ch),b=Math.min(1,a/10)
+if(ch>0)return 'rgba(46,125,50,'+(0.2+b*0.5)+')'
+if(ch<0)return 'rgba(180,50,50,'+(0.2+b*0.5)+')'
+return 'rgba(255,255,255,0.04)'
+})
+
+// Hover tooltip
+cell.on('mouseenter',function(event,d){showTooltip(event,d)})
+.on('mousemove',function(event){moveTooltip(event)})
+.on('mouseleave',hideTooltip)
+
+// Update text positions and content
+cell.each(function(d){
+let w=d.x1-d.x0,h=d.y1-d.y0
+let fs=Math.min(13,Math.max(8,w/7.5,h/5))
+let el=d3.select(this)
+let showText=h>fs*2.5&&w>fs*1.5
+
+let tk=el.select('.lbl-ticker')
+.attr('font-size',showText?fs+'px':'0px')
+.attr('x',w/2).attr('y',h/2-fs*0.3)
+.text(showText?d.data.name:'')
+
+let s=d.data.change>0?'+':''
+el.select('.lbl-change')
+.attr('font-size',showText?fs*0.85+'px':'0px')
+.attr('x',w/2).attr('y',h/2+fs*0.8)
+.text(showText?s+d.data.change.toFixed(2)+'%':'')
+
+let showPrice=h>fs*4.5
+el.select('.lbl-price')
+.attr('font-size',showPrice?fs*0.75+'px':'0px')
+.attr('x',w/2).attr('y',h/2+fs*1.9)
+.text(showPrice?'R$'+d.data.price.toFixed(2):'')
+})
+
+// After transitions complete, apply highlight
+setTimeout(highlight, 600)
+
+let upd=lastUpdated||new Date().toISOString()
+let d=new Date(upd)
+let dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=d.getFullYear()
+let hh=String(d.getHours()).padStart(2,'0'),mn=String(d.getMinutes()).padStart(2,'0')
+document.getElementById('update-time').textContent='Atualizado: '+dd+'/'+mm+'/'+yy+' | '+hh+':'+mn
+}
+
+let selectedTicker=''
+let chartView='mosaic'
+
+function showDetails(ticker,price,change){
+if(selectedTicker===ticker){closeDetails();return}
+selectedTicker=ticker
+document.getElementById('detailsTicker').textContent=ticker
+document.getElementById('detailsPrice').textContent='R$ '+price.toFixed(2)+' ('+(change>0?'+':'')+change.toFixed(2)+'%)'
+document.getElementById('detailsBody').innerHTML='<div class="loading-sm">Carregando...</div>'
+document.getElementById('detailsPanel').classList.add('open')
+document.getElementById('detailsOverlay').classList.add('show')
+// Fetch data from fnet_tudo
+let encTicker=encodeURIComponent(ticker)
+Promise.all([
+api(REST+"/fnet_tudo?select=nome_fundo,tipo_documento,data_entrega,link_visualizar,link_documento,codigo_fundo&categoria_documento=eq.Relat\u00f3rios&codigo_fundo=eq."+encTicker+"&order=data_entrega.desc&limit=1"),
+api(REST+"/fnet_tudo?select=nome_fundo,tipo_documento,data_entrega,link_visualizar,link_documento,codigo_fundo&categoria_documento=eq.Fato%20Relevante&codigo_fundo=eq."+encTicker+"&order=data_entrega.desc&limit=3"),
+api(REST+"/fnet_tudo?select=nome_fundo,data_com,data_pagamento,rendimento,tipo,codigo_fundo&tipo=eq.Dividendo&codigo_fundo=eq."+encTicker+"&order=data_com.desc&limit=1"),
+]).then(function(results){
+let html=''
+let rels=results[0],facts=results[1],divs=results[2]
+html+='<div class="details-section"><h3>\u{1F4C4} Relat\u00f3rio</h3>'
+if(rels.length){
+for(let r of rels)html+='<div class="details-item"><strong>'+r.tipo_documento+'</strong><div class="date">'+r.data_entrega.slice(0,10)+'</div>'+(r.link_visualizar||r.link_documento?'<a href="'+(r.link_visualizar||r.link_documento)+'" target="_blank">Abrir documento</a>':'')+'</div>'
+}else{html+='<div class="details-item" style="color:var(--text-muted)">Nenhum relat\u00f3rio dispon\u00edvel.</div>'}
+html+='</div>'
+html+='<div class="details-section"><h3>\u26A1 Fatos Relevantes</h3>'
+if(facts.length){
+for(let f of facts)html+='<div class="details-item"><strong>'+f.tipo_documento+'</strong><div class="date">'+f.data_entrega.slice(0,10)+'</div>'+(f.link_visualizar||f.link_documento?'<a href="'+(f.link_visualizar||f.link_documento)+'" target="_blank">Abrir documento</a>':'')+'</div>'
+}else{html+='<div class="details-item" style="color:var(--text-muted)">Nenhum fato relevante dispon\u00edvel.</div>'}
+html+='</div>'
+html+='<div class="details-section"><h3>\u{1F4B0} Dividendos</h3>'
+if(divs.length){
+for(let d of divs){
+let val=d.rendimento!=null?d.rendimento:null
+html+='<div class="details-item"><strong>'+(d.tipo||'Rendimento')+'</strong><div class="date">Data com: '+(d.data_com?d.data_com.slice(0,10):'-')+' | Pagamento: '+(d.data_pagamento?d.data_pagamento.slice(0,10):'-')+'</div>'+(val!=null?'<div style="margin-top:4px;font-size:13px;color:var(--accent);font-weight:600">R$ '+val.toFixed(4)+'</div>':'')+'</div>'
+}
+}else{html+='<div class="details-item" style="color:var(--text-muted)">Nenhum dividendo dispon\u00edvel.</div>'}
+html+='</div>'
+document.getElementById('detailsBody').innerHTML=html
+}).catch(function(){
+document.getElementById('detailsBody').innerHTML='<div class="details-empty">Erro ao carregar dados.</div>'
+})
+}
+
+function showTooltip(event,d){
+let tip=document.getElementById('tooltip')
+let data=d.data
+document.getElementById('tt-ticker').textContent=data.name
+let pc=data.prevClose!=null?'R$ '+data.prevClose.toFixed(2):'-'
+document.getElementById('tt-prev').textContent=pc
+document.getElementById('tt-price').textContent='R$ '+data.price.toFixed(2)
+let ch=data.change,chEl=document.getElementById('tt-change')
+chEl.textContent=(ch>0?'+':'')+ch.toFixed(2)+'%'
+chEl.className='tt-value'+(ch>0?' up':ch<0?' down':'')
+let vol=data.volume||0,fmtVol
+if(vol>=1e9)fmtVol=(vol/1e9).toFixed(2)+' bi'
+else if(vol>=1e6)fmtVol=(vol/1e6).toFixed(1)+' mi'
+else if(vol>=1e3)fmtVol=(vol/1e3).toFixed(1)+' mil'
+else fmtVol='R$ '+vol.toFixed(2)
+document.getElementById('tt-volume').textContent=fmtVol
+let dt=data.dataRef||'',hr=data.ultTransacao||''
+if(dt){let p=dt.split('-');dt=p[2]+'/'+p[1]+'/'+p[0]}
+if(hr&&hr.length>=5)hr=hr.slice(0,5)
+document.getElementById('tt-time').textContent=(dt?dt+' | ':'')+hr
+tip.style.display='block'
+moveTooltip(event)
+}
+function moveTooltip(event){
+let tip=document.getElementById('tooltip')
+let x=event.clientX+14,y=event.clientY-10
+let tw=tip.offsetWidth||200,th=tip.offsetHeight||140
+if(x+tw>window.innerWidth-10)x=event.clientX-tw-14
+if(y+th>window.innerHeight-10)y=event.clientY-th-10
+tip.style.left=x+'px';tip.style.top=y+'px'
+}
+function hideTooltip(){
+document.getElementById('tooltip').style.display='none'
+}
+
+function closeDetails(){
+selectedTicker=''
+document.getElementById('detailsPanel').classList.remove('open')
+document.getElementById('detailsOverlay').classList.remove('show')
+}
+
+function toggleMobileMenu(){
+document.getElementById('controls').classList.toggle('open')
+}
+window.onload=loadData
+window.addEventListener('resize',function(){if(fundos.length)applyFilter()})
+document.addEventListener('click',function(e){
+if(!e.target.closest('.picker-wrap')){
+let d=document.getElementById('pickerDrop')
+if(d)d.classList.remove('open')
+let b=document.getElementById('pickerBtn')
+if(b)b.classList.remove('open')
+}
+})
+</script>
+</body>
+</html>

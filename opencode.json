@@ -2,22 +2,15 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "anthropic/claude-sonnet-4-5",
   "small_model": "anthropic/claude-haiku-4-5",
-  "permission": {
-    "bash": "ask",
-    "write": "ask",
-    "edit": "ask"
-  },
+  "permission": "allow",
   "formatter": true,
   "lsp": true,
   "mcp": {
     "supabase": {
       "type": "local",
-      "command": ["npx", "-y", "@supabase/mcp-server-supabase"],
-      "enabled": true,
-      "environment": {
-        "SUPABASE_ACCESS_TOKEN": "{env:SUPABASE_ACCESS_TOKEN}",
-        "SUPABASE_PROJECT_REF": "{env:SUPABASE_PROJECT_REF}"
-      }
+      "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", "./scripts/mcp-supabase.ps1"],
+
+      "enabled": true
     }
   },
   "command": {

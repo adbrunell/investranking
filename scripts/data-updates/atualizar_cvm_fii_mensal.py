@@ -1,6 +1,7 @@
 import os
 import csv
 import io
+import sys
 import zipfile
 from datetime import datetime
 
@@ -59,10 +60,34 @@ def parse_csv(data: bytes, csv_filename: str, db_cols: set) -> list[dict]:
             return rows
 
 
-def upsert_rows(table_name: str, rows: list[dict]):
+def get_existing_keys(table_name: str, year: int) -> set:
+    all_keys = set()
+    offset = 0
+    limit = 1000
+    while True:
+        r = (
+            supabase.table(table_name)
+            .select(",".join(UNIQUE_KEYS))
+            .gte("data_referencia", f"{year}-01-01")
+            .lte("data_referencia", f"{year}-12-31")
+            .range(offset, offset + limit - 1)
+            .execute()
+        )
+        if not r.data:
+            break
+        for row in r.data:
+            key = tuple(str(row[k]) if row[k] is not None else None for k in UNIQUE_KEYS)
+            all_keys.add(key)
+        if len(r.data) < limit:
+            break
+        offset += limit
+    return all_keys
+
+
+def upsert_rows(table_name: str, rows: list[dict]) -> int:
     if not rows:
         print(f"  Nothing to insert.")
-        return
+        return 0
 
     seen = set()
     deduped = []
@@ -72,6 +97,10 @@ def upsert_rows(table_name: str, rows: list[dict]):
             seen.add(key)
             deduped.append(row)
 
+    if not deduped:
+        print(f"  Nothing to insert.")
+        return 0
+
     batch_size = 500
     total = 0
     for i in range(0, len(deduped), batch_size):
@@ -79,21 +108,29 @@ def upsert_rows(table_name: str, rows: list[dict]):
         supabase.table(table_name).upsert(batch, on_conflict=",".join(UNIQUE_KEYS)).execute()
         total += len(batch)
     print(f"  Synced {total} rows.")
+    return total
 
 
 def main():
     current_year = datetime.now().year
+    total_inserted = 0
+    error_count = 0
 
     db_cols_cache = {}
     for db_table in TABLES:
         db_cols_cache[db_table] = get_db_columns(db_table)
 
-    for year in range(2016, current_year + 1):
+    r = supabase.table("cvm_fii_geral").select("data_referencia").order("data_referencia", desc=True).limit(1).execute()
+    last_year = datetime.strptime(r.data[0]["data_referencia"], "%Y-%m-%d").year if r.data else 2016
+    start_year = min(last_year, current_year)
+
+    for year in range(start_year, current_year + 1):
         print(f"\n=== Year {year} ===")
         try:
             zip_data = download_zip(year)
         except httpx.HTTPError as e:
             print(f"  Download failed: {e}")
+            error_count += 1
             continue
 
         for db_table, csv_prefix in TABLES.items():
@@ -102,10 +139,20 @@ def main():
             print(f"  {csv_filename}")
             try:
                 rows = parse_csv(zip_data, csv_filename, db_cols)
-                upsert_rows(db_table, rows)
+                existing = get_existing_keys(db_table, year)
+                new_rows = [r for r in rows if tuple(r.get(k) for k in UNIQUE_KEYS) not in existing]
+                count = upsert_rows(db_table, new_rows)
+                total_inserted += count
             except KeyError:
                 print(f"  Not in zip, skipping.")
                 continue
+
+    if error_count > 0:
+        print(f"RESULT:ERRO({error_count})")
+        sys.exit(1)
+    else:
+        print(f"RESULT:OK({total_inserted})")
+        sys.exit(0)
 
 
 if __name__ == "__main__":

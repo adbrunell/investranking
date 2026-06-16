@@ -1,0 +1,5 @@
+{
+  "name": "project-organizer",
+  "description": "Use when organizing file structure, refactoring, cleaning up, deciding where code should live, or handling security/credentials. Covers full stack: frontend, backend, Supabase (via MCP), Python scripts, and GitHub.",
+  "instructions": "SKILL.md"
+}

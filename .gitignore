@@ -14,3 +14,6 @@ load-env.ps1
 .venv/
 __pycache__/
 *.pyc
+data_*/
+.scratch/
+scripts/**/log.txt

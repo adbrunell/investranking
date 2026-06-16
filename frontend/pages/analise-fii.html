@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner de Fundos</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--text:#e2e5e9;--muted:#8b949e;--yellow:#ffde59;--green:#2ec4b6;--border:#21262d;--radius:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:0 16px 16px;min-height:100vh;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,17,23,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:44px;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 12px;padding:0 20px}
+.topbar h1{font-size:18px;font-weight:600;color:var(--yellow);display:flex;align-items:center;gap:8px}
+.topbar h1 span{color:var(--text);font-weight:400}
+.icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px;border-radius:4px}
+.icon-btn:hover{color:var(--text)}
+.search-input{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 12px 6px 30px;color:var(--text);font-size:12px;outline:none;width:100%;font-family:inherit}
+.search-input::placeholder{color:var(--muted)}
+.search-wrap{position:relative}
+.search-wrap .fa-search{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px}
+.btn-outline{background:var(--card);border:1px solid var(--border);color:var(--yellow);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn-outline:hover{border-color:var(--yellow)}
+.btn-primary{background:var(--yellow);border:none;color:#000;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.btn-primary:hover{opacity:.9}
+.info-grid{display:flex;padding:0 4px 16px;gap:24px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.info-item{display:flex;flex-direction:column;gap:2px}
+.info-item .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.info-item .value{font-size:13px;color:var(--text);font-weight:500}
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 4px}
+.metric-card{background:var(--card);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--border)}
+.metric-card .label{font-size:11px;color:var(--yellow);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.metric-card .value{font-size:22px;font-weight:700;color:var(--text)}
+.bottom-section{padding:16px 24px 32px}
+.chart-panel{background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.chart-panel-header{margin-bottom:16px}
+.chart-panel-title-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.chart-panel-title-row h2{font-size:16px;font-weight:600;margin:0}
+.chart-panel-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.toggle-group{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.toggle-switch{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#444;border-radius:20px;cursor:pointer;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#888;transition:transform .2s}
+.toggle-switch input:checked+.toggle-slider{background:#555}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(16px);background:var(--yellow)}
+.period-btns{display:flex;gap:4px;flex-wrap:wrap}
+.btn-period{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:14px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-period:hover{border-color:var(--muted);color:var(--text)}
+.btn-period.active{background:var(--yellow);color:#000;border-color:var(--yellow);font-weight:600}
+.toggle-switch[data-div=yield] input:checked+.toggle-slider::before{background:#81c995}
+.toggle-switch[data-div=preco] input:checked+.toggle-slider::before{background:#4285F4}
+.toggle-switch[data-vol=true] input:checked+.toggle-slider::before{background:#4285F4}
+.btn-period-div{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:14px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-period-div:hover{border-color:var(--muted);color:var(--text)}
+.btn-period-div.active{background:var(--yellow);color:#000;border-color:var(--yellow);font-weight:600}
+.price-strip{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.price-strip-item{flex:1;min-width:100px;background:var(--card);border-radius:var(--radius);padding:12px 14px;border:1px solid var(--border);display:flex;flex-direction:column;justify-content:center}
+.price-strip-item .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.price-strip-item .value{font-size:18px;font-weight:700;color:var(--yellow);line-height:1.2}
+.price-strip-item .value.green{color:var(--green)}
+.chart-area{width:100%}
+.chart-area canvas{width:100%;height:380px;display:block;border-radius:var(--radius)}
+.chart-tooltip{position:absolute;background:#1c1c1e;border:1px solid var(--border);border-radius:8px;padding:10px 14px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;font-size:13px;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.4);min-width:160px}
+.chart-tooltip.visible{opacity:1}
+.chart-tooltip .tt-date{color:var(--muted);font-size:11px}
+.chart-tooltip .tt-price{color:var(--text);font-weight:600;font-size:14px}
+.chart-tooltip .tt-vol{color:var(--muted);font-size:11px;margin-top:2px}
+.chart-wrap{position:relative}
+.icon-square{width:28px;height:28px;background:var(--card);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.question-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font-size:9px;margin-left:4px;cursor:help}
+.marker-filters{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px;justify-content:center;font-size:12px;color:var(--muted)}
+.marker-filters .filter-label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.marker-filters .toggle-switch{width:30px;height:18px}
+.marker-filters .toggle-slider::before{width:14px;height:14px}
+.marker-filters .toggle-switch input:checked+.toggle-slider::before{transform:translateX(12px)}
+.toggle-switch[data-type=relatorio] input:checked+.toggle-slider::before{background:#4285F4}
+.toggle-switch[data-type=relevante] input:checked+.toggle-slider::before{background:var(--yellow)}
+.toggle-switch[data-type=dividendo] input:checked+.toggle-slider::before{background:#81c995}
+.toggle-switch[data-type=youtube] input:checked+.toggle-slider::before{background:#FF0000}
+.yt-btn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border:1px solid var(--border);border-radius:14px;font-size:11px;color:var(--muted);cursor:pointer;background:transparent;user-select:none;white-space:nowrap}
+.yt-btn:hover{border-color:#FF0000;color:#FF0000}
+.yt-panel{position:fixed;background:#1c1c1e;border:1px solid #38383a;border-radius:14px;padding:6px 0;z-index:100;min-width:200px;max-width:260px;max-height:260px;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.yt-option{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;color:#f0f0f0;font-size:13px;transition:background .15s}
+.yt-option:hover{background:#2c2c2e}
+.yt-option input{display:none}
+.yt-check{width:20px;height:20px;border:2px solid #555;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.yt-option input:checked+.yt-check{background:#FF0000;border-color:#FF0000}
+.yt-option input:checked+.yt-check::after{content:'';width:6px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-1px}
+#panel-minmax > div{flex-wrap:wrap;row-gap:2px;align-items:center}
+@media(max-width:900px){
+.metrics-row{grid-template-columns:repeat(2,1fr)}
+.price-strip-item{min-width:110px}
+#panel-minmax > div > span[id]{font-size:11px!important}
+#panel-minmax > div > span[id=preco-atual]{font-size:16px!important}
+}
+@media(max-width:700px){.price-strip{flex-wrap:wrap}.price-strip-item{min-width:45%;flex:1!important}}
+@media(max-width:500px){
+.topbar{height:auto;padding:8px 12px;gap:4px}
+.topbar h1{font-size:15px}
+.search-input{font-size:11px;padding:4px 10px 4px 26px}
+.info-grid{gap:8px;font-size:12px}
+.info-item .value{font-size:12px}
+.metrics-row{gap:8px;padding:12px 4px}
+.metric-card{padding:10px}
+.metric-card .value{font-size:16px}
+.price-strip-item{padding:8px 10px;min-height:60px}
+.price-strip-item .value{font-size:14px!important}
+.price-strip-item .value[style*="font-size:22px"]{font-size:16px!important}
+.price-strip-item .value[style*="font-size:20px"]{font-size:15px!important}
+.price-strip-item .value[style*="font-size:13px"]{font-size:11px!important}
+.chart-panel{padding:10px}
+.chart-panel-title-row h2{font-size:14px}
+.bottom-section{padding:8px 12px 16px}
+.period-btns{gap:2px}
+.btn-period,.btn-period-div{font-size:10px;padding:3px 8px}
+.marker-filters{gap:6px;font-size:10px}
+.chart-panel-title-row{flex-direction:column;align-items:flex-start}
+.chart-panel-right{width:100%}
+}
+@media(max-width:400px){
+.metrics-row{grid-template-columns:1fr 1fr}
+.info-grid{gap:4px;font-size:11px}
+.price-strip-item{min-width:100%}
+.chart-panel-title-row h2{font-size:13px}
+.market-filters .toggle-switch{width:24px;height:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Scanner <span>de Fundos</span></h1>
+  <div class="search-wrap" style="flex:1;max-width:200px">
+    <i class="fas fa-search"></i>
+    <input class="search-input" list="fund-list" id="fund-search" placeholder="Buscar ativo..." onchange="changeFund(this.value)">
+    <datalist id="fund-list"></datalist>
+  </div>
+</div>
+
+<div class="info-grid" id="info-grid">
+  <div class="info-item"><span class="label">Fundo</span><span class="value" style="color:var(--yellow);font-size:16px" id="info-fundo">—</span></div>
+  <div class="info-item"><span class="label">CNPJ</span><span class="value" id="info-cnpj">—</span></div>
+  <div class="info-item"><span class="label">Tipo</span><span class="value" id="info-tipo">—</span></div>
+  <div class="info-item"><span class="label">Segmento</span><span class="value" id="info-segmento">—</span></div>
+  <div class="info-item"><span class="label">Tipo de Gestão</span><span class="value" id="info-gestao">—</span></div>
+  <div class="info-item"><span class="label">Público Alvo</span><span class="value" id="info-publico">—</span></div>
+  <div class="info-item"><span class="label">Taxa de Adm.</span><span class="value" id="info-taxa">—</span></div>
+</div>
+
+<div class="metrics-row" id="metrics-row">
+  <div class="metric-card"><span class="label">P/VP</span><span class="value" id="met-pvp">—</span></div>
+  <div class="metric-card"><span class="label">Dividend Yield (12m)</span><span class="value" id="met-dy">—</span></div>
+  <div class="metric-card"><span class="label">Idade</span><span class="value" id="met-idade">—</span></div>
+  <div class="metric-card"><span class="label">Alavancagem Bruta</span><span class="value" id="met-alavancagem">—</span></div>
+</div>
+</div>
+
+<div class="bottom-section">
+  <div class="chart-panel">
+    <div class="chart-panel-header">
+      <div class="chart-panel-title-row">
+        <h2>Cotação</h2>
+        <div class="chart-panel-right">
+        <div class="toggle-group">
+          <label class="toggle-switch"><input type="checkbox" checked onchange="toggleAjuste()"><span class="toggle-slider"></span></label>
+          <span>Sem Ajuste</span>
+        </div>
+        <div class="toggle-group">
+          <label class="toggle-switch" data-vol="true"><input type="checkbox" id="toggle-volume" checked onchange="toggleLiquidez()"><span class="toggle-slider"></span></label>
+          <span>Liquidez</span>
+        </div>
+          <div class="period-btns">
+            <button class="btn-period" data-range="7">7D</button>
+            <button class="btn-period" data-range="30">1M</button>
+            <button class="btn-period" data-range="90">3M</button>
+            <button class="btn-period" data-range="180">6M</button>
+            <button class="btn-period active" data-range="365">1A</button>
+            <button class="btn-period" data-range="730">2A</button>
+            <button class="btn-period" data-range="1095">3A</button>
+            <button class="btn-period" data-range="0">Tudo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="price-strip">
+      <div class="price-strip-item" id="panel-minmax">
+        <div class="label">Mínimo | Cotação | Máximo</div>
+        <div style="display:flex;align-items:baseline;gap:6px">
+          <span style="font-size:13px;color:var(--text);font-weight:500" id="preco-min">—</span>
+          <span style="color:var(--muted);font-size:11px">|</span>
+          <span style="font-size:22px;font-weight:700;color:var(--yellow)" id="preco-atual">—</span>
+          <span style="color:var(--muted);font-size:11px">|</span>
+          <span style="font-size:13px;color:var(--text);font-weight:500" id="preco-max">—</span>
+        </div>
+      </div>
+      <div class="price-strip-item">
+        <div class="label">Variação</div>
+        <div class="value" id="preco-variacao">—</div>
+      </div>
+      <div class="price-strip-item">
+        <div class="label">Liquidez Média Diária</div>
+        <div class="value" id="preco-volume">—</div>
+      </div>
+      <div class="price-strip-item" style="flex:1;min-width:100px;overflow:hidden">
+        <div class="label">Atratividade</div>
+        <div style="width:100%;height:40px;position:relative">
+          <canvas id="gauge" style="width:100%;height:40px;display:block"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-area">
+      <div class="chart-wrap">
+        <canvas id="chart"></canvas>
+        <canvas id="chart-overlay" style="position:absolute;top:0;left:0;pointer-events:none"></canvas>
+        <div class="chart-tooltip" id="tooltip">
+          <div class="tt-date" id="tt-date"></div>
+          <div class="tt-price" id="tt-price"></div>
+          <div class="tt-vol" id="tt-vol"></div>
+          <div class="tt-marker" id="tt-marker" style="display:none;margin-top:4px;padding-top:4px;border-top:1px solid #333;font-size:12px"></div>
+          <div class="tt-marker-sub" id="tt-marker-sub" style="display:none;font-size:11px;color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marker-filters">
+      <label class="filter-label">
+            <span class="toggle-switch" data-type="relatorio">
+            <input type="checkbox" data-type="relatorio" onchange="toggleMarker(this)">
+          <span class="toggle-slider"></span>
+        </span>
+        Relatórios
+      </label>
+      <label class="filter-label">
+            <span class="toggle-switch" data-type="relevante">
+            <input type="checkbox" data-type="relevante" onchange="toggleMarker(this)">
+          <span class="toggle-slider"></span>
+        </span>
+        Fatos Relevantes
+      </label>
+      <label class="filter-label">
+        <span class="toggle-switch" data-type="dividendo">
+          <input type="checkbox" data-type="dividendo" onchange="toggleMarker(this)">
+          <span class="toggle-slider"></span>
+        </span>
+        Dividendos
+      </label>
+      <label class="filter-label">
+        <span class="toggle-switch" data-type="youtube">
+          <input type="checkbox" data-type="youtube" onchange="toggleMarker(this)">
+          <span class="toggle-slider"></span>
+        </span>
+        Vídeos
+      </label>
+      <div id="yt-btn" class="yt-btn" style="display:none" onclick="toggleYtPanel(event)">
+        <span id="yt-label">Canais</span>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#999" stroke-width="1.5"><path d="M2 4l3 3 3-3"/></svg>
+      </div>
+      <div id="yt-panel" class="yt-panel" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-section" style="padding-top:0">
+  <div class="chart-panel">
+    <div class="chart-panel-header">
+      <div class="chart-panel-title-row">
+        <h2>Dividendos</h2>
+        <div class="chart-panel-right">
+          <div class="period-btns">
+            <button class="btn-period-div" data-range="180">6M</button>
+            <button class="btn-period-div active" data-range="365">1A</button>
+            <button class="btn-period-div" data-range="730">2A</button>
+            <button class="btn-period-div" data-range="1095">3A</button>
+            <button class="btn-period-div" data-range="0">Tudo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="price-strip">
+      <div class="price-strip-item">
+        <div class="label">Último</div>
+        <div class="value"><span style="font-size:20px;color:var(--yellow);font-weight:700" id="div-ultimo">—</span> <span style="font-size:13px;color:var(--text);font-weight:500" id="div-ultimo-dy"></span></div>
+      </div>
+      <div class="price-strip-item">
+        <div class="label" id="div-total-label">Total</div>
+        <div class="value"><span style="font-size:20px;color:var(--yellow);font-weight:700" id="div-total">—</span> <span style="font-size:13px;color:var(--text);font-weight:500" id="div-total-dy"></span></div>
+      </div>
+      <div class="price-strip-item">
+        <div class="label" id="div-cagr-label">CAGR</div>
+        <div class="value" id="div-cagr">—</div>
+      </div>
+    </div>
+
+    <div class="chart-area">
+      <div class="chart-wrap">
+        <canvas id="chart-div"></canvas>
+        <canvas id="chart-div-overlay" style="position:absolute;top:0;left:0;pointer-events:none"></canvas>
+        <div class="chart-tooltip" id="tooltip-div">
+          <div class="tt-date" id="tt-div-date"></div>
+          <div class="tt-price" id="tt-div-valor"></div>
+          <div class="tt-vol" id="tt-div-yield"></div>
+        </div>
+      </div>
+    </div>
+    <div class="marker-filters" style="margin-top:8px">
+      <label class="filter-label">
+        <span class="toggle-switch" data-div="yield"><input type="checkbox" id="toggle-yield" checked onchange="toggleDivYield()"><span class="toggle-slider"></span></span>
+        Dividend Yield
+      </label>
+      <label class="filter-label">
+        <span class="toggle-switch" data-div="preco"><input type="checkbox" id="toggle-preco" checked onchange="toggleDivPreco()"><span class="toggle-slider"></span></span>
+        Cotação
+      </label>
+    </div>
+  </div>
+</div>
+
+<script>
+const REST = 'https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
+const H = { apikey: 'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR', Authorization: 'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR' }
+const YELLOW = '#ffde59'
+const GREEN = '#2ec4b6'
+
+let currentTicker = 'GARE11'
+let allPrices = []
+let fundosDisponiveis = []
+let fundEvents = []
+let markerFilters = { relatorio: false, relevante: false, dividendo: false, youtube: false }
+let youtubeChannelFilter = []
+let markerData = []
+
+function fmtBRL(v) {
+  if (v == null || isNaN(v)) return 'R$ 0,00'
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+function fmtPct(v) {
+  if (v == null || isNaN(v)) return '—'
+  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%'
+}
+function capitalize(str) {
+  if (!str) return '—'
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+}
+function parseDate(s) {
+  if (!s) return null
+  let d = new Date(s + 'T12:00:00')
+  return isNaN(d.getTime()) ? null : d
+}
+function fmtShortDate(d) {
+  return d.toLocaleDateString('pt-BR', { month: '2-digit', year: '2-digit' })
+}
+
+async function api(url) {
+  let r = await fetch(url, { headers: H })
+  if (!r.ok) throw new Error(r.status + ' ' + await r.text())
+  return r.json()
+}
+
+async function apiAll(url) {
+  let PAGE = 1000, all = []
+  let r = await fetch(url + '&limit=' + PAGE, { headers: { ...H, 'Prefer': 'count=exact' } })
+  if (!r.ok) throw new Error(await r.text())
+  let total = 0, cr = r.headers.get('content-range')
+  if (cr) { let m = cr.match(/\/(\d+)$/); if (m) total = +m[1] }
+  let first = await r.json()
+  all.push(...first)
+  if (total > PAGE) {
+    for (let i = PAGE; i < total; i += PAGE) {
+      let r2 = await fetch(url + '&limit=' + PAGE + '&offset=' + i, { headers: H })
+      if (r2.ok) all.push(...await r2.json())
+    }
+  }
+  return all
+}
+
+async function loadFundList() {
+  try {
+    let rows = await api(REST + '/00_fundos_master?select=ticker&limit=2000')
+    fundosDisponiveis = [...new Set(rows.map(r => r.ticker).filter(Boolean))].sort()
+    let dl = document.getElementById('fund-list')
+    dl.innerHTML = fundosDisponiveis.map(t => '<option value="' + t + '">').join('')
+  } catch (e) { console.warn('fund list:', e) }
+}
+
+function changeFund(ticker) {
+  ticker = ticker.toUpperCase().trim()
+  if (!ticker || ticker === currentTicker) return
+  currentTicker = ticker
+  loadFundData(ticker)
+}
+
+let _markerAnim = null
+
+function toggleMarker(el) {
+  let tipo = el.dataset.type
+  let wasOn = !el.checked // before toggle
+  markerFilters[tipo] = el.checked
+  if (_markerAnim) { cancelAnimationFrame(_markerAnim.raf); _markerAnim = null }
+  _markerAnim = { tipo, progress: 0, direction: el.checked ? 1 : -1, t0: performance.now() }
+  let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+  drawChart(range)
+  animateMarkers()
+}
+
+function animateMarkers() {
+  let a = _markerAnim
+  if (!a) return
+  let elapsed = performance.now() - a.t0
+  let dur = 500
+  a.progress = Math.min(1, elapsed / dur)
+  let p = 1 - Math.pow(1 - a.progress, 3)
+
+  let canvas = document.getElementById('chart')
+  let overlay = document.getElementById('chart-overlay')
+  if (!canvas || !overlay || !lastMarkerData || lastMarkerData.length === 0) { _markerAnim = null; return }
+  let octx = overlay.getContext('2d')
+  let dpr = window.devicePixelRatio || 1
+  let w = canvas.width / dpr
+  let h = canvas.height / dpr
+  octx.clearRect(0, 0, w, h)
+
+  let markerColors = { relatorio: '#4285F4', relevante: '#ffde59', dividendo: '#81c995', youtube: '#FF0000' }
+  let iconMap = { relatorio: 'R', relevante: '!', dividendo: '$', youtube: '' }
+    let goingUp = a.direction > 0
+
+  function drawMarkerIcon(ctx2, x, y, color, tipo) {
+    let cx = x + 1, cy = y + 2
+    ctx2.save()
+    ctx2.beginPath(); ctx2.arc(cx, cy, 10, 0, Math.PI * 2)
+    ctx2.fillStyle = '#131314'; ctx2.fill()
+    ctx2.strokeStyle = color; ctx2.lineWidth = 2; ctx2.stroke()
+    if (tipo === 'youtube') {
+      ctx2.beginPath(); let s = 5, sx = cx - 1
+      ctx2.moveTo(sx - s * 0.35, cy - s * 0.5)
+      ctx2.lineTo(sx - s * 0.35, cy + s * 0.5)
+      ctx2.lineTo(sx + s * 0.5, cy); ctx2.closePath()
+      ctx2.fillStyle = color; ctx2.fill()
+    } else {
+      ctx2.font = tipo === 'relevante' ? 'bold 15px sans-serif' : '16px sans-serif'
+      ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle'
+      ctx2.fillStyle = color
+      ctx2.fillText(iconMap[tipo] || '?', cx, cy + 1)
+    }
+    ctx2.restore()
+  }
+
+  for (let m of lastMarkerData) {
+    if (m.tipo !== a.tipo) continue
+    let color = markerColors[m.tipo] || '#999'
+
+    if (goingUp) {
+      // Icon rises from line to top, no line during movement
+      let animY = m.lineY + (m.topY - m.lineY) * p
+      drawMarkerIcon(octx, m.x, animY, color, m.tipo)
+      if (p >= 1) {
+        octx.save()
+        octx.setLineDash([3, 4]); octx.strokeStyle = color + '55'; octx.lineWidth = 1
+        octx.beginPath(); octx.moveTo(m.x, m.topY + 10); octx.lineTo(m.x, m.lineY); octx.stroke()
+        octx.restore()
+      }
+    } else {
+      if (p < 0.5) {
+        // Phase 1: line fades out, icon stays at top
+        let pp = p * 2 // 0→1
+        let alpha = Math.round(85 * (1 - pp)).toString(16).padStart(2, '0')
+        octx.save()
+        octx.setLineDash([3, 4]); octx.strokeStyle = color + alpha; octx.lineWidth = 1
+        octx.beginPath(); octx.moveTo(m.x, m.topY + 10); octx.lineTo(m.x, m.lineY); octx.stroke()
+        octx.restore()
+        drawMarkerIcon(octx, m.x, m.topY, color, m.tipo)
+      } else {
+        // Phase 2: icon drops to line, no line
+        let pp = (p - 0.5) * 2 // 0→1
+        let animY = m.topY + (m.lineY - m.topY) * pp
+        drawMarkerIcon(octx, m.x, animY, color, m.tipo)
+      }
+    }
+  }
+
+  if (a.progress < 1) {
+    a.raf = requestAnimationFrame(animateMarkers)
+  } else {
+    _markerAnim = null
+    octx.clearRect(0, 0, w, h)
+    let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+    drawChart(range)
+  }
+}
+
+function toggleYtPanel(e) {
+  e.stopPropagation()
+  let panel = document.getElementById('yt-panel')
+  let btn = document.getElementById('yt-btn')
+  if (!panel || !btn) return
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+  if (panel.style.display === 'block') {
+    let rect = btn.getBoundingClientRect()
+    panel.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px'
+    panel.style.top = (rect.bottom + 4) + 'px'
+  }
+}
+
+function onYtChannelClick(el) {
+  let canal = el.dataset.canal
+  if (el.checked) {
+    if (!youtubeChannelFilter.includes(canal)) youtubeChannelFilter.push(canal)
+  } else {
+    youtubeChannelFilter = youtubeChannelFilter.filter(c => c !== canal)
+  }
+  // Uncheck "Todos" when individual channel is clicked
+  let todosCb = document.getElementById('yt-todos')
+  if (todosCb && todosCb.checked) {
+    todosCb.checked = false
+    ytTodos = false
+    document.querySelectorAll('.yt-canal').forEach(cb => cb.disabled = false)
+  }
+  let label = document.getElementById('yt-label')
+  label.textContent = youtubeChannelFilter.length > 0
+    ? youtubeChannelFilter.length + ' canal' + (youtubeChannelFilter.length > 1 ? 's' : '') : 'Canais'
+  let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+  drawChart(range)
+}
+
+let ytTodos = true
+
+function populateYtFilter(videos) {
+  let panel = document.getElementById('yt-panel')
+  let btn = document.getElementById('yt-btn')
+  if (!panel || !btn) return
+  if (!videos || videos.length === 0) { btn.style.display = 'none'; return }
+  btn.style.display = 'inline-flex'
+  let canais = [...new Set(videos.map(v => v.canal).filter(Boolean))].sort()
+  let html = '<label class="yt-option" data-canal="__todos__">' +
+    '<input type="checkbox" id="yt-todos" checked onchange="onYtTodosClick(this)">' +
+    '<span class="yt-check"></span><span>Todos</span></label>'
+  html += canais.map(c =>
+    '<label class="yt-option" data-canal="' + c.replace(/"/g,'&quot;') + '">' +
+    '<input type="checkbox" class="yt-canal" data-canal="' + c.replace(/"/g,'&quot;') + '" onchange="onYtChannelClick(this)">' +
+    '<span class="yt-check"></span><span>' + c + '</span></label>'
+  ).join('')
+  panel.innerHTML = html
+  ytTodos = true
+  youtubeChannelFilter = []
+  document.getElementById('yt-label').textContent = 'Todos'
+}
+
+function onYtTodosClick(el) {
+  ytTodos = el.checked
+  document.querySelectorAll('.yt-canal').forEach(cb => {
+    cb.checked = false
+    cb.disabled = ytTodos
+  })
+  if (ytTodos) {
+    youtubeChannelFilter = []
+    document.getElementById('yt-label').textContent = 'Todos'
+  } else {
+    document.getElementById('yt-label').textContent = 'Canais'
+  }
+  let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+  drawChart(range)
+}
+
+async function loadFundInfo(ticker) {
+  fundEvents = []
+  try {
+    let SIT = '&situacao_documento=eq.A'
+    let [rendRows, relRows, fatRows, ytRows] = await Promise.all([
+      api(REST + "/fnet_tudo?select=data_entrega,tipo,rendimento&codigo_fundo=eq." + ticker + "&tipo_documento=like.*Rendimentos*&tipo=neq." + SIT + "&order=data_entrega.desc").catch(() => []),
+      api(REST + "/fnet_tudo?select=data_entrega,tipo_documento,link_visualizar&codigo_fundo=eq." + ticker + "&categoria_documento=like.*Relat*rio*" + SIT + "&order=data_entrega.desc").catch(() => []),
+      api(REST + "/fnet_tudo?select=data_entrega,tipo_documento,link_visualizar&codigo_fundo=eq." + ticker + "&categoria_documento=like.*Fato*" + SIT + "&order=data_entrega.desc").catch(() => []),
+      api(REST + "/youtube_videos?select=video_id,ticker,titulo,canal,publicacao,link&ticker=eq." + ticker + "&order=publicacao.desc").catch(() => []),
+    ])
+    let all = []
+    for (let r of (relRows || [])) {
+      let dt = r.data_entrega ? r.data_entrega.split('T')[0] : null
+      if (dt && r.link_visualizar) all.push({ data: dt, tipo: 'relatorio', subtipo: r.tipo_documento || 'Documento', link: r.link_visualizar })
+    }
+    for (let r of (fatRows || [])) {
+      let dt = r.data_entrega ? r.data_entrega.split('T')[0] : null
+      if (dt && r.link_visualizar) all.push({ data: dt, tipo: 'relevante', subtipo: r.tipo_documento || 'Fato Relevante', link: r.link_visualizar })
+    }
+    for (let r of (rendRows || [])) {
+      let dt = r.data_entrega ? r.data_entrega.split('T')[0] : null
+      if (dt) all.push({ data: dt, tipo: 'dividendo', subtipo: r.tipo || 'Dividendo', valor: r.rendimento || null, link: null })
+    }
+    populateYtFilter(ytRows || [])
+    for (let v of (ytRows || [])) {
+      let dt = v.publicacao ? v.publicacao.split('T')[0] : null
+      if (dt) all.push({ data: dt, tipo: 'youtube', subtipo: v.titulo, canal: v.canal, link: v.link, videoId: v.video_id })
+    }
+    fundEvents = all
+    let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+    drawChart(range)
+  } catch (e) {
+    console.error('Erro ao carregar eventos:', e)
+  }
+}
+
+async function loadFundData(ticker) {
+  // Reset UI
+  for (let id of ['preco-atual','preco-min','preco-max','preco-variacao','preco-volume']) {
+    document.getElementById(id).textContent = '—'
+  }
+  let g = document.getElementById('gauge')
+  if (g) { let gc = g.getContext('2d'); gc.clearRect(0, 0, g.width, g.height) }
+  for (let id of ['div-ultimo','div-ultimo-dy','div-total','div-total-dy','div-cagr']) {
+    document.getElementById(id).textContent = '—'
+  }
+  window.lastMarkerData = []
+  for (let id of ['met-pvp','met-dy','met-idade','met-alavancagem']) {
+    document.getElementById(id).textContent = '—'
+  }
+  for (let id of ['info-fundo','info-cnpj','info-tipo','info-segmento','info-gestao','info-publico','info-taxa']) {
+    document.getElementById(id).textContent = '—'
+  }
+
+  try {
+    // 1. Get fund data from 00_fundos_master (segmento + CNPJ)
+    let masterRows = await api(REST + "/00_fundos_master?select=ticker,segmento,tipo,cnpj&ticker=eq." + ticker + "&limit=1")
+    let master = masterRows && masterRows.length > 0 ? masterRows[0] : null
+    let cnpj = master ? master.cnpj : null
+    document.getElementById('info-fundo').textContent = ticker
+    if (master) {
+      if (master.cnpj) document.getElementById('info-cnpj').textContent = master.cnpj
+      if (master.segmento) document.getElementById('info-segmento').textContent = master.segmento
+    }
+
+    // 2. Get price history
+    let priceRows = await apiAll(REST + "/b3_cotacoes_historico?select=data,fechamento,volume&ticker=eq." + ticker + "&order=data.asc")
+    allPrices = (priceRows || []).map(r => ({
+      data: r.data, dateObj: parseDate(r.data),
+      fechamento: r.fechamento, volume: r.volume || 0
+    })).filter(p => p.dateObj != null)
+
+    // Live price from b3_cotacoes_aovivo
+    try {
+      let liveRows = await api(REST + "/b3_cotacoes_aovivo?select=preco_ultimo_negocio&codigo_instrumento=eq." + ticker + "&limit=1")
+      if (liveRows && liveRows.length > 0 && liveRows[0].preco_ultimo_negocio) {
+        document.getElementById('preco-atual').textContent = fmtBRL(parseFloat(liveRows[0].preco_ultimo_negocio))
+      } else if (allPrices.length > 0) {
+        let ultimo = allPrices[allPrices.length - 1]
+        document.getElementById('preco-atual').textContent = fmtBRL(ultimo.fechamento)
+      }
+    } catch (e) {
+      if (allPrices.length > 0) {
+        let ultimo = allPrices[allPrices.length - 1]
+        document.getElementById('preco-atual').textContent = fmtBRL(ultimo.fechamento)
+      }
+    }
+
+    // 3. Get fund info from CVM
+    if (cnpj) {
+      let cnpjEnc = encodeURIComponent(cnpj)
+      let [geralRows, compRows, cadRows] = await Promise.all([
+        api(REST + "/cvm_fii_geral?select=tipo_gestao,segmento_atuacao,publico_alvo,data_funcionamento&cnpj_fundo_classe=eq." + cnpjEnc + "&order=data_referencia.desc&limit=1").catch(() => []),
+        api(REST + "/cvm_fii_complemento?select=valor_patrimonial_cotas,percentual_dividend_yield_mes,patrimonio_liquido,percentual_despesas_taxa_administracao&cnpj_fundo_classe=eq." + cnpjEnc + "&order=data_referencia.desc&limit=1").catch(() => []),
+        api(REST + "/cvm_fii_dadoscadastrais?select=taxa_adm&cnpj_fundo=eq." + cnpjEnc + "&limit=1").catch(() => []),
+      ])
+
+      let geral = geralRows && geralRows.length > 0 ? geralRows[0] : null
+      let comp = compRows && compRows.length > 0 ? compRows[0] : null
+      let cad = cadRows && cadRows.length > 0 ? cadRows[0] : null
+
+      if (geral) {
+        document.getElementById('info-tipo').textContent = geral.segmento_atuacao || '—'
+        document.getElementById('info-gestao').textContent = geral.tipo_gestao || '—'
+        document.getElementById('info-publico').textContent = capitalize(geral.publico_alvo) || '—'
+        if (geral.data_funcionamento) {
+          let inicio = new Date(geral.data_funcionamento)
+          let hoje = new Date()
+          let anos = hoje.getFullYear() - inicio.getFullYear()
+          let meses = hoje.getMonth() - inicio.getMonth()
+          if (meses < 0) { anos--; meses += 12 }
+          document.getElementById('met-idade').textContent = anos + 'a ' + meses + 'm'
+        }
+      }
+
+      // Métricas do complemento mensal
+      if (comp) {
+        // P/VP = preço / VP cota
+        if (comp.valor_patrimonial_cotas > 0 && allPrices.length > 0) {
+          let pvp = allPrices[allPrices.length - 1].fechamento / comp.valor_patrimonial_cotas
+          document.getElementById('met-pvp').textContent = pvp.toFixed(2)
+        }
+        // DY mensal * 12 (aproximado)
+        if (comp.percentual_dividend_yield_mes != null) {
+          let dyAnual = comp.percentual_dividend_yield_mes * 12 * 100
+          document.getElementById('met-dy').textContent = dyAnual.toFixed(2) + '%'
+        }
+        // Taxa de administração: cadastral (já em %) ou complemento mensal (decimal)
+        if (cad && cad.taxa_adm != null) {
+          document.getElementById('info-taxa').textContent = cad.taxa_adm + '%'
+        } else if (comp && comp.percentual_despesas_taxa_administracao != null) {
+          let taxa = comp.percentual_despesas_taxa_administracao * 100
+          document.getElementById('info-taxa').textContent = taxa.toFixed(4) + '%'
+        }
+      }
+
+      // Alavancagem = passivo total / PL
+      let ativoRows = await api(REST + "/cvm_fii_ativo_passivo?select=total_passivo&cnpj_fundo_classe=eq." + cnpjEnc + "&order=data_referencia.desc&limit=1").catch(() => [])
+      if (ativoRows && ativoRows.length > 0 && comp && comp.patrimonio_liquido > 0) {
+        let alav = ativoRows[0].total_passivo / comp.patrimonio_liquido
+        document.getElementById('met-alavancagem').textContent = (alav * 100).toFixed(2) + '%'
+      }
+    }
+
+    // 4. Volatilidade removida por solicitação do usuário
+
+    // 5. Carregar dividendos (status_dividendos)
+    try {
+      let divRows = await api(REST + "/status_dividendos?select=*&ticker=eq." + ticker + "&order=data_com.asc")
+      allDividendos = (divRows || []).filter(d => d.data_com && d.valor > 0).map(d => {
+        let dobj = parseDate(d.data_com)
+        let preco = null
+        if (dobj && allPrices.length > 0) {
+          let idx = allPrices.findIndex(p => p.dateObj >= dobj)
+          if (idx >= 0) preco = allPrices[idx].fechamento
+        }
+        return {
+          data: d.data_com, dataObj: dobj,
+          valor: parseFloat(d.valor),
+          rendimento: d.dividend_yield != null ? parseFloat(d.dividend_yield) : null,
+          preco: preco
+        }
+      }).filter(d => d.dataObj != null)
+    } catch (e) { allDividendos = []; console.warn('Erro dividendos:', e) }
+    drawDividendChart(divRange, true)
+
+    // 6. Carregar eventos (relatórios, fatos, dividendos, vídeos)
+    loadFundInfo(ticker)
+
+    // 7. Desenhar gráfico de preço
+    let activeRange = document.querySelector('.btn-period.active')
+    let range = parseInt(activeRange ? activeRange.dataset.range : 365)
+    updatePeriodStats(range)
+    drawChart(range)
+
+  } catch (e) {
+    console.error('Erro ao carregar dados:', e)
+  }
+}
+
+let chartCanvas, chartCtx, chartW, chartH
+
+function drawChart(rangeDays) {
+  let canvas = document.getElementById('chart')
+  let ctx = canvas.getContext('2d')
+  let dpr = window.devicePixelRatio || 1
+  let rect = canvas.parentElement.getBoundingClientRect()
+  let w = Math.max(rect.width - 4, 300)
+  let h = 380
+  canvas.style.width = w + 'px'
+  canvas.style.height = h + 'px'
+  canvas.width = w * dpr
+  canvas.height = h * dpr
+  ctx.scale(dpr, dpr)
+  ctx.clearRect(0, 0, w, h)
+  let o = document.getElementById('chart-overlay')
+  if (o) { let oc = o.getContext('2d'); oc.clearRect(0, 0, w, h) }
+
+  chartCanvas = canvas
+  chartCtx = ctx
+  chartW = w
+  chartH = h
+
+  let data = allPrices
+  if (rangeDays > 0) {
+    let cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - rangeDays)
+    data = allPrices.filter(p => p.dateObj >= cutoff)
+  }
+  if (data.length < 2) {
+    ctx.fillStyle = '#8b949e'
+    ctx.font = '14px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('Dados insuficientes', w / 2, h / 2)
+    return
+  }
+
+  let pad = { top: 20, right: 10, bottom: 35, left: 60 }
+  let pW = w - pad.left - pad.right
+  let cH = h - pad.top - pad.bottom
+
+  let closes = data.map(d => d.fechamento)
+  let min = Math.min(...closes)
+  let max = Math.max(...closes)
+  let range = max - min || 1
+  let padPct = range * 0.05
+  let yMin = min - padPct
+  let yMax = max + padPct
+
+  let volumes = data.map(d => d.volume || 0)
+  let volMax = Math.max(...volumes)
+
+  function xPos(i) { return pad.left + (i / (data.length - 1)) * pW }
+  function yPos(v) { return pad.top + cH - ((v - yMin) / (yMax - yMin)) * cH }
+
+  // Grid
+  ctx.strokeStyle = '#21262d'
+  ctx.lineWidth = 1
+  for (let i = 0; i <= 4; i++) {
+    let y = pad.top + (i / 4) * cH
+    ctx.beginPath()
+    ctx.moveTo(pad.left, y)
+    ctx.lineTo(w - pad.right, y)
+    ctx.stroke()
+    let val = yMax - ((y - pad.top) / cH) * (yMax - yMin)
+    ctx.fillStyle = '#8b949e'
+    ctx.font = '11px sans-serif'
+    ctx.textAlign = 'right'
+    ctx.fillText(fmtBRL(val), pad.left - 8, y + 4)
+  }
+
+  // Volume bars (right axis) — skip if animating or turned off
+  if (volMax > 0 && showLiquidez && !_liqAnim) {
+    let volPad = volMax * 0.50
+    let volMaxPad = volMax + volPad
+    let barW = pW / data.length
+    for (let i = 0; i < data.length; i++) {
+      if (volumes[i] <= 0) continue
+      let barH = (volumes[i] / volMaxPad) * cH
+      let x = xPos(i) - barW * 0.35
+      let y = pad.top + cH - barH
+      ctx.fillStyle = '#4285F4'
+      ctx.fillRect(x, y, Math.max(barW * 0.6, 1), barH)
+    }
+  }
+
+  // Price line
+  ctx.beginPath()
+  for (let i = 0; i < data.length; i++) {
+    let x = xPos(i)
+    let y = yPos(data[i].fechamento)
+    if (i === 0) ctx.moveTo(x, y)
+    else {
+      let px = xPos(i - 1)
+      let py = yPos(data[i - 1].fechamento)
+      ctx.bezierCurveTo((px + x) / 2, py, (px + x) / 2, y, x, y)
+    }
+  }
+  ctx.strokeStyle = YELLOW
+  ctx.lineWidth = 2
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  ctx.stroke()
+
+  // X axis dates
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#8b949e'
+  ctx.font = '10px sans-serif'
+  let labelCount = 6
+  for (let i = 0; i < labelCount; i++) {
+    let idx = Math.round((i / (labelCount - 1)) * (data.length - 1))
+    ctx.fillText(fmtShortDate(data[idx].dateObj), xPos(idx), h - pad.bottom + 16)
+  }
+
+  // Markers (eventos)
+  markerData = []
+  let animTipo = _markerAnim ? _markerAnim.tipo : null
+  let dataMin = data[0].dateObj
+  let dataMax = data[data.length - 1].dateObj
+  let markerColors = { relatorio: '#4285F4', relevante: YELLOW, dividendo: '#81c995', youtube: '#FF0000' }
+  for (let evt of fundEvents) {
+    let tipo = evt.tipo
+    // During animation, still collect data for the animating type (even if filter is off)
+    if (tipo !== animTipo && !markerFilters[tipo]) continue
+    if (tipo === 'youtube' && youtubeChannelFilter.length > 0 && !youtubeChannelFilter.includes(evt.canal)) continue
+    let ed = parseDate(evt.data)
+    if (!ed || ed < dataMin || ed > dataMax) continue
+    let idx = -1, minDiff = Infinity
+    for (let i = 0; i < data.length; i++) {
+      let diff = Math.abs(data[i].dateObj - ed)
+      if (diff < minDiff) { minDiff = diff; idx = i }
+    }
+    if (idx < 0 || minDiff > 86400000 * 3) continue
+    let mx = xPos(idx)
+    let my = pad.top - 2
+    let color = markerColors[tipo] || '#999'
+    let py = yPos(data[idx].fechamento)
+
+    // Store position even when animating (for overlay)
+    markerData.push({ x: mx, idx: idx, link: evt.link, tipo: tipo, subtipo: evt.subtipo, valor: evt.valor })
+
+    // Skip drawing on chart canvas if animating this type
+    if (tipo === animTipo) continue
+
+    ctx.save()
+    ctx.setLineDash([3, 4])
+    ctx.strokeStyle = color + '55'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(mx, my + 10)
+    ctx.lineTo(mx, py)
+    ctx.stroke()
+    ctx.restore()
+    let iconMap = { relatorio: 'R', relevante: '!', dividendo: '$', youtube: '' }
+    let icon = iconMap[tipo] || '?'
+    let cx = mx + 1, cy = my + 2
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(cx, cy, 10, 0, Math.PI * 2)
+    ctx.fillStyle = '#131314'
+    ctx.fill()
+    ctx.strokeStyle = color
+    ctx.lineWidth = 2
+    ctx.stroke()
+    if (tipo === 'youtube') {
+      ctx.beginPath()
+      let s = 5, sx = cx - 1
+      ctx.moveTo(sx - s * 0.35, cy - s * 0.5)
+      ctx.lineTo(sx - s * 0.35, cy + s * 0.5)
+      ctx.lineTo(sx + s * 0.5, cy)
+      ctx.closePath()
+      ctx.fillStyle = color
+      ctx.fill()
+    } else {
+      ctx.font = tipo === 'relevante' ? 'bold 15px system-ui, sans-serif' : '16px system-ui, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillStyle = color
+      ctx.fillText(icon, cx, cy + 1)
+    }
+    ctx.restore()
+  }
+  // Store for animation
+  window.lastMarkerData = []
+  for (let m of markerData) {
+    window.lastMarkerData.push({ ...m, lineY: yPos(data[m.idx].fechamento), topY: pad.top - 2 })
+  }
+
+  // Crosshair + drag selection
+  let overlay = document.getElementById('chart-overlay')
+  let octx = overlay.getContext('2d')
+  overlay.style.width = w + 'px'
+  overlay.style.height = h + 'px'
+  overlay.width = w * dpr
+  overlay.height = h * dpr
+  octx.scale(dpr, dpr)
+
+  let isDragging = false, dragStart = -1, dragEnd = -1
+
+  function drawOverlay(mx, my) {
+    octx.clearRect(0, 0, w, h)
+    if (mx < pad.left || mx > w - pad.right || my < pad.top || my > h - pad.bottom) return
+
+    // Active drag selection highlight + stats
+    if (isDragging && dragStart >= 0 && dragEnd >= 0) {
+      let from = Math.min(dragStart, dragEnd)
+      let to = Math.max(dragStart, dragEnd)
+      if (to - from >= 2) {
+        let x1 = xPos(from)
+        let x2 = xPos(to)
+        octx.fillStyle = 'rgba(66, 133, 244, 0.12)'
+        octx.fillRect(x1, pad.top, x2 - x1, cH)
+
+        // Compute stats for selected range
+        let sel = data.slice(from, to + 1)
+        let closes = sel.map(d => d.fechamento)
+        let vols = sel.filter(d => d.volume > 0).map(d => d.volume)
+        let minimo = Math.min(...closes)
+        let maximo = Math.max(...closes)
+        let prim = sel[0].fechamento
+        let ulti = sel[sel.length - 1].fechamento
+        let varAbs = ulti - prim
+        let varPct = prim !== 0 ? (varAbs / prim) * 100 : 0
+        let volMed = vols.length > 0 ? vols.reduce((a, b) => a + b, 0) / vols.length : 0
+
+        // Draw stats box on overlay
+        let boxX = (x1 + x2) / 2 - 130
+        let boxY = pad.top + 8
+        boxX = Math.max(pad.left + 4, Math.min(w - pad.right - 260, boxX))
+
+        octx.fillStyle = 'rgba(13, 17, 23, 0.92)'
+        octx.beginPath()
+        octx.roundRect(boxX, boxY, 260, 88, 6)
+        octx.fill()
+        octx.strokeStyle = 'rgba(255,255,255,0.1)'
+        octx.lineWidth = 1
+        octx.beginPath()
+        octx.roundRect(boxX, boxY, 260, 88, 6)
+        octx.stroke()
+
+        octx.fillStyle = '#8b949e'
+        octx.font = '11px sans-serif'
+        let lines = [
+          'Mín: ' + fmtBRL(minimo) + '  Máx: ' + fmtBRL(maximo),
+          'Var: ' + fmtBRL(Math.abs(varAbs)) + ' (' + (varPct >= 0 ? '+' : '') + varPct.toFixed(2) + '%)',
+          'Liq Média: R$ ' + Math.round(volMed).toLocaleString('pt-BR')
+        ]
+        lines.forEach((txt, i) => {
+          octx.fillStyle = i === 1 ? (varPct >= 0 ? GREEN : '#f87171') : '#e2e5e9'
+          octx.fillText(txt, boxX + 12, boxY + 20 + i * 24)
+        })
+      }
+    }
+
+    // Crosshair lines
+    octx.save()
+    octx.setLineDash([4, 4])
+    octx.strokeStyle = 'rgba(139, 148, 158, 0.3)'
+    octx.lineWidth = 1
+    octx.beginPath()
+    octx.moveTo(mx, pad.top)
+    octx.lineTo(mx, h - pad.bottom)
+    octx.stroke()
+    octx.beginPath()
+    octx.moveTo(pad.left, my)
+    octx.lineTo(w - pad.right, my)
+    octx.stroke()
+    octx.restore()
+  }
+
+  canvas.onmousedown = function(e) {
+    let rect2 = canvas.getBoundingClientRect()
+    let mx = e.clientX - rect2.left
+    let idx = Math.round(((mx - pad.left) / pW) * (data.length - 1))
+    idx = Math.max(0, Math.min(data.length - 1, idx))
+    isDragging = true
+    dragStart = idx
+    dragEnd = idx
+  }
+
+  canvas.onmousemove = function(e) {
+    let rect2 = canvas.getBoundingClientRect()
+    let mx = e.clientX - rect2.left
+    let my = e.clientY - rect2.top
+
+    if (isDragging) {
+      let idx = Math.round(((mx - pad.left) / pW) * (data.length - 1))
+      idx = Math.max(0, Math.min(data.length - 1, idx))
+      dragEnd = idx
+    }
+
+    // Find nearest point
+    let minDist = Infinity, nearest = -1
+    for (let i = 0; i < data.length; i++) {
+      let dist = Math.abs(xPos(i) - mx)
+      if (dist < minDist) { minDist = dist; nearest = i }
+    }
+    let step2 = w / data.length
+    if (minDist > Math.max(step2 * 1.5, 20)) {
+      document.getElementById('tooltip').classList.remove('visible')
+      drawOverlay(mx, my)
+      return
+    }
+
+    let pt = data[nearest]
+    let cx2 = xPos(nearest)
+    let cy2 = yPos(pt.fechamento)
+    document.getElementById('tt-date').textContent = fmtShortDate(pt.dateObj)
+    document.getElementById('tt-price').textContent = fmtBRL(pt.fechamento)
+    document.getElementById('tt-vol').textContent = pt.volume > 0 ? 'Liq: ' + pt.volume.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : ''
+    let markerEl = document.getElementById('tt-marker')
+    let markerSub = document.getElementById('tt-marker-sub')
+    let foundMarker = null
+    if (markerData && my < 30) {
+      for (let m of markerData) { if (Math.abs(m.x - mx) < 10) { foundMarker = m; break } }
+    }
+    if (foundMarker) {
+      markerEl.textContent = foundMarker.tipo === 'relatorio' ? 'Relatório' : foundMarker.tipo === 'relevante' ? 'Fato Relevante' : foundMarker.tipo === 'dividendo' ? (foundMarker.valor ? 'Dividendo R$ ' + foundMarker.valor : 'Dividendo') : 'Vídeo'
+      markerEl.style.display = ''
+      markerSub.textContent = foundMarker.subtipo || ''
+      markerSub.style.display = ''
+    } else {
+      markerEl.style.display = 'none'
+      markerSub.style.display = 'none'
+    }
+    let tip = document.getElementById('tooltip')
+    tip.style.left = Math.min(cx2 + 16, w - 180) + 'px'
+    tip.style.top = Math.max(cy2 - 30, 10) + 'px'
+    tip.classList.add('visible')
+
+    drawOverlay(mx, my)
+  }
+
+  canvas.onmouseup = function(e) {
+    isDragging = false
+    octx.clearRect(0, 0, w, h)
+  }
+
+  canvas.onmouseleave = function() {
+    document.getElementById('tooltip').classList.remove('visible')
+    isDragging = false
+    octx.clearRect(0, 0, w, h)
+  }
+
+  canvas.onclick = function(e) {
+    let rect2 = canvas.getBoundingClientRect()
+    let mx = e.clientX - rect2.left
+    for (let m of markerData) {
+      if (Math.abs(m.x - mx) < 8 && (e.clientY - rect2.top) < 30) {
+        if (m.link) window.open(m.link, '_blank')
+        return
+      }
+    }
+  }
+}
+
+function toggleAjuste() {
+  // Placeholder para toggle de ajuste
+}
+
+// Close YT panel on outside click
+document.addEventListener('click', function(e) {
+  let panel = document.getElementById('yt-panel')
+  let btn = document.getElementById('yt-btn')
+  if (panel && !panel.classList.contains('hidden') && btn && !btn.contains(e.target) && !panel.contains(e.target)) {
+    panel.style.display = 'none'
+  }
+})
+
+function updatePeriodStats(rangeDays) {
+  if (!allPrices.length) return
+  let data = allPrices
+  if (rangeDays > 0) {
+    let cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - rangeDays)
+    data = allPrices.filter(p => p.dateObj >= cutoff)
+  }
+  if (data.length < 2) {
+    document.getElementById('preco-min').textContent = '—'
+    document.getElementById('preco-max').textContent = '—'
+    document.getElementById('preco-variacao').textContent = '—'
+    document.getElementById('preco-volume').textContent = '—'
+    return
+  }
+  let closes = data.map(d => d.fechamento)
+  let volumes = data.filter(d => d.volume > 0).map(d => d.volume)
+  let min = Math.min(...closes)
+  let max = Math.max(...closes)
+  let primeiro = data[0].fechamento
+  let ultimo = data[data.length - 1].fechamento
+  let variacao = ultimo - primeiro
+  let variacaoPct = primeiro !== 0 ? (variacao / primeiro) * 100 : 0
+  let volMedio = volumes.length > 0 ? volumes.reduce((a, b) => a + b, 0) / volumes.length : 0
+
+  document.getElementById('preco-min').textContent = fmtBRL(min)
+  document.getElementById('preco-max').textContent = fmtBRL(max)
+  document.getElementById('preco-variacao').textContent = fmtPct(variacaoPct)
+  document.getElementById('preco-variacao').style.color = variacaoPct >= 0 ? GREEN : '#f87171'
+  document.getElementById('preco-volume').textContent = 'R$ ' + Math.round(volMedio).toLocaleString('pt-BR')
+
+  // Atratividade gauge
+  drawGauge(ultimo, min, max)
+}
+
+function drawGauge(preco, min, max) {
+  let canvas = document.getElementById('gauge')
+  if (!canvas) return
+  let dpr = window.devicePixelRatio || 1
+  let rect = canvas.getBoundingClientRect()
+  let w = Math.max(rect.width, 60)
+  let h = 40
+  canvas.style.width = w + 'px'
+  canvas.style.height = h + 'px'
+  canvas.width = w * dpr
+  canvas.height = h * dpr
+  let ctx = canvas.getContext('2d')
+  ctx.scale(dpr, dpr)
+  ctx.clearRect(0, 0, w, h)
+
+  let atrativo = max !== min ? 1 - (preco - min) / (max - min) : 0.5
+  atrativo = Math.max(0, Math.min(1, atrativo))
+
+  let barX = 2, barY = 18, barW = w - 4, barH = 8
+
+  // Background bar
+  ctx.beginPath()
+  ctx.roundRect(barX, barY, barW, barH, 4)
+  ctx.fillStyle = '#1a1d24'
+  ctx.fill()
+
+  // Gradient fill
+  let grad = ctx.createLinearGradient(barX, 0, barX + barW, 0)
+  grad.addColorStop(0, '#f87171')
+  grad.addColorStop(0.5, '#ffde59')
+  grad.addColorStop(1, '#2ec4b6')
+  ctx.beginPath()
+  ctx.roundRect(barX, barY, Math.max(barW * atrativo, 4), barH, 4)
+  ctx.fillStyle = grad
+  ctx.fill()
+
+  // Marker
+  let markerX = barX + barW * atrativo
+  ctx.beginPath()
+  ctx.moveTo(markerX, barY - 3)
+  ctx.lineTo(markerX - 3, barY + barH + 1)
+  ctx.lineTo(markerX + 3, barY + barH + 1)
+  ctx.closePath()
+  ctx.fillStyle = '#e2e5e9'
+  ctx.fill()
+
+  // Percentage
+  ctx.fillStyle = '#e2e5e9'
+  ctx.font = 'bold 10px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  ctx.fillText(Math.round(atrativo * 100) + '%', w / 2, 0)
+}
+
+// ---- Dividend Chart ----
+let allDividendos = []
+let divRange = 365
+let divYieldEnabled = true
+let divPrecoEnabled = true
+let showLiquidez = true
+let _liqAnim = null
+
+function toggleLiquidez() {
+  showLiquidez = document.getElementById('toggle-volume').checked
+  if (_liqAnim) { cancelAnimationFrame(_liqAnim.raf); _liqAnim = null }
+  _liqAnim = { progress: 0, direction: showLiquidez ? 1 : -1, t0: performance.now() }
+  let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+  drawChart(range)
+  animLiquidez()
+}
+
+function animLiquidez() {
+  let a = _liqAnim
+  if (!a) return
+  let elapsed = performance.now() - a.t0
+  let p = Math.min(1, elapsed / 500)
+  let ep = 1 - Math.pow(1 - p, 3)
+
+  let canvas = document.getElementById('chart')
+  let overlay = document.getElementById('chart-overlay')
+  if (!canvas || !overlay) { _liqAnim = null; return }
+  let octx = overlay.getContext('2d')
+  let dpr = window.devicePixelRatio || 1
+  let w = canvas.width / dpr
+  let h = canvas.height / dpr
+  octx.clearRect(0, 0, w, h)
+
+  // Redraw just the volume bars on the overlay with animation
+  let data = allPrices
+  let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+  if (range > 0) { let c = new Date(); c.setDate(c.getDate() - range); data = allPrices.filter(p => p.dateObj >= c) }
+  if (data.length < 2) { _liqAnim = null; return }
+
+  let pad2 = { top: 20, right: 10, bottom: 35, left: 60 }
+  let pW2 = chartW - pad2.left - pad2.right
+  let cH2 = chartH - pad2.top - pad2.bottom
+  let vols = data.map(d => d.volume || 0)
+  let vMax = Math.max(...vols)
+  if (vMax <= 0) { _liqAnim = null; return }
+
+  let volPad = vMax * 0.5
+  let volMaxPad = vMax + volPad
+  let barW = pW2 / data.length
+  let reveal = a.direction > 0 ? ep : 1 - ep
+
+  for (let i = 0; i < data.length; i++) {
+    if (vols[i] <= 0) continue
+    let barH = (vols[i] / volMaxPad) * cH2 * reveal
+    let x2 = pad2.left + (i / (data.length - 1)) * pW2 - barW * 0.35
+    let y2 = pad2.top + cH2 - barH
+    octx.fillStyle = '#4285F4'
+    octx.fillRect(x2, y2, Math.max(barW * 0.7, 1), barH)
+  }
+
+  if (p < 1) {
+    a.raf = requestAnimationFrame(animLiquidez)
+  } else {
+    _liqAnim = null
+    octx.clearRect(0, 0, w, h)
+    let range2 = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+    drawChart(range2)
+  }
+}
+
+function toggleDivYield() {
+  let was = divYieldEnabled
+  divYieldEnabled = document.getElementById('toggle-yield').checked
+  _divLineReveal.yield = was ? 1 : 0 // 1=shown(will hide), 0=hidden(will reveal)
+  drawDividendChart(divRange)
+}
+function toggleDivPreco() {
+  let was = divPrecoEnabled
+  divPrecoEnabled = document.getElementById('toggle-preco').checked
+  _divLineReveal.preco = was ? 1 : 0
+  drawDividendChart(divRange)
+}
+
+let _divAnimId = null
+let _divLineReveal = { yield: -1, preco: -1 } // -1=no anim, 0→1 reveal, 1→0 hide
+
+function drawDividendChart(rangeDays, skipAnim) {
+  if (_divAnimId) { cancelAnimationFrame(_divAnimId); _divAnimId = null }
+  let canvas = document.getElementById('chart-div')
+  if (!canvas) return
+  let ctx = canvas.getContext('2d')
+  let dpr = window.devicePixelRatio || 1
+  let rect = canvas.parentElement.getBoundingClientRect()
+  let w = Math.max(rect.width - 4, 300)
+  let h = 280
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px'
+  canvas.width = w * dpr; canvas.height = h * dpr
+  ctx.scale(dpr, dpr); ctx.clearRect(0, 0, w, h)
+  let oc = document.getElementById('chart-div-overlay')
+  if (oc) { let c = oc.getContext('2d'); c.clearRect(0, 0, w, h) }
+
+  let data = allDividendos
+  if (rangeDays > 0) {
+    let cutoff = new Date(); cutoff.setDate(cutoff.getDate() - rangeDays)
+    data = allDividendos.filter(d => d.dataObj >= cutoff)
+  }
+  if (data.length < 2) {
+    ctx.fillStyle = '#8b949e'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center'
+    ctx.fillText('Dados insuficientes', w / 2, h / 2); return
+  }
+
+  // Update stats
+  let ultimo = data[data.length - 1]
+  let total = data.reduce((s, d) => s + d.valor, 0)
+  let totalYield = data.reduce((s, d) => s + (d.rendimento || 0), 0)
+  let ultYield = ultimo.rendimento
+  document.getElementById('div-ultimo').textContent = 'R$ ' + ultimo.valor.toFixed(2)
+  document.getElementById('div-ultimo-dy').textContent = ultYield != null ? '(' + ultYield.toFixed(2) + '%)' : ''
+  document.getElementById('div-total').textContent = 'R$ ' + total.toFixed(2)
+  document.getElementById('div-total-dy').textContent = totalYield > 0 ? '(' + totalYield.toFixed(2) + '%)' : ''
+  let activeDivBtn = document.querySelector('.btn-period-div.active')
+  let divPeriodText = activeDivBtn ? activeDivBtn.textContent : ''
+  document.getElementById('div-total-label').textContent = 'Total' + (divPeriodText ? ' (' + divPeriodText + ')' : '')
+  document.getElementById('div-cagr-label').textContent = 'CAGR' + (divPeriodText ? ' (' + divPeriodText + ')' : '')
+  let n = parseInt(rangeDays) <= 180 ? 2 : 3
+  if (data.length >= n * 2) {
+    let firstN = data.slice(0, n).reduce((s, d) => s + d.valor, 0) / n
+    let lastN = data.slice(-n).reduce((s, d) => s + d.valor, 0) / n
+    let anos = (data[data.length - 1].dataObj - data[0].dataObj) / (365.25 * 24 * 60 * 60 * 1000)
+    if (firstN > 0 && anos >= 0.35) {
+      let cagr = (Math.pow(lastN / firstN, 1 / anos) - 1) * 100
+      document.getElementById('div-cagr').textContent = (cagr >= 0 ? '+' : '') + cagr.toFixed(2) + '%'
+      document.getElementById('div-cagr').style.color = cagr >= 0 ? '#2ec4b6' : '#f87171'
+    } else { document.getElementById('div-cagr').textContent = '—' }
+  } else { document.getElementById('div-cagr').textContent = '—' }
+
+  let hasYield = divYieldEnabled && data.some(d => d.rendimento != null)
+  let hasPreco = divPrecoEnabled && data.some(d => d.preco != null)
+  let pad = { top: 12, right: 10, bottom: 35, left: 15 }
+  let pW = w - pad.left - pad.right
+  let cH = h - pad.top - pad.bottom
+  let lineRatio = 0.55, barRatio = 0.45
+  let lineH = cH * lineRatio, barH_area = cH * barRatio, barTop = pad.top + lineH
+
+  let yields = data.filter(d => d.rendimento != null).map(d => d.rendimento)
+  let yMin = yields.length > 0 ? Math.min(...yields) * 0.92 : 0
+  let yMax = yields.length > 0 ? Math.max(...yields) * 1.08 : 1, yRange = yMax - yMin || 1
+  let precos = data.filter(d => d.preco != null).map(d => d.preco)
+  let pMin = Math.min(...precos) * 0.97, pMax = Math.max(...precos) * 1.03, pRange = pMax - pMin || 1
+  let vMax = Math.max(...data.map(d => d.valor)) || 1
+
+  function xPos(i) { return pad.left + (i / (data.length - 1)) * pW }
+
+  function doRender() {
+    ctx.clearRect(0, 0, w, h)
+    let o2 = document.getElementById('chart-div-overlay')
+    if (o2) { let c = o2.getContext('2d'); c.clearRect(0, 0, w, h) }
+
+    // Grid
+    ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1
+    for (let i = 0; i <= 3; i++) { let y = pad.top + (i / 3) * cH; ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke() }
+    ctx.strokeStyle = '#2a2e36'; ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(pad.left, barTop); ctx.lineTo(w - pad.right, barTop); ctx.stroke()
+
+    // Bars (only scale with barP)
+    let barW = pW / data.length
+    for (let i = 0; i < data.length; i++) {
+      let barH = ((data[i].valor / vMax) * barH_area || 1) 
+      let x = xPos(i) - barW * 0.3; let y = barTop + barH_area - barH
+      ctx.fillStyle = '#ffde59'
+      ctx.fillRect(x, y, Math.max(barW * 0.5, 1), barH)
+      if (barH > 10 && true) {
+        ctx.fillStyle = '#ffde59'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'
+        ctx.fillText(data[i].valor.toFixed(2), xPos(i), y - 3)
+      }
+    }
+
+    function drawRevealedLine(getY, style, labelFmt, reveal) {
+      if (reveal <= 0) return
+      let revealX = pad.left + pW * reveal
+      ctx.save()
+      ctx.beginPath(); ctx.rect(pad.left, pad.top, revealX - pad.left, lineH); ctx.clip()
+      ctx.strokeStyle = style; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'
+      ctx.beginPath()
+      for (let i = 0; i < data.length; i++) {
+        let y = getY(i); if (y == null) continue
+        let x = xPos(i)
+        if (i === 0 || getY(i - 1) == null) ctx.moveTo(x, y)
+        else { let px = xPos(i - 1); let py = getY(i - 1); ctx.bezierCurveTo((px + x) / 2, py, (px + x) / 2, y, x, y) }
+      }
+      ctx.stroke()
+      ctx.restore()
+      if (reveal > 0.5 && labelFmt) {
+        ctx.save(); ctx.beginPath(); ctx.rect(pad.left, pad.top, revealX - pad.left, lineH); ctx.clip()
+        let step = Math.max(1, Math.floor(data.length / 8))
+        for (let i = 0; i < data.length; i += step) {
+          let y = getY(i); if (y == null) continue
+          let x = xPos(i)
+          ctx.fillStyle = style; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'
+          ctx.fillText(labelFmt(i), x, y - 8)
+        }
+        ctx.restore()
+      }
+    }
+
+    drawRevealedLine(
+      i => data[i].preco != null ? pad.top + lineH - ((data[i].preco - pMin) / pRange) * lineH : null,
+      '#4285F4', i => 'R$ ' + data[i].preco.toFixed(2), _rP
+    )
+    drawRevealedLine(
+      i => data[i].rendimento != null ? pad.top + lineH - ((data[i].rendimento - yMin) / yRange) * lineH : null,
+      '#81c995', i => data[i].rendimento.toFixed(2) + '%', _rY
+    )
+
+    // X axis
+    ctx.textAlign = 'center'; ctx.fillStyle = '#8b949e'; ctx.font = '10px sans-serif'
+    let maxLabels = Math.floor(pW / 55)
+    let mStep = Math.max(1, Math.floor(data.length / maxLabels))
+    for (let i = 0; i < data.length; i += mStep) {
+      let d = data[i].dataObj
+      let m = String(d.getMonth() + 1).padStart(2, '0')
+      let y = String(d.getFullYear()).slice(-2)
+      ctx.fillText(m + '/' + y, xPos(i), h - pad.bottom + 16)
+    }
+  }
+
+  // Check independent line animations
+  let ay = _divLineReveal.yield
+  let ap = _divLineReveal.preco
+
+  if (skipAnim && ay < 0 && ap < 0) {
+    _rY = hasYield ? 1 : 0; _rP = hasPreco ? 1 : 0
+    doRender(1); _divLineReveal.yield = -1; _divLineReveal.preco = -1; return
+  }
+
+  let t0 = performance.now(); let dur = 400
+  function animAll(now) {
+    let p = Math.min(1, (now - t0) / dur); let ep = 1 - Math.pow(1 - p, 3)
+    _rY = hasYield ? 1 : 0
+    if (ay >= 0) _rY = ay > 0 ? 1 - ep : ep
+    _rP = hasPreco ? 1 : 0
+    if (ap >= 0) _rP = ap > 0 ? 1 - ep : ep
+    doRender(1)
+    if (p < 1) { _divAnimId = requestAnimationFrame(animAll) }
+    else {
+      if (ay >= 0) _divLineReveal.yield = -1
+      if (ap >= 0) _divLineReveal.preco = -1
+      _divAnimId = null
+      _rY = hasYield ? 1 : 0; _rP = hasPreco ? 1 : 0
+      doRender(1)
+    }
+  }
+  _divAnimId = requestAnimationFrame(animAll)
+
+  // Tooltip
+  let overlay = document.getElementById('chart-div-overlay')
+  let octx = overlay.getContext('2d')
+  overlay.style.width = w + 'px'; overlay.style.height = h + 'px'
+  overlay.width = w * dpr; overlay.height = h * dpr; octx.scale(dpr, dpr)
+
+  canvas.onmousemove = function(e) {
+    let r = canvas.getBoundingClientRect()
+    let mx = e.clientX - r.left
+    let minDist = Infinity, nearest = -1
+    for (let i = 0; i < data.length; i++) {
+      let dist = Math.abs(xPos(i) - mx)
+      if (dist < minDist) { minDist = dist; nearest = i }
+    }
+    let step = w / data.length
+    if (minDist > Math.max(step * 1.5, 20)) {
+      document.getElementById('tooltip-div').classList.remove('visible')
+      octx.clearRect(0, 0, w, h); return
+    }
+    let pt = data[nearest]
+    let cx = xPos(nearest); let cy = barTop + barH_area - (pt.valor / vMax) * barH_area
+
+    octx.clearRect(0, 0, w, h)
+    octx.save(); octx.setLineDash([4, 4])
+    octx.strokeStyle = 'rgba(139,148,158,0.3)'; octx.lineWidth = 1
+    octx.beginPath(); octx.moveTo(cx, pad.top); octx.lineTo(cx, h - pad.bottom); octx.stroke()
+    octx.beginPath(); octx.moveTo(pad.left, cy); octx.lineTo(w - pad.right, cy); octx.stroke()
+    octx.restore()
+
+    document.getElementById('tt-div-date').textContent = fmtShortDate(pt.dataObj)
+    document.getElementById('tt-div-valor').textContent = 'R$ ' + pt.valor.toFixed(4)
+    let yieldTxt = pt.rendimento != null ? 'DY: ' + pt.rendimento.toFixed(2) + '%' : ''
+    let precoTxt = pt.preco != null ? '  Preço: ' + fmtBRL(pt.preco) : ''
+    document.getElementById('tt-div-yield').textContent = yieldTxt + precoTxt
+    let tip = document.getElementById('tooltip-div')
+    tip.style.left = Math.min(cx + 16, w - 180) + 'px'
+    tip.style.top = Math.max(cy - 30, 10) + 'px'
+    tip.classList.add('visible')
+  }
+  canvas.onmouseleave = function() {
+    document.getElementById('tooltip-div').classList.remove('visible')
+    octx.clearRect(0, 0, w, h)
+  }
+}
+
+// Period buttons (div)
+document.querySelectorAll('.btn-period-div').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.btn-period-div').forEach(b => b.classList.remove('active'))
+    this.classList.add('active')
+    divRange = parseInt(this.dataset.range)
+    drawDividendChart(divRange)
+  })
+})
+
+// Period buttons (cotação)
+document.querySelectorAll('.btn-period').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'))
+    this.classList.add('active')
+    let range = parseInt(this.dataset.range)
+    updatePeriodStats(range)
+    if (allPrices.length > 0) drawChart(range)
+  })
+})
+
+// Init
+async function init() {
+  await loadFundList()
+  let params = new URLSearchParams(location.search)
+  let ticker = params.get('ticker') || currentTicker
+  if (ticker) {
+    currentTicker = ticker.toUpperCase()
+    document.getElementById('fund-search').value = currentTicker
+    loadFundData(currentTicker)
+  }
+}
+
+init()
+
+// Window resize — redraw charts smoothly
+let _resizeTimer = null
+window.addEventListener('resize', function() {
+  clearTimeout(_resizeTimer)
+  _resizeTimer = setTimeout(function() {
+    if (allPrices.length > 0) {
+      let range = parseInt(document.querySelector('.btn-period.active')?.dataset.range || 365)
+      drawChart(range)
+    }
+    if (allDividendos.length > 0) {
+      drawDividendChart(divRange, true)
+    }
+  }, 200)
+})
+</script>
+</body>
+</html>
+
+

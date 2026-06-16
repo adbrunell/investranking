@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invest Ranking</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#111318;--surface:#1a1d24;--surface2:#1f232b;--border:#2a2e36;
+  --text:#e2e5e9;--text-muted:#8a909a;--heading:#eef0f3;
+  --accent:#ffde59;--accent-rgb:255,222,89;--accent-bg:rgba(255,222,89,0.08);
+  --sidebar-w:240px;--sidebar-w-collapsed:60px;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,0.3);--radius:12px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);z-index:999;overflow:hidden;transition:width .2s ease;display:flex;flex-direction:column}
+#sidebar.collapsed{width:var(--sidebar-w-collapsed)}
+#sidebar .brand{padding:16px;display:flex;align-items:center;gap:10px;min-height:54px;border-bottom:1px solid var(--border)}
+#sidebar .brand .logo{font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap;overflow:hidden}
+#sidebar .brand .logo span{color:var(--text);font-weight:400}
+#sidebar.collapsed .brand .logo{opacity:0;width:0}
+#sidebar .toggle{background:none;border:none;color:var(--text-muted);font-size:15px;cursor:pointer;padding:4px 8px;border-radius:6px;flex-shrink:0}
+#sidebar .toggle:hover{background:rgba(255,255,255,0.06);color:var(--text)}
+#sidebar .scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 0}
+#sidebar .scroll::-webkit-scrollbar{width:4px}
+#sidebar .scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+#sidebar .nav-label{padding:14px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);font-weight:600;white-space:nowrap;overflow:hidden}
+#sidebar.collapsed .nav-label{opacity:0;height:0;padding:0}
+#sidebar .nav-item{display:flex;align-items:center;gap:12px;padding:10px 16px;color:var(--text-muted);text-decoration:none;font-size:13px;cursor:pointer;border-left:3px solid transparent;transition:all .12s;white-space:nowrap;min-height:42px;border-radius:0 6px 6px 0;margin:0 8px}
+#sidebar .nav-item:hover{background:rgba(255,255,255,0.04);color:var(--text)}
+#sidebar .nav-item.active{background:var(--accent-bg);border-left-color:var(--accent);color:var(--accent)}
+#sidebar .nav-item .icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;opacity:.85}
+#sidebar .nav-item .txt{overflow:hidden;transition:opacity .15s}
+#sidebar.collapsed .nav-item .txt{opacity:0;width:0}
+#sidebar .nav-item .badge{margin-left:auto;font-size:9px;background:var(--accent);color:#000;padding:1px 6px;border-radius:8px;font-weight:600}
+#sidebar.collapsed .nav-item .badge{display:none}
+#sidebar .nav-divider{height:1px;background:var(--border);margin:8px 16px}
+#sidebar.collapsed .nav-divider{margin:8px 10px}
+#mobileMenuBtn{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:20px;cursor:pointer;z-index:1000;display:none;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(0,0,0,0.4)}
+#main{margin-left:var(--sidebar-w);height:100vh;transition:margin-left .2s ease;position:relative}
+#main.expanded{margin-left:var(--sidebar-w-collapsed)}
+#main iframe{width:100%;height:100%;border:none;display:block}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:998;display:none}
+@media(max-width:991px){
+#sidebar{transform:translateX(-100%);width:var(--sidebar-w)!important}
+#sidebar.open{transform:translateX(0)}
+#main{margin-left:0!important}
+#overlay.show{display:block}
+#mobileMenuBtn{display:flex}
+}
+</style>
+</head>
+<body>
+
+<nav id="sidebar" class="collapsed">
+  <div class="brand">
+    <span class="logo">Invest<span> Ranking</span></span>
+    <button class="toggle" id="toggleBtn" onclick="toggleCollapse()" title="Expandir"><i class="fas fa-chevron-right"></i></button>
+  </div>
+  <div class="scroll">
+    <div class="nav-label">Navegação</div>
+    <a class="nav-item" href="pages/mosaico.html" onclick="abrir('mosaico',this);return false"><i class="fas fa-border-all icon"></i><span class="txt">Mosaico</span></a>
+    <a class="nav-item" href="pages/radar.html" onclick="abrir('radar',this);return false"><i class="fas fa-chart-pie icon"></i><span class="txt">Radar</span></a>
+    <a class="nav-item" href="pages/radar-mais.html" onclick="abrir('radar-mais',this);return false"><i class="fas fa-bullseye icon"></i><span class="txt">Radar+</span></a>
+    <a class="nav-item" href="pages/fii.html" onclick="abrir('fii',this);return false"><i class="fas fa-building icon"></i><span class="txt">FIIs</span></a>
+    <a class="nav-item" href="pages/analise-fii.html" onclick="abrir('analise-fii',this);return false"><i class="fas fa-chart-line icon"></i><span class="txt">Scanner</span></a>
+    <a class="nav-item" href="pages/rendimentos.html" onclick="abrir('rendimentos',this);return false"><i class="fas fa-arrow-up icon"></i><span class="txt">Rendimentos</span></a>
+    <div class="nav-divider"></div>
+    <div class="nav-label">Ferramentas</div>
+    <a class="nav-item" href="pages/relatorios.html" onclick="abrir('relatorios',this);return false"><i class="fas fa-file-alt icon"></i><span class="txt">Relatórios</span></a>
+    <a class="nav-item" href="pages/carteira.html" onclick="abrir('carteira',this);return false"><i class="fas fa-briefcase icon"></i><span class="txt">Carteira</span><span class="badge">Em breve</span></a>
+  </div>
+</nav>
+
+<div id="overlay" onclick="closeSidebar()"></div>
+<button id="mobileMenuBtn" onclick="openSidebar()" title="Abrir menu"><i class="fas fa-bars"></i></button>
+
+<main id="main" class="expanded">
+  <iframe id="contentFrame" src="pages/mosaico.html"></iframe>
+</main>
+
+<script>
+let collapsed = true
+
+function toggleCollapse(){
+  collapsed = !collapsed
+  document.getElementById('sidebar').classList.toggle('collapsed', collapsed)
+  document.getElementById('main').classList.toggle('expanded', collapsed)
+  let btn = document.getElementById('toggleBtn')
+  btn.innerHTML = collapsed ? '<i class="fas fa-chevron-right"></i>' : '<i class="fas fa-chevron-left"></i>'
+  if (window.innerWidth <= 991) {
+    if (collapsed) closeSidebar()
+    else openSidebar()
+  }
+}
+
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open')
+  document.getElementById('overlay').classList.add('show')
+  document.getElementById('mobileMenuBtn').style.display='none'
+}
+
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open')
+  document.getElementById('overlay').classList.remove('show')
+  if(window.innerWidth<=991)document.getElementById('mobileMenuBtn').style.display='flex'
+}
+
+function abrir(pagina, el){
+  document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'))
+  if (el) el.classList.add('active')
+  if (window.innerWidth <= 991) closeSidebar()
+  document.getElementById('contentFrame').src = 'pages/' + pagina + '.html'
+}
+</script>
+</body>
+</html>
