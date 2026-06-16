@@ -262,14 +262,19 @@ async function fetchFromSupabase(){
 }
 
 async function fetchFromHistorico(){
-  let hist=await api(REST+'/b3_cotacoes_historico?select=ticker,data,fechamento,volume&order=data.desc&limit=3000')
-  if(!hist||!hist.length)return[]
+  // Get last 2 distinct trading dates
+  let dates=await api(REST+'/b3_cotacoes_historico?select=data&order=data.desc&limit=2')
+  if(!dates||dates.length<2)return[]
+  let d1=dates[0].data,d2=dates[1].data
+  // Fetch ALL records for both dates
+  let [h1,h2]=await Promise.all([
+    api(REST+"/b3_cotacoes_historico?select=ticker,fechamento,volume,data&data=eq."+d1+"&order=ticker").catch(()=>[]),
+    api(REST+"/b3_cotacoes_historico?select=ticker,fechamento,volume,data&data=eq."+d2+"&order=ticker").catch(()=>[])
+  ])
+  if(!h1||!h1.length)return[]
   let map={}
-  for(let r of hist){
-    if(!r.ticker||r.fechamento==null)continue
-    if(!map[r.ticker])map[r.ticker]=[]
-    if(map[r.ticker].length<2)map[r.ticker].push(r)
-  }
+  for(let r of h1){if(r.ticker&&r.fechamento!=null){if(!map[r.ticker])map[r.ticker]={};map[r.ticker].curr=r}}
+  for(let r of h2||[]){if(r.ticker&&r.fechamento!=null&&map[r.ticker])map[r.ticker].prev=r}
   let masterMap={}
   try{
     let r0=await fetch(REST+'/00_Master?select=Ticker,Classe&limit=1000',{headers:{...H,Prefer:'count=exact'}})
@@ -278,9 +283,9 @@ async function fetchFromHistorico(){
   }catch(e){}
   let out=[]
   for(let ticker in map){
-    let vals=map[ticker]
-    if(vals.length<2)continue
-    let latest=vals[0],prev=vals[1]
+    let m=map[ticker]
+    if(!m.curr||!m.prev)continue
+    let latest=m.curr,prev=m.prev
     let info=masterMap[ticker]||{}
     let change=((latest.fechamento-prev.fechamento)/prev.fechamento)*100
     out.push({
