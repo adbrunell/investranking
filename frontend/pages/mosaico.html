@@ -263,9 +263,18 @@ async function fetchFromSupabase(){
 
 async function fetchFromHistorico(){
   // Get last 2 distinct trading dates
-  let dates=await api(REST+'/b3_cotacoes_historico?select=data&order=data.desc&limit=2')
-  if(!dates||dates.length<2)return[]
-  let d1=dates[0].data,d2=dates[1].data
+  let rawDates=await api(REST+'/b3_cotacoes_historico?select=data&order=data.desc&limit=2000')
+  if(!rawDates||!rawDates.length)return[]
+  let uniq=[...new Set(rawDates.map(d=>d.data))]
+  if(uniq.length<2){
+    // Only 1 date available — show prices with 0% change
+    let h1=await api(REST+"/b3_cotacoes_historico?select=ticker,fechamento,volume,data&data=eq."+uniq[0]+"&order=ticker").catch(()=>[])
+    if(!h1||!h1.length)return[]
+    let masterMap={}
+    try{let r0=await fetch(REST+'/00_Master?select=Ticker,Classe&limit=1000',{headers:{...H,Prefer:'count=exact'}});(await r0.json()).forEach(r=>{if(r.Ticker)masterMap[r.Ticker]={classe:r.Classe}})}catch(e){}
+    return h1.filter(r=>r.ticker&&r.fechamento!=null).map(r=>{let info=masterMap[r.ticker]||{};return{ticker,price:parseFloat(r.fechamento),prevClose:null,change:0,volume:parseFloat(r.volume)||0,ultTransacao:'',dataRef:r.data||'',segmento:info.classe||'',categoria:info.classe||'',tipo:info.classe||''}})
+  }
+  let d1=uniq[0],d2=uniq[1]
   // Fetch ALL records for both dates
   let [h1,h2]=await Promise.all([
     api(REST+"/b3_cotacoes_historico?select=ticker,fechamento,volume,data&data=eq."+d1+"&order=ticker").catch(()=>[]),
