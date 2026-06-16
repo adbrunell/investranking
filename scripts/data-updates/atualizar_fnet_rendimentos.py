@@ -20,7 +20,7 @@ from utils.scraper._fnet_base import _parse_date
 TABELA = "fnet_tudo"
 VIEWER_URL = "https://fnet.bmfbovespa.com.br/fnet/publico/exibirDocumento"
 MAX_WORKERS = 10
-MAX_RETRIES = 3
+MAX_RETRIES = 1
 
 
 def fetch_viewer(doc_id):
@@ -29,16 +29,13 @@ def fetch_viewer(doc_id):
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "pt-BR,pt;q=0.9",
     }
-    for attempt in range(MAX_RETRIES):
-        try:
-            with httpx.Client(verify=False, timeout=httpx.Timeout(30.0, connect=10.0)) as c:
-                r = c.get(f"{VIEWER_URL}?id={doc_id}&cvm=true", headers=headers, follow_redirects=True)
-                if r.status_code == 200 and len(r.text) > 200:
-                    return r.text
-        except Exception as e:
-            if attempt == MAX_RETRIES - 1:
-                logger.debug("fetch_viewer(%s) falhou apos %d tentativas: %s", doc_id, MAX_RETRIES, e)
-            time.sleep(2 * (attempt + 1))
+    try:
+        with httpx.Client(verify=False, timeout=httpx.Timeout(10.0, connect=5.0)) as c:
+            r = c.get(f"{VIEWER_URL}?id={doc_id}&cvm=true", headers=headers, follow_redirects=True)
+            if r.status_code == 200 and len(r.text) > 200:
+                return r.text
+    except Exception:
+        pass
     return None
 
 
