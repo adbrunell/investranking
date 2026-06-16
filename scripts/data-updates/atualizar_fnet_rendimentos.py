@@ -30,7 +30,7 @@ def fetch_viewer(doc_id):
         "Accept-Language": "pt-BR,pt;q=0.9",
     }
     try:
-        with httpx.Client(verify=False, timeout=httpx.Timeout(10.0, connect=5.0)) as c:
+        with httpx.Client(verify=False, timeout=httpx.Timeout(5.0, connect=3.0)) as c:
             r = c.get(f"{VIEWER_URL}?id={doc_id}&cvm=true", headers=headers, follow_redirects=True)
             if r.status_code == 200 and len(r.text) > 200:
                 return r.text
