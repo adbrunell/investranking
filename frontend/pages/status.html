@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Status da Atualização</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--bg:#111318;--card:#1a1d24;--card2:#1f232b;--border:#2a2e36;--text:#e2e5e9;--muted:#8a909a;--accent:#ffde59;--green:#2ec4b6;--red:#ee6363;--orange:#f5a623;--blue:#4285F4;--purple:#9b59b6;--youtube:#ff0033;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:0 20px 20px;-webkit-font-smoothing:antialiased}
+::selection{background:var(--accent);color:#000}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(17,19,24,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:44px;display:flex;align-items:center;gap:12px;padding:0 20px;margin:0 -20px 16px}
+.topbar h1{font-size:18px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:6px}
+.topbar h1 i{font-size:16px}
+.actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+.action-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:5px}
+.action-btn:hover{border-color:var(--accent);color:var(--text)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning i{animation:spin .8s linear infinite}
+.container{max-width:900px;margin:0 auto}
+.run-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;transition:border .2s}
+.run-card:hover{border-color:var(--accent)}
+.run-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--card2)}
+.run-time{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.run-badge{font-size:11px;color:var(--muted);margin-left:auto}
+.run-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:12px 16px}
+.script-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.02)}
+.script-item:hover{background:rgba(255,255,255,0.04)}
+.script-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.script-icon.green{background:rgba(46,196,182,0.12);color:var(--green)}
+.script-icon.blue{background:rgba(66,133,244,0.12);color:var(--blue)}
+.script-icon.yellow{background:rgba(255,222,89,0.12);color:var(--accent)}
+.script-icon.orange{background:rgba(245,166,35,0.12);color:var(--orange)}
+.script-icon.red{background:rgba(238,99,99,0.12);color:var(--red)}
+.script-icon.purple{background:rgba(155,89,182,0.12);color:var(--purple)}
+.script-name{font-size:12px;font-weight:500;color:var(--text);flex:1}
+.script-status{font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.script-status.ok{background:rgba(46,196,182,0.12);color:var(--green)}
+.script-status.erro{background:rgba(238,99,99,0.12);color:var(--red)}
+.script-status.skip{background:rgba(138,144,154,0.12);color:var(--muted)}
+.script-status.pendente{background:rgba(255,222,89,0.08);color:var(--accent)}
+.empty{padding:50px 20px;text-align:center;color:var(--muted)}
+.empty i{font-size:32px;display:block;margin-bottom:12px;opacity:.4}
+@media(max-width:600px){
+  body{padding:0 12px 12px}
+  .topbar{margin:0 -12px 12px;padding:0 12px}
+  .run-body{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1><i class="fas fa-sync-alt"></i> Status <span style="color:var(--text);font-weight:400;font-size:14px">da Atualização</span></h1>
+  <div class="actions">
+    <button class="action-btn" onclick="carregar()"><i class="fas fa-redo"></i> Atualizar</button>
+  </div>
+</div>
+<div class="container">
+  <div id="container"></div>
+  <div class="empty" id="emptyState">
+    <i class="fas fa-database"></i>
+    Nenhum registro encontrado. Execute <code style="color:var(--accent)">run_all.ps1</code> para gerar o log.
+  </div>
+</div>
+
+<script>
+const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
+const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
+
+const SCRIPTS = [
+  {col:'b3_aovivo', label:'B3 Ao Vivo', icon:'fas fa-chart-simple', cls:'green'},
+  {col:'fnet_dados', label:'FNET Documentos', icon:'fas fa-file-alt', cls:'blue'},
+  {col:'youtube', label:'YouTube', icon:'fab fa-youtube', cls:'red'},
+  {col:'cvm_fii', label:'CVM FII Mensal', icon:'fas fa-building', cls:'yellow'},
+  {col:'cvm_fiagro', label:'CVM Fiagro Mensal', icon:'fas fa-tractor', cls:'orange'},
+  {col:'cvm_cadastral', label:'CVM Cadastral', icon:'fas fa-address-card', cls:'purple'},
+  {col:'status_acoes', label:'StatusInvest Ações', icon:'fas fa-chart-line', cls:'green'},
+  {col:'status_dividendos', label:'StatusInvest Dividendos', icon:'fas fa-money-bill-wave', cls:'yellow'},
+  {col:'b3_cotahist', label:'B3 COTAHIST', icon:'fas fa-download', cls:'blue'},
+]
+
+function fmtStatus(s){
+  if(!s)return'<span class="script-status pendente"><i class="fas fa-spinner"></i> Pendente</span>'
+  let low=s.toLowerCase()
+  if(low.startsWith('ok'))return`<span class="script-status ok"><i class="fas fa-check-circle"></i> ${s}</span>`
+  if(low.startsWith('erro'))return`<span class="script-status erro"><i class="fas fa-times-circle"></i> ${s}</span>`
+  if(low.startsWith('skip'))return`<span class="script-status skip"><i class="fas fa-forward"></i> SKIP</span>`
+  return`<span class="script-status pendente"><i class="fas fa-spinner"></i> ${s}</span>`
+}
+
+function fmtTime(s){
+  if(!s)return'—'
+  let t=new Date(s+'Z')
+  return t.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+
+         t.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+}
+
+function fmtRelTime(s){
+  if(!s)return''
+  let t=new Date(s+'Z'),n=new Date(),d=Math.floor((n-t)/1000)
+  if(d<60)return'agora'
+  if(d<3600)return`há ${Math.floor(d/60)}min`
+  if(d<86400)return`há ${Math.floor(d/3600)}h`
+  return fmtTime(s)
+}
+
+async function carregar(){
+  document.querySelector('.action-btn').classList.add('spinning')
+  const container=document.getElementById('container')
+  const empty=document.getElementById('emptyState')
+  try{
+    let r=await fetch(`${REST}/00.log_atualizacao?select=*&order=id.desc&limit=50`,{headers:H})
+    if(!r.ok)throw new Error(r.status)
+    let rows=await r.json()
+    empty.style.display=rows.length?'none':'block'
+    container.innerHTML=rows.map(row=>{
+      let fin=row.finished_at
+      let rel=fmtRelTime(fin)
+      return `<div class="run-card">
+        <div class="run-header">
+          <i class="far fa-clock" style="color:var(--muted);font-size:12px"></i>
+          <span class="run-time">${fmtTime(fin)}</span>
+          <span style="font-size:11px;color:var(--muted)">${rel}</span>
+          <span class="run-badge"><i class="far fa-calendar-alt"></i> ${row.started_at?fmtTime(row.started_at):'—'} → ${fin?fmtTime(fin):'—'}</span>
+        </div>
+        <div class="run-body">
+          ${SCRIPTS.map(s=>{
+            let st=row[s.col]
+            return `<div class="script-item">
+              <div class="script-icon ${s.cls}"><i class="${s.icon}"></i></div>
+              <span class="script-name">${s.label}</span>
+              ${fmtStatus(st)}
+            </div>`
+          }).join('')}
+        </div>
+      </div>`
+    }).join('')
+  }catch(e){
+    container.innerHTML=`<div class="run-card"><div style="padding:30px;text-align:center;color:var(--red)">
+      <i class="fas fa-exclamation-triangle"></i> Erro ao carregar: ${e.message}
+    </div></div>`
+  }
+  document.querySelector('.action-btn').classList.remove('spinning')
+}
+
+carregar()
+setInterval(carregar,30000)
+</script>
+</body>
+</html>

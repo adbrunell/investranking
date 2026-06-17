@@ -1,112 +1,75 @@
 # Invest Ranking
 
 ## Tech Stack
-- **Database**: Supabase (PostgreSQL) — `oaqmnaekrpukwmrxjtud`
-- **Frontend**: Vanilla HTML/CSS/JS (no framework, no build tools)
-- **Backend/ETL**: Python scripts in `scripts/data-updates/`
-- **Charts**: Canvas 2D API (FII/Scanner page), D3.js v7 CDN (Mosaico treemap)
+- **DB**: Supabase (PostgreSQL) — `oaqmnaekrpukwmrxjtud`
+- **Frontend**: Vanilla HTML/CSS/JS (no build tools)
+- **ETL**: Python scripts in `scripts/data-updates/`
+- **Charts**: Canvas 2D API (Scanner page), D3.js v7 CDN (Mosaico treemap)
 
 ## Critical Setup
+- **Serve**: `.\servidor.ps1` → http://localhost:8080 (NUNCA abrir `frontend/index.html` via `file://`)
+- **Python**: `scripts/.venv/Scripts/python.exe` — activate or use directly
+- **Deps**: `pip install playwright && playwright install chromium` (required for captcha-based scrapers)
+- **Client key**: `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR`
 
-**NÃO abrir `frontend/index.html` direto (file://).** Sempre usar:
+## ETL Orchestration
+`run_all.ps1` at `scripts/data-updates/` handles scheduling with state tracking (`.run_state.json`):
 
-```powershell
-.\servidor.ps1
-# Abre http://localhost:8080
-```
+| Group | Scripts | When |
+|---|---|---|
+| **Always** | `b3_cotacoes_aovivo`, `fnet_dados`, `youtube_videos` | Every run |
+| **2h interval** | `cvm_fii_mensal`, `cvm_fiagro_mensal`, `cvm_cadastral`, `statusinvest_acoes`, `statusinvest_dividendos` | Skip if <2h since last |
+| **Conditional** | `b3_cotahist` | Only if `aovivo` has newer data than `historico` |
 
-**Python scripts** precisam carregar o `.env` antes:
+`fnet_dados` always calls `fnet_rendimentos` at the end.
 
-```powershell
-Get-Content .env | ForEach-Object { if ($_ -match "^(.*?)=(.*)$") { Set-Item -Path "env:$($matches[1])" -Value $matches[2] } }
-.\.venv\Scripts\python.exe scripts/data-updates/atualizar_fnet_rendimentos.py
-```
+### Captcha-dependent scripts (require interactive browser)
+- `atualizar_b3_cotahist.py` — download COTAHIST ZIP from B3
+- `atualizar_statusinvest_acoes.py` — download stock screener CSV
 
-Ou usar `run_all.ps1` que já carrega o `.env`.
-
-## Project Structure
-
-```
-/
-├── frontend/
-│   ├── index.html                  ← Shell com sidebar + iframe
-│   ├── pages/
-│   │   ├── mosaico.html            ← Treemap (D3)
-│   │   ├── radar.html              ← Radar de anúncios
-│   │   ├── fii.html                ← Análise FII original (app.js)
-│   │   ├── analise-fii.html        ← Scanner de Fundos (novo, self-contained)
-│   │   └── ...
-│   ├── css/style.css               ← Compartilhado (fii.html usa)
-│   └── js/app.js                   ← Usado por fii.html
-├── database/migrations/
-├── scripts/
-│   ├── data-updates/               ← ETL Python
-│   │   ├── atualizar_fnet_dados.py         ← Scrap FNET primeira página
-│   │   ├── atualizar_fnet_rendimentos.py   ← Scrap rendimentos (viewer page)
-│   │   └── run_all.ps1                     ← Executa todos em sequência
-│   ├── utils/scraper/              ← Módulo compartilhado
-│   │   └── config.py               ← Lê SUPABASE_URL + SUPABASE_SERVICE_KEY do env
-│   └── .venv/
-└── servidor.ps1
-```
-
-## Frontend Patterns
-
-- **analise-fii.html** (Scanner) é self-contained: CSS inline + JS inline. Não depende de app.js.
-- **fii.html** carrega `../js/app.js` + `../css/style.css`.
-- **Ícones**: Font Awesome 6.5.0 CDN.
-- **API Key** (publishable): `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR`
-- **REST endpoint**: `https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1`
+Both use Playwright `headless=False` — **will wait for you to solve captcha**.
 
 ## Database
+**View vs Table**: Scripts query the view `00_Master` (columns: `Ticker`, `Classe`, `CNPJ`), while the actual table is `00_fundos_master` (`ticker`, `segmento`, `tipo`, `cnpj`).
 
-Tabelas principais:
-- `00_fundos_master` — ticker, cnpj, segmento, tipo
-- `fnet_tudo` — documentos FNET (colunas normais + `data_com`, `data_pagamento`, `tipo`, `rendimento`)
-- `b3_cotacoes_historico` — preços OHLCV diários
-- `b3_cotacoes_aovivo` — cotação ao vivo
-- `cvm_fii_geral` — tipo_gestao, segmento_atuacao, publico_alvo, data_funcionamento
-- `cvm_fii_complemento` — valor_patrimonial_cotas, percentual_dividend_yield_mes, patrimonio_liquido, percentual_despesas_taxa_administracao
-- `cvm_fii_dadoscadastrais` — taxa_adm (já em %)
-- `status_dividendos` — proventos unificados (tipo_ativo: FIIs, Fiagro, Fiinfra, Acoes)
-- `youtube_videos` — vídeos do YouTube
+Key tables:
+- `00_fundos_master` — curated FII list (ticker, cnpj, segmento, tipo)
+- `fundos_map` — CNPJ ↔ ticker bridge (connects all other tables)
+- `fnet_tudo` — FNET documents + income fields (`data_com`, `data_pagamento`, `tipo`, `rendimento`)
+- `fnet_rendimentos` — parsed income declarations (source for DY calculation)
+- `b3_cotacoes` (aka `b3_cotacoes_historico`) — daily OHLCV (PK: ticker+data)
+- `b3_cotacoes_aovivo` — intraday snapshot (PK: codigo_instrumento+data_referencia)
+- `cotacoes_tempo_real` — latest post-market price per fund
+- `cvm_fii_geral` / `cvm_fii_complemento` / `cvm_fii_ativo_passivo` — monthly reports
+- `cvm_fiagro_geral` — Fiagro equivalent of FII monthly reports
+- `status_dividendos` — unified dividends (tipo_ativo: FIIs, Fiagro, Fiinfra, Acoes)
+- `status_acoes` — stock indicators (P/L, DY, ROE, etc.)
+- `youtube_videos` — YouTube videos about tickers
+- `00.log_atualizacao` — ETL run log (populated by `run_all.ps1` on each execution)
 
-### API Quirks (PostgREST)
-- `like` usa `*` como wildcard: `like.*Relat*rio*`
-- `limit` padrão é 1000; para mais usa paginação com `&offset=N`
-- `tipo=neq.` significa `tipo != ''` (exclui NULL)
-- Colunas de data nas tabelas CVM: `data_referencia` (NÃO `data_informacao`)
-- Erros 500 intermitentes com `like` + `order` em `fnet_tudo`
+## PostgREST Quirks
+- `like` uses `*` wildcard: `like.*Relat*rio*`
+- `limit` defaults to 1000 — paginate with `&offset=N`
+- `tipo=neq.` means `tipo != ''` (excludes NULL)
+- CVM date columns use `data_referencia` (NOT `data_informacao`)
+- Intermittent 500 errors with `like` + `order` on `fnet_tudo`
 
-## ETL / Scraping
+## ETL Pitfalls
+- **CRITICAL**: `atualizar_fnet_dados.py` must **strip** `tipo`, `rendimento`, `data_com`, `data_pagamento` before upsert — otherwise it overwrites values extracted by `fnet_rendimentos.py` (done in `_scrape_primeira_pagina`)
+- `percentual_despesas_taxa_administracao` in `cvm_fii_complemento` is decimal (e.g. `0.000693` = 0.0693%). Multiply by 100 for display.
+- CVM monthly tables use versioned rows — always `ORDER BY data_referencia DESC, versao DESC LIMIT 1` for latest
+- B3 intraday scraper: skips tickers with `< 10 trades` on the day
+- `.run_state.json` prevents re-running CVM/StatusInvest scripts more than once per 2h — delete the file to force re-run
+- `run_all.ps1` now logs each script run to `00.log_atualizacao` table (view at `/pages/status.html`)
 
-- `atualizar_fnet_dados.py` → `atualizar_fnet_rendimentos.py` (chamado ao final)
-- `atualizar_fnet_rendimentos.py`:
-  - Busca docs do FNET com `rendimento=is.null` em lotes de 500
-  - 10 workers concorrentes
-  - Parse do HTML: busca "Valor do provento", "Data-base" (data_com), "Data do pagamento"
-  - Detecta Dividendo vs Amortização pela coluna da tabela que tem valor
-  - `percentual_despesas_taxa_administracao` do `cvm_fii_complemento` é decimal (ex: 0.000693 = 0.0693%). Multiplicar por 100 para %.
-- **CRÍTICO**: `atualizar_fnet_dados.py` NÃO pode incluir `tipo`, `rendimento`, `data_com`, `data_pagamento` no upsert, senão sobrescreve os valores extraídos pelo viewer page. Esses 4 campos são removidos do dict em `_scrape_primeira_pagina`.
+## Frontend
+- `analise-fii.html` (Scanner, default ticker `GARE11`): self-contained (inline CSS/JS)
+- `fii.html`: loads `../js/app.js` + `../css/style.css`
+- Sidebar (`index.html`) shows: mosaico, radar-mais, analise-fii, status
+- Font Awesome 6.5.0 CDN for icons
 
-## Canvas Chart Patterns
-
-Scanner (`analise-fii.html`):
-- **Gráfico de cotação**: preço (linha amarela) + liquidez (barras azuis eixo direito, animação reveal)
-- **Gráfico de dividendos**: barras amarelas (zona inferior) + linhas DY (verde) e Preço (azul) na zona superior, reveal left-to-right
-- **Atratividade**: barra horizontal gradiente vermelho→amarelo→verde (canvas `#gauge`)
-- **Crosshair**: overlay canvas com linhas tracejadas
-- **Marcadores**: ícones no topo com linha tracejada até o preço (R, !, $, ▶)
-- **Animação de markers**: ícone sobe/desce da linha ao topo (400ms ease-out)
-- **Animação de liquidez**: barras revelam de baixo pra cima (500ms)
-
-FII (`app.js`):
-- Canvas charts com overlay para crosshair
-- Mesmo padrão de cores: yellow=`#ffde59`, green=`#2ec4b6`, blue=`#4285F4`
-
-## Page-specific Notes
-
-- **Scanner** (`analise-fii.html`): Ticker `GARE11` default. Toggles de eventos começam DESLIGADOS.
-- **FII** (`fii.html`): Usa `app.js`. Toggles de eventos começam LIGADOS.
-- **Radar** (`radar.html`): Queries `fnet_tudo` para 3 categorias + `youtube_videos`.
-- **Mosaico** (`mosaico.html`): Treemap D3 via Google Sheets (fallback) ou Supabase.
+## opencode.json Config
+- **MCP**: Supabase via `scripts/mcp-supabase.ps1` (loads `.env` vars)
+- **Commands**: `test`/`lint`/`build` defined but are generic templates — no test framework exists
+- **Formatter + LSP**: enabled
+- **Skill**: `invest-ranking-analyst` covers database schema (20+ tables) + financial methodology — load it for ranking/analysis work
