@@ -23,6 +23,53 @@ MAX_WORKERS = 10
 MAX_RETRIES = 1
 
 
+def atualizar_minigrafico(updates):
+    """Atualiza historico_minigrafico, rendimento_anterior e dividend_yield
+    para os fundos que tiveram novos rendimentos extraídos."""
+    from supabase import create_client
+    supabase = create_client(config.supabase_url, config.supabase_key)
+    h = {"apikey": config.supabase_key, "Authorization": f"Bearer {config.supabase_key}"}
+    rest = f"{config.supabase_url}/rest/v1"
+
+    fundos = set(u.get("codigo_fundo", "") for u in updates if u.get("codigo_fundo"))
+    if not fundos:
+        return
+
+    base_cols = "fnet_documento_id,codigo_fundo,data_entrega,rendimento"
+    for isin in fundos:
+        try:
+            r = httpx.get(
+                f"{rest}/{TABELA}?select={base_cols}"
+                f"&codigo_fundo=eq.{isin}"
+                "&tipo_documento=like.*Rendimentos*"
+                "&rendimento=not.is.null"
+                "&order=data_entrega.asc",
+                headers=h, timeout=30
+            )
+            if r.status_code not in (200, 206):
+                continue
+            rows = r.json()
+            if len(rows) < 2:
+                continue
+
+            vals = [r["rendimento"] for r in rows]
+            to_update = []
+            for i, row in enumerate(rows):
+                hist = vals[:i]
+                ant = vals[i - 1] if i > 0 else None
+                to_update.append({
+                    "fnet_documento_id": row["fnet_documento_id"],
+                    "historico_minigrafico": hist,
+                    "rendimento_anterior": ant,
+                })
+
+            if to_update:
+                supabase.table(TABELA).upsert(to_update, on_conflict="fnet_documento_id").execute()
+                print(f"  [minigrafico] {isin}: {len(to_update)} registros atualizados", flush=True)
+        except Exception as e:
+            print(f"  [minigrafico] ERRO ao processar {isin}: {e}", flush=True)
+
+
 def fetch_viewer(doc_id):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -172,6 +219,21 @@ def extrair_rendimentos(max_docs: int | None = None) -> int:
         if updates:
             print(f"  Lote concluido em {batch_elapsed:.0f}s — salvando {len(updates)} rendimentos...", flush=True)
             supabase.table(TABELA).upsert(updates, on_conflict="fnet_documento_id").execute()
+            # Busca codigo_fundo para cada update antes de chamar o minigrafico
+            ids = [u["fnet_documento_id"] for u in updates]
+            try:
+                r = httpx.get(
+                    f"{rest}/{TABELA}?select=fnet_documento_id,codigo_fundo"
+                    f"&fnet_documento_id=in.({','.join(str(i) for i in ids)})",
+                    headers=h, timeout=30
+                )
+                if r.status_code in (200, 206):
+                    fundo_map = {d["fnet_documento_id"]: d["codigo_fundo"] for d in r.json()}
+                    for u in updates:
+                        u["codigo_fundo"] = fundo_map.get(u["fnet_documento_id"], "")
+                    atualizar_minigrafico(updates)
+            except Exception as e:
+                print(f"  Aviso: falha ao buscar codigo_fundo: {e}", flush=True)
         else:
             print(f"  Lote concluido em {batch_elapsed:.0f}s — nenhum rendimento encontrado", flush=True)
 
