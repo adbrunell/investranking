@@ -147,6 +147,13 @@ $parts = foreach ($k in $scriptOrder) { $statuses[$k] }
 $logLine = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | $($parts -join ' | ')"
 Add-Content -Path $logFile -Value $logLine
 log-db
+# Atualiza minigrafico no banco
+try {
+  Invoke-RestMethod -Uri "$supabaseUrl/rest/v1/rpc/fn_atualizar_minigrafico" -Method Post -Headers @{"apikey"=$apiKey; "Authorization"="Bearer $apiKey"} -TimeoutSec 120 | Out-Null
+  Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Minigrafico atualizado" -ForegroundColor Green
+} catch {
+  Write-Host "  [Aviso] Falha ao atualizar minigrafico: $_" -ForegroundColor Gray
+}
 $state | ConvertTo-Json | Set-Content $stateFile
 
 Write-Host ""
