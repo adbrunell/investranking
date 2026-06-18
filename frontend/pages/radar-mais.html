@@ -201,7 +201,7 @@ async function load(){
     let results=await Promise.allSettled([
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Relat%C3%B3rios&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Fato%20Relevante&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=eq.Rendimentos%20e%20Amortiza%C3%A7%C3%B5es&tipo=neq.&situacao_documento=eq.A&order=data_entrega.desc&limit=200'),
+      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=eq.Rendimentos%20e%20Amortiza%C3%A7%C3%B5es&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
       api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&order=publicacao.desc&limit=80').catch(()=>[])
     ])
     let rel=results[0].status==='fulfilled'?results[0].value:[]
@@ -249,7 +249,7 @@ async function searchFullDB(term){
     let results=await Promise.allSettled([
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Relat*rio*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Fato*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&tipo=neq.&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
+      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
       api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&ticker=eq.'+upper+'&order=publicacao.desc')
     ])
     let items=[]
