@@ -29,6 +29,21 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .filter-chip:hover{border-color:var(--text);color:var(--text)}
 .filter-chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
 .filter-chip:active{transform:scale(.93)}
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none}
+.panel-overlay.open{display:block}
+.slide-panel{position:fixed;top:0;right:-320px;width:300px;bottom:0;background:var(--card);z-index:201;transition:right .3s ease;display:flex;flex-direction:column;border-left:1px solid var(--border)}
+.slide-panel.open{right:0}
+.panel-header{display:flex;align-items:center;padding:12px 16px;font-size:14px;font-weight:600;color:var(--accent);border-bottom:1px solid var(--border)}
+.panel-body{flex:1;overflow-y:auto;padding:12px 16px}
+.pgroup{margin-bottom:16px}
+.pgroup-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.prow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.prow label{font-size:11px;color:var(--text);width:50px;flex-shrink:0}
+.prow input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;outline:none;font-family:inherit}
+.prow input:focus{border-color:var(--accent)}
+.prow .wsel{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-size:12px;padding:6px 8px;outline:none;cursor:pointer;font-weight:600}
+.pweight{font-size:11px;color:var(--muted);min-width:30px;text-align:right}
+.panel-footer{display:flex;padding:12px 16px;border-top:1px solid var(--border);gap:8px}
 .filter-range-wrap{overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border)}
 .filter-range-wrap::-webkit-scrollbar{display:none}
 .filter-range{display:flex;gap:3px;padding:4px 8px;max-width:1100px;margin:0 auto}
@@ -161,6 +176,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <input id="search" placeholder="Buscar ticker..." oninput="onSearch()" autocomplete="off" list="tickerList">
       <datalist id="tickerList"></datalist>
     </div>
+    <button id="gearBtn" onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px"><i class="fas fa-cog"></i></button>
   </div>
 </div>
 
@@ -175,13 +191,27 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <button class="filter-chip active" data-tipo="FI-Infra" onclick="toggleFiltro(this)">FI-Infra</button>
   </div>
 </div>
-<div class="filter-range-wrap">
-  <div class="filter-range">
-    <div class="fline"><label>Liq</label><input type="number" id="liqMin" placeholder="min" oninput="render()"><input type="number" id="liqMax" placeholder="max" oninput="render()"><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
-    <div class="fline"><label>P/VP</label><input type="number" id="pvpMin" placeholder="min" oninput="render()" step="0.01"><input type="number" id="pvpMax" placeholder="max" oninput="render()" step="0.01"><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
-    <div class="fline"><label>DY %</label><input type="number" id="dyMin" placeholder="min" oninput="render()" step="0.1"><input type="number" id="dyMax" placeholder="max" oninput="render()" step="0.1"><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
-    <button class="filter-chip" onclick="document.querySelectorAll('.filter-range input').forEach(e=>e.value='');render()" style="font-size:9px;align-self:flex-start;margin-top:2px">✕</button>
+<div id="panelOverlay" class="panel-overlay" onclick="togglePanel()"></div>
+<div id="panel" class="slide-panel">
+  <div class="panel-header">Filtros <button onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;margin-left:auto"><i class="fas fa-times"></i></button></div>
+  <div class="panel-body">
+    <div class="pgroup"><div class="pgroup-title">Liquidez</div>
+      <div class="prow"><label>Mín</label><input type="number" id="liqMin" placeholder="0" oninput="render()"></div>
+      <div class="prow"><label>Máx</label><input type="number" id="liqMax" placeholder="—" oninput="render()"></div>
+      <div class="prow"><label>Peso</label><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wLiqLabel">0.5</span></span></div>
+    </div>
+    <div class="pgroup"><div class="pgroup-title">P/VP</div>
+      <div class="prow"><label>Mín</label><input type="number" id="pvpMin" placeholder="0" oninput="render()" step="0.01"></div>
+      <div class="prow"><label>Máx</label><input type="number" id="pvpMax" placeholder="—" oninput="render()" step="0.01"></div>
+      <div class="prow"><label>Peso</label><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wPvpLabel">0.5</span></span></div>
+    </div>
+    <div class="pgroup"><div class="pgroup-title">DY</div>
+      <div class="prow"><label>Mín %</label><input type="number" id="dyMin" placeholder="0" oninput="render()" step="0.1"></div>
+      <div class="prow"><label>Máx %</label><input type="number" id="dyMax" placeholder="—" oninput="render()" step="0.1"></div>
+      <div class="prow"><label>Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
+    </div>
   </div>
+  <div class="panel-footer"><button class="filter-chip" onclick="document.querySelectorAll('.panel-body input').forEach(e=>e.value='');render()" style="font-size:10px">Limpar</button><button class="filter-chip active" onclick="togglePanel()" style="font-size:10px;margin-left:auto">Salvar</button></div>
 </div>
 
 <div class="container">
@@ -231,6 +261,15 @@ function fmtPct(v){
 }
 
 
+
+function togglePanel(){
+  document.getElementById('panel').classList.toggle('open')
+  document.getElementById('panelOverlay').classList.toggle('open')
+}
+['wLiq','wPvp','wDy'].forEach(id=>{
+  let el=document.getElementById(id)
+  el.onchange=function(){document.getElementById(id+'Label').textContent=(+this.value/10).toFixed(1);render()}
+})
 
 async function load(){
   try{
