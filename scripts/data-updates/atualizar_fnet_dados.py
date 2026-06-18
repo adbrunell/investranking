@@ -12,6 +12,14 @@ _proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _proj_root not in sys.path:
     sys.path.insert(0, _proj_root)
 
+_env_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as f:
+        for line in f:
+            if "=" in line and not line.startswith("#"):
+                k, v = line.strip().split("=", 1)
+                os.environ.setdefault(k, v)
+
 from utils.scraper.config import config
 from utils.scraper._fnet_base import _parse_date, _cookies_from_fnet
 

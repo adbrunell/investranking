@@ -11,9 +11,10 @@
 - **Python**: `scripts/.venv/Scripts/python.exe` — use directly (not system Python)
 - **Deps**: `pip install playwright && playwright install chromium` (required for Playwright-based scrapers)
 - **Client key**: `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR`
+- **`.env.example`** at root lists all 5 required vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`
 
 ## ETL Orchestration
-`run_all.ps1` at `scripts/data-updates/` handles scheduling with state tracking (`.run_state.json`):
+`run_all.ps1` at `scripts/data-updates/` is the **canonical runner** (the `.bat` files at the same location are deprecated). Handles scheduling with `.run_state.json`:
 
 | Group | Scripts | When |
 |---|---|---|
@@ -23,18 +24,21 @@
 
 `fnet_dados` always calls `fnet_rendimentos` at the end.
 
-### Playwright scripts (may require captcha)
-- `atualizar_b3_cotahist.py` — download COTAHIST ZIP from B3 (captcha)
-- `atualizar_statusinvest_acoes.py` — download stock screener CSV (captcha)
-- `atualizar_statusinvest_dividendos.py` — download dividends CSV (uses Playwright but not explicitly captcha-skipped by `run_all.ps1`)
+Post-run RPCs (always called): `fn_atualizar_minigrafico`, `fn_refresh_ranking_fiis` (materialized view), `fn_limpar_b3_historico`.
 
-All three use Playwright `headless=False`. The first two are explicitly skipped by `run_all.ps1` when running from Task Scheduler (`$captchaScripts` list).
+### Playwright scripts (may require captcha)
+- `atualizar_b3_cotahist.py` / `atualizar_statusinvest_acoes.py` / `atualizar_statusinvest_dividendos.py` — use `headless=False`. First two are explicitly skipped by `run_all.ps1` when running from Task Scheduler (`$captchaScripts` list).
+
+### Task Scheduler
+- Config: `scripts/data-updates/setup_task.ps1` — runs `run_all.ps1` at logon with 30min repetition
+- `scripts/data-updates/executar_atualizacao.bat` — convenience double-click wrapper for manual runs
+- `fix_repetition.ps1` / `fix_task.ps1` — utility fix scripts
 
 ## Environment
-- **`.env` at project root** — loaded by `run_all.ps1` (line-by-line via `Get-Content`) and by most ETL scripts (inline `open().read().split("=")` or `os.environ["VAR"]`)
+- **`.env` at project root** — loaded by `run_all.ps1` (`Get-Content` split on `=`) and by ETL scripts (inline `open().read().split("=")` or `os.environ["VAR"]`)
 - **`utils.scraper.config.Config`** — dataclass reading `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` from env; import via `from utils.scraper.config import config`
 - **`utils.scraper._fnet_base`** — shared FNET helpers (`_parse_date`, `_cookies_from_fnet`)
-- **MCP** (`scripts/mcp-supabase.ps1`): reads `.env` and pipes into `npx @supabase/mcp-server-supabase`
+- **MCP** (`scripts/mcp-supabase.ps1`): reads `SUPABASE_*` vars from `.env` and pipes into `npx @supabase/mcp-server-supabase`
 
 ## Database Migrations
 - SQL files in `database/migrations/` — apply manually via Supabase dashboard or `supabase_apply_migration` tool
@@ -58,6 +62,8 @@ Key tables:
 - `youtube_videos` — YouTube videos about tickers
 - `00.log_atualizacao` — ETL run log (populated by `run_all.ps1` on each execution)
 
+Complete schema with full column docs is in `.opencode/skills/invest-ranking-analyst/SKILL.md` — load the `invest-ranking-analyst` skill for ranking/analysis work.
+
 ## PostgREST Quirks
 - `like` uses `*` wildcard: `like.*Relat*rio*`
 - `limit` defaults to 1000 — paginate with `&offset=N`
@@ -66,22 +72,25 @@ Key tables:
 - Intermittent 500 errors with `like` + `order` on `fnet_tudo`
 
 ## ETL Pitfalls
-- **CRITICAL**: `atualizar_fnet_dados.py` must **strip** `tipo`, `rendimento`, `data_com`, `data_pagamento` before upsert — otherwise it overwrites values extracted by `fnet_rendimentos.py` (done in `_scrape_primeira_pagina`)
+- **CRITICAL**: `atualizar_fnet_dados.py` must **strip** `tipo`, `rendimento`, `data_com`, `data_pagamento` before upsert — otherwise it overwrites values extracted by `fnet_rendimentos.py` (done in `_scrape_todas_paginas`)
 - `percentual_despesas_taxa_administracao` in `cvm_fii_complemento` is decimal (e.g. `0.000693` = 0.0693%). Multiply by 100 for display.
 - CVM monthly tables use versioned rows — always `ORDER BY data_referencia DESC, versao DESC LIMIT 1` for latest
 - B3 intraday scraper: skips tickers with `< 10 trades` on the day
 - `.run_state.json` prevents re-running CVM/StatusInvest scripts more than once per 2h — delete the file to force re-run
 - `run_all.ps1` now logs each script run to `00.log_atualizacao` table (view at `/pages/status.html`)
+- All CVM `percentual_*` fields are decimals (0 to 1 range), multiply by 100 for display
 
 ## Frontend
-- `analise-fii.html` (Scanner, default ticker `GARE11`): self-contained (inline CSS/JS)
-- `fii.html`: loads `../js/app.js` + `../css/style.css`
-- Sidebar (`index.html`) shows: mosaico, radar-mais, analise-fii, status
+- `frontend/pages/analise-fii.html` (Scanner, default ticker `GARE11`): self-contained (inline CSS/JS)
+- `frontend/pages/fii.html`: loads `../js/app.js` + `../css/style.css`
+- Sidebar (`frontend/index.html`) shows: mosaico, radar-mais, analise-fii, status, ranking-fiis, relatorios, rendimentos
 - Font Awesome 6.5.0 CDN for icons
 - **PostgREST REST API**: frontend calls Supabase REST API directly (`fetch` with `apikey` + `Authorization` headers), NOT the Supabase JS client
+- `.opencode/rules/supabase.md` says "Use Supabase JS client" — this is **incorrect** for this project; the frontend uses raw `fetch` to PostgREST
 
 ## opencode.json Config
 - **MCP**: Supabase via `scripts/mcp-supabase.ps1` (loads `.env` vars)
 - **Commands**: `test`/`lint`/`build` defined but are generic templates — no test framework exists
 - **Formatter + LSP**: enabled
-- **Skill**: `invest-ranking-analyst` covers database schema (20+ tables) + financial methodology — load it for ranking/analysis work
+- **Skill**: `invest-ranking-analyst` covers database schema + financial methodology — load it for ranking/analysis work
+- **Theme**: Tokyo Night (`tui.json`)
