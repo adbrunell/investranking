@@ -40,11 +40,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .asset-chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
 .asset-chip:active{transform:scale(.93)}
 
-.stats-bar{display:flex;gap:14px;padding:9px 20px;max-width:1100px;margin:0 auto;align-items:center;font-size:11px;color:var(--muted);flex-wrap:wrap;border-bottom:1px solid var(--border)}
-.stats-bar .stat{display:flex;align-items:center;gap:4px}
-.stats-bar .stat .num{font-weight:600;font-size:13px}
-.stats-bar .stat.up .num{color:var(--green)}
-.stats-bar .stat.down .num{color:var(--red)}
+.rank-meta{font-size:10px;color:var(--muted);margin-top:1px;width:100%}
 
 .container{max-width:1100px;margin:0 auto;padding:8px 16px 40px}
 
@@ -101,7 +97,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .filters{padding:5px 10px;gap:4px}
 .mode-btn{padding:4px 10px;font-size:11px}
 .asset-chip{padding:3px 8px;font-size:10px}
-.stats-bar{gap:10px;padding:6px 14px;font-size:10px}
 .container{padding:6px 10px 30px}
 .rank-card{padding:10px 12px;gap:8px}
 .rank-pos{width:26px;height:26px;font-size:11px}
@@ -154,14 +149,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
   </div>
 </div>
 
-<div class="stats-bar" id="statsBar">
-  <div class="stat">Fundos: <span class="num" id="statTotal">—</span></div>
-  <div class="stat up"><i class="fas fa-arrow-up" style="font-size:10px"></i> <span class="num" id="statUp">—</span></div>
-  <div class="stat down"><i class="fas fa-arrow-down" style="font-size:10px"></i> <span class="num" id="statDown">—</span></div>
-  <div style="flex:1"></div>
-  <div class="stat" id="lastUpdate">Atualizado: —</div>
-</div>
-
 <div class="container">
   <div id="loading" class="loading"><div class="spinner"></div><span>Carregando cotações...</span></div>
   <div id="feed"></div>
@@ -196,6 +183,13 @@ function pDate(s){
   if(!s)return null
   let d=new Date(s);return isNaN(d.getTime())?null:d
 }
+function fmtDateTime(s){
+  if(!s)return''
+  let d=new Date(s);if(isNaN(d.getTime()))return''
+  let dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=d.getFullYear()
+  let hh=String(d.getHours()).padStart(2,'0'),mi=String(d.getMinutes()).padStart(2,'0'),ss=String(d.getSeconds()).padStart(2,'0')
+  return dd+'/'+mm+'/'+yy+' '+hh+':'+mi+':'+ss
+}
 
 async function api(url){
   let r=await fetch(url,{headers:H})
@@ -208,7 +202,6 @@ async function load(){
   try{
     let quotes=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia&tipo=not.is.null&order=data_referencia.desc&limit=1000')
     allItems=[]
-    let latestUpdate=null
     for(let r of quotes||[]){
       let tick=r.codigo_instrumento
       if(!tick)continue
@@ -225,14 +218,9 @@ async function load(){
         data:r.data_referencia,
         updated:r.atualizado_em
       })
-      if(r.atualizado_em&&(!latestUpdate||r.atualizado_em>latestUpdate))latestUpdate=r.atualizado_em
     }
     document.getElementById('loading').style.display='none'
     render()
-    if(latestUpdate){
-      let lu=pDate(latestUpdate)
-      if(lu)document.getElementById('lastUpdate').textContent='Atualizado: '+lu.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
-    }
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.4;margin-bottom:8px"></i><br>Erro: '+e.message+'<br><button onclick="load()" style="margin-top:12px;background:var(--accent);color:#000;border:none;padding:8px 20px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit">Tentar novamente</button>'
   }
@@ -292,7 +280,6 @@ function render(){
   let feed=document.getElementById('feed')
   if(!top.length){
     feed.innerHTML='<div class="empty-state"><i class="fas fa-inbox"></i><br>Nenhum fundo encontrado.</div>'
-    updateStats(items.length,items.filter(i=>i.variacao>0).length,items.filter(i=>i.variacao<0).length)
     return
   }
 
@@ -313,6 +300,7 @@ function render(){
     html+='<a class="rank-ticker" href="../pages/fii.html?ticker='+it.ticker+'" target="_blank">'+it.ticker+'</a>'
     if(tipoLabel&&tipoLabel!=='Ação')html+='<span class="rank-seg">'+tipoLabel+'</span>'
     if(it.preco!=null)html+='<span class="rank-price">R$ '+fmtShort(it.preco)+'</span>'
+    html+='<div class="rank-meta">'+fmtDateTime(it.updated)+'</div>'
     html+='</div>'
     html+='<div class="rank-variacao">'
     html+='<span class="pct '+cls+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</span>'
@@ -325,14 +313,6 @@ function render(){
     html+='</div>'
   }
   feed.innerHTML=html
-
-  updateStats(top.length,top.filter(i=>i.variacao>0).length,top.filter(i=>i.variacao<0).length)
-}
-
-function updateStats(total,up,down){
-  document.getElementById('statTotal').textContent=total
-  document.getElementById('statUp').textContent=up
-  document.getElementById('statDown').textContent=down
 }
 
 window.onload=load
