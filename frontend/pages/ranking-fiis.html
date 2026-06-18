@@ -281,6 +281,18 @@ async function load(){
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     populateDatalist()
+    // Auto-carregar setup do usuario logado
+    try {
+      const { data: sess } = await getSession()
+      if (sess?.session) {
+        const setups = await listarSetups()
+        if (setups.length > 0) {
+          aplicarFiltros(setups[0].filtros)
+          currentSetupId = setups[0].id
+          document.getElementById('setupNome').value = setups[0].nome || ''
+        }
+      }
+    } catch(e) { /* sem sessao ou erro */ }
     document.getElementById('loading').style.display='none'
     document.getElementById('header').style.display='flex'
     render()
@@ -477,30 +489,25 @@ function toggleSavePanel() {
   document.getElementById('loadPanel').classList.remove('open')
   document.getElementById('panelOverlay').classList.toggle('open')
   p.classList.toggle('open')
-  if (p.classList.contains('open')) {
-    getSession().then(({ data }) => {
-      if (!data?.session) { document.getElementById('saveStatus').innerHTML = '<span style="color:var(--red)">Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar</span>'; return }
-      document.getElementById('saveStatus').textContent = currentSetupId ? 'Editando setup existente' : ''
-    })
-  }
+}
 }
 
 async function salvarSetupAtual() {
-  const nome = document.getElementById('setupNome').value.trim()
-  if (!nome) { document.getElementById('saveStatus').textContent = 'Digite um nome'; return }
   const status = document.getElementById('saveStatus')
+  const { data: sess } = await getSession()
+  if (!sess?.session) { status.innerHTML = 'Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar'; return }
   status.textContent = 'Salvando...'
   try {
     const filtros = capturarFiltros()
+    const nome = document.getElementById('setupNome').value.trim() || 'Setup ' + new Date().toLocaleDateString('pt-BR')
     if (currentSetupId) {
       await atualizarSetup(currentSetupId, { nome, filtros })
-      status.textContent = 'Setup atualizado!'
     } else {
-      await salvarSetup(nome, filtros)
-      currentSetupId = null
-      status.textContent = 'Setup salvo!'
+      const saved = await salvarSetup(nome, filtros)
+      currentSetupId = saved.id
     }
-    document.getElementById('setupNome').value = ''
+    status.innerHTML = '<span style="color:var(--green)">✓ Salvo</span>'
+    setTimeout(() => { document.getElementById('savePanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open') }, 600)
   } catch (e) { status.textContent = 'Erro: ' + e.message }
 }
 
