@@ -205,7 +205,7 @@ async function api(url){
 async function apiAllRadar(url){
   let PAGE=1000,all=[],r
   r=await fetch(url+'&limit='+PAGE,{headers:{...H,Prefer:'count=exact'}})
-  if(!r.ok)throw new Error(r.status)
+  if(!r.ok){r=await fetch(url+'&limit='+PAGE,{headers:H});if(!r.ok)return all}
   let total=0,cr=r.headers.get('content-range')
   if(cr){let m=cr.match(/\/(\d+)$/);if(m)total=+m[1]}
   all.push(...await r.json())
@@ -213,8 +213,8 @@ async function apiAllRadar(url){
     let offsets=[]
     for(let i=PAGE;i<total;i+=PAGE)offsets.push(i)
     for(let o of offsets){
-      r=await fetch(url+'&limit='+PAGE+'&offset='+o,{headers:H})
-      if(r.ok)all.push(...await r.json())
+      try{r=await fetch(url+'&limit='+PAGE+'&offset='+o,{headers:H})}catch{r={ok:false}}
+      if(r&&r.ok)all.push(...await r.json())
     }
   }
   return all
@@ -237,7 +237,7 @@ async function load(){
     let results=await Promise.allSettled([
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Relat%C3%B3rios&situacao_documento=eq.A&order=data_entrega.desc&limit=1000'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Fato%20Relevante&situacao_documento=eq.A&order=data_entrega.desc&limit=1000'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&situacao_documento=eq.A&order=id.desc&limit=1000'),
+      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&situacao_documento=eq.A&order=data_entrega.desc&limit=1000'),
       api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&order=publicacao.desc&limit=80').catch(()=>[])
     ])
     let rel=results[0].status==='fulfilled'?results[0].value:[]
@@ -261,15 +261,22 @@ async function loadFull(){
     let results=await Promise.allSettled([
       apiAllRadar(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Relat%C3%B3rios&situacao_documento=eq.A&order=data_entrega.desc'),
       apiAllRadar(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Fato%20Relevante&situacao_documento=eq.A&order=data_entrega.desc'),
-      apiAllRadar(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&situacao_documento=eq.A&order=id.desc'),
+      apiAllRadar(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&situacao_documento=eq.A&order=data_entrega.desc'),
       apiAllRadar(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&order=publicacao.desc')
     ])
     let rel=results[0].status==='fulfilled'?results[0].value:[]
     let fat=results[1].status==='fulfilled'?results[1].value:[]
     let rend=results[2].status==='fulfilled'?results[2].value:[]
     let vid=results[3].status==='fulfilled'?results[3].value:[]
-    allItems=buildItems(rel,fat,rend,vid)
-    allChannels=[...new Set((vid||[]).map(v=>v.canal).filter(Boolean))].sort()
+    let old=allItems
+    let newItems=buildItems(
+      rel.length?rel:old.filter(i=>i.type==='doc'),
+      fat.length?fat:old.filter(i=>i.type==='fato'),
+      rend.length?rend:old.filter(i=>i.type==='rend'),
+      vid.length?vid:old.filter(i=>i.type==='vid')
+    )
+    allItems=newItems
+    allChannels=[...new Set((vid.length?vid:old.filter(i=>i.type==='vid').map(i=>i.canal)).filter(Boolean))].sort()
     buildChanDropdown()
     render()
   }catch(e){/*silent*/}
