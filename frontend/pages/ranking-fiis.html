@@ -283,8 +283,8 @@ async function load(){
     populateDatalist()
     // Auto-carregar setup do usuario logado
     try {
-      const { data: sess } = await getSession()
-      if (sess?.session) {
+      const sess = await getSession()
+      if (sess?.data?.session) {
         const setups = await listarSetups()
         if (setups.length > 0) {
           aplicarFiltros(setups[0].filtros)
@@ -494,8 +494,10 @@ function toggleSavePanel() {
 
 async function salvarSetupAtual() {
   const status = document.getElementById('saveStatus')
-  const { data: sess } = await getSession()
-  if (!sess?.session) { status.innerHTML = 'Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar'; return }
+  try {
+    const sess = await getSession()
+    if (!sess?.data?.session) { status.innerHTML = 'Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar'; return }
+  } catch (e) { status.innerHTML = 'Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar'; return }
   status.textContent = 'Salvando...'
   try {
     const filtros = capturarFiltros()

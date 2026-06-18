@@ -1,45 +1,46 @@
 const SUPABASE_URL = 'https://oaqmnaekrpukwmrxjtud.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+let _supabase = null
+try {
+  if (typeof supabase !== 'undefined' && supabase.createClient) {
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  }
+} catch (e) {
+  console.warn('Supabase client nao disponivel:', e)
+}
+
+function _check() { if (!_supabase) throw new Error('Supabase SDK nao carregado') }
 
 // ─── Auth ─────────────────────────────────────────────
 async function signUp(email, password) {
+  _check()
   const { data, error } = await _supabase.auth.signUp({ email, password })
   if (error) throw error
   return data
 }
 
 async function signIn(email, password) {
+  _check()
   const { data, error } = await _supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
   return data
 }
 
 async function signOut() {
+  _check()
   const { error } = await _supabase.auth.signOut()
   if (error) throw error
 }
 
 function getSession() {
+  _check()
   return _supabase.auth.getSession()
-}
-
-function onAuthChange(callback) {
-  return _supabase.auth.onAuthStateChange(callback)
-}
-
-// ─── Session token for PostgREST ──────────────────────
-async function authHeaders() {
-  const { data } = await getSession()
-  const token = data?.session?.access_token
-  return token
-    ? { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` }
-    : { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
 }
 
 // ─── Setups CRUD ─────────────────────────────────────
 async function salvarSetup(nome, filtros) {
-  const h = await authHeaders()
+  _check()
   const { data, error } = await _supabase
     .from('setups')
     .insert({ nome, filtros })
@@ -50,7 +51,7 @@ async function salvarSetup(nome, filtros) {
 }
 
 async function listarSetups() {
-  const h = await authHeaders()
+  _check()
   const { data, error } = await _supabase
     .from('setups')
     .select('*')
@@ -60,7 +61,7 @@ async function listarSetups() {
 }
 
 async function atualizarSetup(id, updates) {
-  const h = await authHeaders()
+  _check()
   const { data, error } = await _supabase
     .from('setups')
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -72,7 +73,7 @@ async function atualizarSetup(id, updates) {
 }
 
 async function deletarSetup(id) {
-  const h = await authHeaders()
+  _check()
   const { error } = await _supabase
     .from('setups')
     .delete()

@@ -107,13 +107,15 @@ document.addEventListener('DOMContentLoaded', initFromQuery)
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script>
-getSession().then(({data})=>{
-  if(data?.session){
-    document.querySelector('a[href="pages/login.html"]').style.display='none'
-    const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{await signOut();location.reload()}
-    document.getElementById('navUser').textContent=data.session.user.email?.split('@')[0]||'Sair'
-  }
-})
+try {
+  getSession().then(({data})=>{
+    if(data?.session){
+      document.querySelector('a[href="pages/login.html"]').style.display='none'
+      const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{await signOut();location.reload()}
+      document.getElementById('navUser').textContent=data.session.user.email?.split('@')[0]||'Sair'
+    }
+  }).catch(()=>{})
+} catch(e) {}
 </script>
 </body>
 </html>
