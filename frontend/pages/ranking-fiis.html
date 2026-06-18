@@ -397,11 +397,11 @@ function render(){
     if(sortKey==='ticker'){va=a.ticker||'';vb=b.ticker||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota_liq'){va=+a.liquidez_media_30d>0?((+a.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;vb=+b.liquidez_media_30d>0?((+b.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota_pvp'){let apv=a.p_vp,bpv=b.p_vp;va=apv!=null&&apv>0?((apv-mnPvp)/rgPvp)*wp:0;vb=bpv!=null&&bpv>0?((bpv-mnPvp)/rgPvp)*wp:0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='nota_pvp'){let apv=a.p_vp,bpv=b.p_vp;va=apv!=null&&apv>0?(1-(apv-mnPvp)/rgPvp)*wp:0;vb=bpv!=null&&bpv>0?(1-(bpv-mnPvp)/rgPvp)*wp:0;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota_dy'){let adv=a.dividend_yield_12m,bdv=b.dividend_yield_12m;va=adv!=null&&adv>0?((adv-mnDy)/rgDy)*wd:0;vb=bdv!=null&&bdv>0?((bdv-mnDy)/rgDy)*wd:0;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota'){
-      let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0
-      let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0
+      let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0
+      let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0
       let na=al*wl+ap*wp+ad*wd,nb=bl*wl+bp*wp+bd*wd
       return sortDesc?nb-na:na-nb
     }
@@ -455,7 +455,7 @@ function render(){
     let liqv=+it.liquidez_media_30d,nota_liq=liqv>0?((liqv-mnLiq)/rgLiq)*wl:0
     html+='<div class="cell cell-nota-liq">'+nota_liq.toFixed(3)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
-    let sp=it.p_vp!=null&&it.p_vp>0?(it.p_vp-mnPvp)/rgPvp:0
+    let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
     html+='<div class="cell cell-nota-pvp">'+(sp*wp).toFixed(3)+'</div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
@@ -529,7 +529,7 @@ async function salvarSetupAtual() {
       await salvarSetup('Meu Setup', filtros)
     }
     const area = document.getElementById('panelSaveArea')
-    area.innerHTML = '<span style="color:var(--green);font-size:10px">✓ Salvo</span><button class="filter-chip" onclick="togglePanel()" style="font-size:10px;margin-left:6px">Fechar</button>'
+    area.innerHTML = '<span style="color:var(--green);font-size:10px">✓</span><button class="filter-chip active" onclick="salvarSetupAtual()" style="font-size:10px;margin-left:4px">Salvar</button><button class="filter-chip" onclick="togglePanel()" style="font-size:10px;margin-left:4px">Fechar</button>'
   } catch(e) { alert('Erro ao salvar: ' + e.message) }
 }
 
