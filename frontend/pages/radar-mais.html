@@ -146,7 +146,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allItems=[],activeFilters={doc:true,fato:true,rend:true},activeChannels={},allChannels=[],searchActive=false
+let allItems=[],activeChannels={},allChannels=[],searchActive=false
+let activeFilters=(function(){
+  try{let s=localStorage.getItem('radar_filters');return s?JSON.parse(s):{doc:true,fato:true,rend:true}}catch(e){return{doc:true,fato:true,rend:true}}
+})()
 let _timer=null
 
 function fmtDateStr(s){
@@ -192,6 +195,9 @@ async function api(url){
 
 async function load(){
   try{
+    document.querySelectorAll('.filter-chip').forEach(function(el){
+      el.classList.toggle('active',!!activeFilters[el.dataset.filter])
+    })
     let results=await Promise.allSettled([
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Relat%C3%B3rios&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Fato%20Relevante&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
@@ -264,6 +270,7 @@ function toggleFilter(el){
   el.classList.toggle('active')
   if(el.classList.contains('active')) activeFilters[f]=true
   else delete activeFilters[f]
+  try{localStorage.setItem('radar_filters',JSON.stringify(activeFilters))}catch(e){}
   render()
 }
 
