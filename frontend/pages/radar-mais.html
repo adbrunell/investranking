@@ -189,8 +189,9 @@ function getDateRank(dateStr){
 
 function isToday(dateStr){
   if(!dateStr)return false
-  let d=new Date(),today=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
-  return dateStr.slice(0,10)===today
+  let agora=new Date(),item=new Date(dateStr)
+  if(isNaN(item.getTime()))return false
+  return (agora-item)<=10800000
 }
 
 function groupLabel(r,dateStr){
