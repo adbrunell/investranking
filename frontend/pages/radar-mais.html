@@ -284,7 +284,7 @@ async function loadFull(){
     allChannels=[...new Set((vid.length?vid:old.filter(i=>i.type==='vid').map(i=>i.canal)).filter(Boolean))].sort()
     buildChanDropdown()
     populateDatalist()
-    render()
+    render(true)
   }catch(e){/*silent*/}
 }
 
@@ -350,7 +350,7 @@ function toggleChan(el){
   render()
 }
 
-function render(){
+function render(noLimit){
   let items=allItems
   let fk=Object.keys(activeFilters)
   items=fk.length?items.filter(it=>activeFilters[it.type]):[]
@@ -358,7 +358,7 @@ function render(){
   if(ck.length)items=items.filter(it=>it.type!=='vid'||activeChannels[it.canal])
   let q=searchTerm||document.getElementById('search').value.toUpperCase().trim()
   if(q)items=items.filter(it=>it.ticker.toUpperCase().includes(q))
-  if(!q)items=items.slice(0,500)
+  if(!q&&!noLimit)items=items.slice(0,500)
   // Group by date
   let groups={}
   for(let it of items){
@@ -403,27 +403,34 @@ function render(){
   }
   if(!html)html='<div class="card-empty"><i class="fas fa-inbox"></i><br>Nenhum item encontrado.</div>'
   document.getElementById('feed').innerHTML=html
-  requestAnimationFrame(drawSparklines)
+  requestAnimationFrame(function(){drawSparklines(noLimit)})
 }
-function drawSparklines(){
-  let els=document.querySelectorAll('.spark'),max=Math.min(els.length,150)
-  for(let i=0;i<max;i++){
-    let c=els[i];if(c.dataset._drawn)continue
-    let vals=c.dataset.vals?JSON.parse(c.dataset.vals):null
-    if(!vals||!vals.length)continue
-    let ctx=c.getContext('2d');if(!ctx)continue
-    let w=c.width,h=c.height
-    ctx.clearRect(0,0,w,h)
-    let maxv=Math.max(...vals,0.01)
-    let n=vals.length,gap=2
-    let bw=Math.max(2,Math.floor((w-gap*(n-1))/n))
-    ctx.fillStyle='rgba(255,255,255,0.75)'
-    for(let j=0;j<n;j++){
-      let bh=Math.max(2,(vals[j]/maxv)*(h-8))
-      ctx.fillRect(Math.floor(j*(bw+gap)),h-4-bh,bw,bh)
+function drawSparklines(noLimit){
+  let els=document.querySelectorAll('.spark'),total=els.length,max=noLimit?total:Math.min(total,150)
+  let drawn=0
+  function drawBatch(){
+    let end=Math.min(drawn+50,max)
+    for(let i=drawn;i<end;i++){
+      let c=els[i];if(c.dataset._drawn)continue
+      let vals=c.dataset.vals?JSON.parse(c.dataset.vals):null
+      if(!vals||!vals.length)continue
+      let ctx=c.getContext('2d');if(!ctx)continue
+      let w=c.width,h=c.height
+      ctx.clearRect(0,0,w,h)
+      let maxv=Math.max(...vals,0.01)
+      let n=vals.length,gap=2
+      let bw=Math.max(2,Math.floor((w-gap*(n-1))/n))
+      ctx.fillStyle='rgba(255,255,255,0.75)'
+      for(let j=0;j<n;j++){
+        let bh=Math.max(2,(vals[j]/maxv)*(h-8))
+        ctx.fillRect(Math.floor(j*(bw+gap)),h-4-bh,bw,bh)
+      }
+      c.dataset._drawn='1'
     }
-    c.dataset._drawn='1'
+    drawn=end
+    if(drawn<max)requestAnimationFrame(drawBatch)
   }
+  drawBatch()
 }
 
 window.onload=load
