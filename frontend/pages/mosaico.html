@@ -248,7 +248,7 @@ async function fetchFromSupabase(){
         ticker,
         price:parseFloat(r.preco_ultimo_negocio),
         prevClose:r.fechamento_anterior?parseFloat(r.fechamento_anterior):null,
-        change:!isNaN(varNum)?varNum*100:0,
+        change:!isNaN(varNum)?varNum:0,
         volume:parseFloat(r.volume_total)||0,
         ultTransacao:r.horario_ultima_transacao||'',
         dataRef:r.data_referencia||'',
