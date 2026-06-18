@@ -78,6 +78,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-var{width:70px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
 .cell-var .var-up{color:var(--green)}
 .cell-var .var-down{color:var(--red)}
+.cell-graf{width:60px;flex-shrink:0;justify-content:center}
+.cell-atr{width:60px;flex-shrink:0;justify-content:center}
+.atr-bar{width:40px;height:6px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
+.atr-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
 .cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .cell-pvp .val{color:var(--text)}
 .cell-dy{width:80px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -101,10 +105,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-liq,.cell-liq{width:70px;font-size:11px}
 .h-cot,.cell-cot{width:55px;font-size:12px}
 .h-var,.cell-var{width:58px;font-size:12px}
+.h-graf,.cell-graf{width:50px}
+.h-atr,.cell-atr{width:50px}
 .h-pvp,.cell-pvp{width:58px;font-size:12px}
 .h-dy,.cell-dy{width:65px;font-size:12px}
 .cell-seg{font-size:11px}
 .tipo-badge{font-size:8px;padding:1px 4px}
+.atr-bar{width:32px;height:5px}
 }
 @media(max-width:480px){
 .h-rank,.cell-rank{display:none}
@@ -112,6 +119,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-ticker,.cell-ticker{width:55px;font-size:11px}
 .h-cot,.cell-cot{width:50px;font-size:11px}
 .h-var,.cell-var{width:52px;font-size:11px}
+.h-graf,.cell-graf{display:none}
+.h-atr,.cell-atr{display:none}
 .h-liq,.cell-liq{width:60px;font-size:10px}
 .h-pvp,.cell-pvp{width:50px;font-size:11px}
 .h-dy,.cell-dy{width:55px;font-size:11px}
@@ -153,6 +162,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <div class="h h-seg" style="display:none" onclick="setSort('segmento')">Segmento <span class="arrow">▼</span></div>
     <div class="h h-cot" onclick="setSort('cotacao')">Cotação <span class="arrow">▼</span></div>
     <div class="h h-var" onclick="setSort('variacao')">Variação <span class="arrow">▼</span></div>
+    <div class="h h-graf" style="justify-content:center;width:60px">Gráfico</div>
+    <div class="h h-atr" onclick="setSort('atratividade')" style="width:60px;justify-content:center">Atrat. <span class="arrow">▼</span></div>
     <div class="h h-liq" onclick="setSort('liquidez')">Liquidez <span class="arrow">▼</span></div>
     <div class="h h-pvp" onclick="setSort('pvp')">P/VP <span class="arrow">▼</span></div>
     <div class="h h-dy" onclick="setSort('dy')">DY 12m <span class="arrow">▼</span></div>
@@ -164,7 +175,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allData=[],sortKey='liquidez',sortDesc=true,searchTerm=''
+let allData=[],histData={},sortKey='liquidez',sortDesc=true,searchTerm=''
 let activeTipos={}
 document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=true})
 
@@ -186,9 +197,21 @@ function fmtPct(v){
 
 async function load(){
   try{
-    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m&limit=1000',{headers:H})
+    let [raw,histRaw]=await Promise.all([
+      fetch(REST+'/Ranking_FIIs?select=ticker,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s&limit=1000',{headers:H}),
+      fetch(REST+'/b3_cotacoes_historico?select=ticker,fechamento,data&data=gte.'+(new Date(Date.now()-31536000000).toISOString().slice(0,10))+'&order=data.asc&limit=100000',{headers:H})
+    ])
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
+    if(histRaw.ok){
+      let rows=await histRaw.json()
+      histData={}
+      for(let r of rows||[]){
+        if(!r.ticker||r.fechamento==null)continue
+        if(!histData[r.ticker])histData[r.ticker]=[]
+        histData[r.ticker].push(+r.fechamento)
+      }
+    }
     populateDatalist()
     document.getElementById('loading').style.display='none'
     document.getElementById('header').style.display='flex'
@@ -232,7 +255,7 @@ function setSort(key){
   if(sortKey===key){sortDesc=!sortDesc}
   else{sortKey=key;sortDesc=key==='tipo'||key==='segmento'||key==='ticker'?false:true}
   document.querySelectorAll('.header-row .h').forEach(el=>el.classList.remove('sorted'))
-  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',liquidez:'h-liq',pvp:'h-pvp',dy:'h-dy'}
+  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',atratividade:'h-atr',liquidez:'h-liq',pvp:'h-pvp',dy:'h-dy'}
   let el=document.querySelector('.'+map[key]);if(el)el.classList.add('sorted')
   render()
 }
@@ -252,6 +275,11 @@ function render(){
     if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
     if(sortKey==='cotacao'){va=+a.cotacao||0;vb=+b.cotacao||0;return sortDesc?vb-va:va-vb}
     if(sortKey==='variacao'){va=+a.variacao||0;vb=+b.variacao||0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='atratividade'){
+      let aa=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):-1
+      let bb=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):-1
+      return sortDesc?bb-aa:aa-bb
+    }
     if(sortKey==='pvp'){va=a.p_vp!=null?a.p_vp:-999;vb=b.p_vp!=null?b.p_vp:-999;return sortDesc?vb-va:va-vb}
     if(sortKey==='dy'){va=a.dividend_yield_12m!=null?a.dividend_yield_12m:-999;vb=b.dividend_yield_12m!=null?b.dividend_yield_12m:-999;return sortDesc?vb-va:va-vb}
     return 0
@@ -273,6 +301,23 @@ function render(){
     html+='<div class="cell cell-seg" style="display:none">'+(it.segmento||'')+'</div>'
     html+='<div class="cell cell-cot">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</div>'
     html+='<div class="cell cell-var"><span class="'+(it.variacao>=0?'var-up':'var-down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></div>'
+    let vals=histData[it.ticker]
+    let min52=it.min_52s!=null?+it.min_52s:null
+    let max52=it.max_52s!=null?+it.max_52s:null
+    let atratividade=null
+    if(min52!=null&&max52!=null&&max52>min52&&it.cotacao!=null){
+      atratividade=1-(it.cotacao-min52)/(max52-min52)
+    }
+    if(vals&&vals.length>1){
+      let w=56,h=22,pd=1
+      let iw=w-2*pd,ih=h-2*pd
+      let mn=Math.min(...vals),mx=Math.max(...vals),rg=mx-mn||1
+      let pts=vals.map((v,i)=>(i/(vals.length-1)*iw+pd)+','+(h-pd-(v-mn)/rg*ih)).join(' ')
+      html+='<div class="cell cell-graf"><svg width="56" height="22" viewBox="0 0 56 22"><polyline fill="none" stroke="var(--accent)" stroke-width="1.2" points="'+pts+'"/></svg></div>'
+    }else{
+      html+='<div class="cell cell-graf" style="color:var(--muted);font-size:9px">—</div>'
+    }
+    html+='<div class="cell cell-atr"><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:'+(atratividade!=null?(atratividade>0.5?'var(--green)':'var(--red)'):'var(--muted)')+'"></div></div></div>'
     html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
