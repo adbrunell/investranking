@@ -231,7 +231,7 @@ async function load(){
   document.getElementById('loading').style.display='flex'
   document.getElementById('feed').innerHTML=''
   try{
-    let quotes=await       api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia,horario_ultima_transacao&tipo=not.is.null&order=data_referencia.desc&limit=1000')
+    let quotes=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia,horario_ultima_transacao&tipo=not.is.null&order=data_referencia.desc&limit=1000')
     allItems=[]
     for(let r of quotes||[]){
       let tick=r.codigo_instrumento
@@ -253,10 +253,45 @@ async function load(){
     document.getElementById('loading').style.display='none'
     render()
     updateMarketStatus()
+    setupAutoRefresh()
     setInterval(updateMarketStatus,60000)
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.4;margin-bottom:8px"></i><br>Erro: '+e.message+'<br><button onclick="load()" style="margin-top:12px;background:var(--accent);color:#000;border:none;padding:8px 20px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit">Tentar novamente</button>'
   }
+}
+async function refresh(){
+  try{
+    let quotes=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia,horario_ultima_transacao&tipo=not.is.null&order=data_referencia.desc&limit=1000')
+    allItems=[]
+    for(let r of quotes||[]){
+      let tick=r.codigo_instrumento
+      if(!tick)continue
+      let tipo=r.tipo||''
+      varia=r.variacao!=null?parseFloat(r.variacao):null
+      if(varia==null||isNaN(varia))continue
+      allItems.push({
+        ticker:tick,
+        preco:r.preco_ultimo_negocio!=null?parseFloat(r.preco_ultimo_negocio):null,
+        variacao:varia,
+        volume:r.volume_total!=null?parseFloat(r.volume_total):0,
+        fechamento:r.fechamento_anterior!=null?parseFloat(r.fechamento_anterior):null,
+        tipo:tipo,
+        data:r.data_referencia,
+        hora:r.horario_ultima_transacao||''
+      })
+    }
+    render(true)
+  }catch(e){/*silent*/}
+}
+let _refreshTimer=null
+function setupAutoRefresh(){
+  clearInterval(_refreshTimer)
+  let now=new Date()
+  let br=new Date(now.toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}))
+  let h=br.getHours(),m=br.getMinutes(),d=br.getDay()
+  let mins=h*60+m
+  let open=d>=1&&d<=5&&mins>=600&&mins<1020
+  if(open)_refreshTimer=setInterval(refresh,60000)
 }
 
 function setMode(el){
@@ -291,7 +326,7 @@ function clearSearch(){
   document.getElementById('search').focus()
 }
 
-function render(){
+function render(isRefresh){
   let items=[...allItems]
   items=items.filter(it=>{
     let cat=ASSET_MAP[it.tipo]
@@ -316,6 +351,14 @@ function render(){
     return
   }
 
+  let oldTops={}
+  if(isRefresh){
+    document.querySelectorAll('.rank-card').forEach(el=>{
+      let t=el.dataset.ticker
+      if(t)oldTops[t]=el.getBoundingClientRect().top
+    })
+  }
+
   let html=''
   for(let i=0;i<top.length;i++){
     let it=top[i]
@@ -327,7 +370,7 @@ function render(){
     let cls=isUp?'up':'down'
     let tipoLabel=it.tipo||''
 
-    html+='<div class="rank-card '+cls+'" style="animation-delay:'+(i*0.025)+'s">'
+    html+='<div class="rank-card '+cls+'" data-ticker="'+it.ticker+'" style="animation'+(isRefresh?':none':':cardIn .45s ease-out both;animation-delay:'+(i*0.025)+'s')+'">'
     html+='<div class="rank-pos">'+pos+'</div>'
     html+='<div class="rank-body">'
     html+='<a class="rank-ticker" href="../pages/fii.html?ticker='+it.ticker+'" target="_blank">'+it.ticker+'</a>'
@@ -346,6 +389,28 @@ function render(){
     html+='</div>'
   }
   feed.innerHTML=html
+
+  if(isRefresh){
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('.rank-card').forEach(el=>{
+        let t=el.dataset.ticker
+        if(t&&oldTops[t]!==undefined){
+          let newTop=el.getBoundingClientRect().top
+          let diff=oldTops[t]-newTop
+          if(Math.abs(diff)>1){
+            el.style.transition='none'
+            el.style.transform='translateY('+(-diff)+'px)'
+            requestAnimationFrame(()=>{
+              requestAnimationFrame(()=>{
+                el.style.transition='transform .6s cubic-bezier(.34,1.56,.64,1)'
+                el.style.transform=''
+              })
+            })
+          }
+        }
+      })
+    })
+  }
 }
 
 window.onload=load
