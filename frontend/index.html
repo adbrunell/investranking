@@ -92,7 +92,7 @@ function abrir(pagina, el){
   if (el) el.classList.add('active')
   closeMenu()
   document.getElementById('contentFrame').src = 'pages/' + pagina + '.html'
-  location.hash = pagina
+  history.replaceState(null, '', '?p=' + pagina)
 }
 
 function reloadIframe(){
@@ -103,14 +103,15 @@ function reloadIframe(){
   setTimeout(() => el.classList.remove('show'), 800)
 }
 
-// --- Hash-based page restoration ---
-function initFromHash(){
-  let pagina = location.hash.replace('#','') || 'mosaico'
+// --- Page restoration from query string ---
+function initFromQuery(){
+  let params = new URLSearchParams(location.search)
+  let pagina = params.get('p') || 'mosaico'
   let el = document.querySelector(`.nav-item[href="pages/${pagina}.html"]`)
   abrir(pagina, el)
 }
-window.addEventListener('hashchange', initFromHash)
-document.addEventListener('DOMContentLoaded', initFromHash)
+window.addEventListener('popstate', initFromQuery)
+document.addEventListener('DOMContentLoaded', initFromQuery)
 </script>
 </body>
 </html>
