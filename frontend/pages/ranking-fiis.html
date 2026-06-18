@@ -310,14 +310,15 @@ function render(){
     }
     if(vals&&vals.length>1){
       let w=56,h=22,pd=1,iw=w-2*pd,ih=h-2*pd
-      let mn=Math.min(...vals),mx=Math.max(...vals),rg=mx-mn||1
+      let base=vals[0],pcts=vals.map(v=>(v-base)/base*100)
+      let mn=Math.min(...pcts),mx=Math.max(...pcts),rg=mx-mn||1
       let n=vals.length,step=Math.max(1,Math.floor(n/iw)),pts=''
       for(let j=0,k=0;j<n;j+=step,k++){
         if(k)pts+=' '
-        pts+=(j/(n-1)*iw+pd)+','+(h-pd-(vals[j]-mn)/rg*ih)
+        pts+=(j/(n-1)*iw+pd)+','+(h-pd-(pcts[j]-mn)/rg*ih)
       }
-      if((n-1)%step){let j=n-1;pts+=' '+(j/(n-1)*iw+pd)+','+(h-pd-(vals[j]-mn)/rg*ih)}
-      html+='<div class="cell cell-graf"><svg width="56" height="22" viewBox="0 0 56 22"><polyline fill="none" stroke="#ffde59" stroke-width="1.2" points="'+pts+'"/></svg></div>'
+      if((n-1)%step){let j=n-1;pts+=' '+(j/(n-1)*iw+pd)+','+(h-pd-(pcts[j]-mn)/rg*ih)}
+      html+='<div class="cell cell-graf"><svg width="56" height="22" viewBox="0 0 56 22"><polyline fill="none" stroke="#ffde59" stroke-width="1.5" points="'+pts+'"/></svg></div>'
     }else{
       html+='<div class="cell cell-graf" style="color:var(--muted);font-size:9px">—</div>'
     }
