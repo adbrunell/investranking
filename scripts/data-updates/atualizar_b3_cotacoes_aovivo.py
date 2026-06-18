@@ -81,6 +81,29 @@ def parse_bulk_row(line: str) -> dict | None:
     }
 
 
+def get_tickers_set():
+    """Retorna set de tickers da view 00_Master."""
+    h = {"apikey": config.supabase_key, "Authorization": f"Bearer {config.supabase_key}"}
+    rest = f"{config.supabase_url}/rest/v1"
+    tickers = set()
+    off = 0
+    while True:
+        r = httpx.get(f"{rest}/00_Master?select=Ticker&limit=1000&offset={off}", headers={**h, "Prefer": "count=exact"}, timeout=30)
+        if r.status_code not in (200, 206):
+            break
+        rows = r.json()
+        if not rows:
+            break
+        for row in rows:
+            t = row.get("Ticker")
+            if t:
+                tickers.add(t.strip().upper())
+        if len(rows) < 1000:
+            break
+        off += 1000
+    return tickers
+
+
 def download_bulk(ref_date: date) -> list[dict] | None:
     """Tenta baixar arquivo bulk do dia. Retorna lista de registros ou None."""
     url = BULK_URL_TPL.format(date=ref_date.isoformat())
@@ -129,8 +152,11 @@ def download_bulk(ref_date: date) -> list[dict] | None:
                 agg[t]["preco_ultimo_negocio"] = str(last_p)
                 agg[t]["horario_ultima_transacao"] = row["horario_ultima_transacao"]
 
+    master_tickers = get_tickers_set()
     result = []
     for t, d in agg.items():
+        if t not in master_tickers:
+            continue
         if d["quantidade_total"] < SKIP_TRADES_IF_BELOW:
             continue
         d["volume_total"] = str(d["volume_total"])
@@ -247,62 +273,17 @@ def save_to_db(rows, ref_date):
 
 
 def calcular_variacoes():
-    """Calcula fechamento_anterior e variacao (%) para cada ticker."""
-    from supabase import create_client
-    supabase = create_client(config.supabase_url, config.supabase_key)
-
-    by_ticker = {}
-    off = 0
-    total_fetched = 0
-    while True:
-        resp = supabase.table(TABLE).select("codigo_instrumento,data_referencia,preco_ultimo_negocio").order("data_referencia").range(off, off + 999).execute()
-        rows = resp.data
-        if not rows:
-            break
-        total_fetched += len(rows)
-        for row in rows:
-            t = row["codigo_instrumento"]
-            if t not in by_ticker:
-                by_ticker[t] = []
-            by_ticker[t].append(row)
-        if len(rows) < 1000:
-            break
-        off += 1000
-    print(f"  [var] {total_fetched} registros, {len(by_ticker)} tickers.", flush=True)
-
-    updates = []
-    for t, rows in by_ticker.items():
-        if len(rows) < 2:
-            continue
-        rows.sort(key=lambda x: x["data_referencia"])
-        prev = float(rows[0]["preco_ultimo_negocio"])
-        for i in range(1, len(rows)):
-            cur = float(rows[i]["preco_ultimo_negocio"])
-            if prev > 0:
-                variacao = (cur - prev) / prev * 100
-                updates.append({
-                    "codigo_instrumento": t,
-                    "data_referencia": rows[i]["data_referencia"],
-                    "fechamento_anterior": prev,
-                    "variacao": round(variacao, 2),
-                })
-            prev = cur
-    print(f"  [var] {len(updates)} updates gerados.", flush=True)
-
-    if updates:
-        unique = {}
-        for u in updates:
-            key = (u["codigo_instrumento"], u["data_referencia"])
-            unique[key] = u
-        updates = list(unique.values())
-        print(f"  [var] {len(updates)} updates unicos.", flush=True)
-        for i in range(0, len(updates), 500):
-            batch = updates[i:i + 500]
-            try:
-                supabase.table(TABLE).upsert(batch, on_conflict="codigo_instrumento,data_referencia").execute()
-            except Exception as e:
-                print(f"  [var] ERRO upsert lote {i}: {e}", flush=True)
-        print(f"  [var] {len(updates)} registros salvos.", flush=True)
+    """Delegado para o banco: fn_calcular_variacao_aovivo() via RPC."""
+    h = {"apikey": config.supabase_key, "Authorization": f"Bearer {config.supabase_key}"}
+    rest = f"{config.supabase_url}/rest/v1"
+    try:
+        r = httpx.post(f"{rest}/rpc/fn_calcular_variacao_aovivo", headers=h, timeout=120)
+        if r.status_code in (200, 201, 204):
+            print("  Variacoes calculadas pelo banco.", flush=True)
+        else:
+            print(f"  [var] RPC retornou {r.status_code}", flush=True)
+    except Exception as e:
+        print(f"  ERRO ao calcular variacoes: {e}", flush=True)
 
 
 def main():
@@ -317,7 +298,7 @@ def main():
         print(f"  Bulk disponivel: {len(data_today)} tickers.", flush=True)
     else:
         print("  Bulk indisponivel — baixando ticker a ticker...", flush=True)
-        tickers = get_tickers()
+        tickers = get_tickers_set()
         print(f"  {len(tickers)} tickers carregados.", flush=True)
         data_today = []
         total = len(tickers)
@@ -351,7 +332,7 @@ def main():
         data_yest = download_bulk(yesterday)
         if not data_yest:
             print(f"  Bulk para {yesterday} indisponivel — ticker a ticker...", flush=True)
-            tickers = get_tickers()
+            tickers = get_tickers_set()
             data_yest = []
             t0 = __import__("time").time()
             total = len(tickers)
@@ -367,11 +348,14 @@ def main():
             saved_yest = save_to_db(data_yest, yesterday.isoformat())
             print(f"  Salvos {saved_yest} registros para {yesterday}.", flush=True)
 
-    # Remove dados com mais de 2 pregões
-    older = (today - timedelta(days=7)).isoformat()
-    del_r = httpx.delete(f"{rest}/{TABLE}?data_referencia=lt.{older}", headers=h, timeout=30)
-    if del_r.status_code in (200, 204):
-        print(f"  Dados anteriores a {older} removidos.", flush=True)
+    # Mantém apenas os 2 últimos pregões
+    r_dates = httpx.get(f"{rest}/{TABLE}?select=data_referencia&limit=1000&order=data_referencia.desc", headers=h, timeout=30)
+    dates = sorted(set(d["data_referencia"] for d in r_dates.json()))
+    if len(dates) > 2:
+        keep = dates[-2:]
+        for d in dates[:-2]:
+            httpx.delete(f"{rest}/{TABLE}?data_referencia=eq.{d}", headers=h, timeout=30)
+        print(f"  Mantidos apenas os 2 ultimos pregoes: {keep}", flush=True)
 
     # Calcula variações
     calcular_variacoes()
