@@ -199,7 +199,7 @@ async function load(){
   try{
     let [raw,histRaw]=await Promise.all([
       fetch(REST+'/Ranking_FIIs?select=ticker,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s&limit=1000',{headers:H}),
-      fetch(REST+'/b3_cotacoes_historico?select=ticker,fechamento,data&data=gte.'+(new Date(Date.now()-31536000000).toISOString().slice(0,10))+'&order=data.asc&limit=100000',{headers:H})
+      fetch(REST+'/b3_cotacoes_historico?select=ticker,fechamento,data&data=gte.'+(new Date(Date.now()-31536000000).toISOString().slice(0,10))+'&order=data.asc&limit=200000',{headers:H})
     ])
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
@@ -316,8 +316,8 @@ function render(){
         if(k)pts+=' '
         pts+=(j/(n-1)*iw+pd)+','+(h-pd-(vals[j]-mn)/rg*ih)
       }
-      if((n-1)%step){let j=n-1;pts+=','+(j/(n-1)*iw+pd)+','+(h-pd-(vals[j]-mn)/rg*ih)}
-      html+='<div class="cell cell-graf"><svg width="56" height="22" viewBox="0 0 56 22"><polyline fill="none" stroke="var(--accent)" stroke-width="1.2" points="'+pts+'"/></svg></div>'
+      if((n-1)%step){let j=n-1;pts+=' '+(j/(n-1)*iw+pd)+','+(h-pd-(vals[j]-mn)/rg*ih)}
+      html+='<div class="cell cell-graf"><svg width="56" height="22" viewBox="0 0 56 22"><polyline fill="none" stroke="#ffde59" stroke-width="1.2" points="'+pts+'"/></svg></div>'
     }else{
       html+='<div class="cell cell-graf" style="color:var(--muted);font-size:9px">—</div>'
     }
