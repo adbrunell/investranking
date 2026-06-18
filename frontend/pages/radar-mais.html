@@ -289,12 +289,16 @@ async function loadFull(){
 }
 
 function onSearch(){
-  let q=document.getElementById('search').value.trim()
-  document.getElementById('searchBox').classList.toggle('has-text',q.length>0)
-  searchTerm=q.toUpperCase()
-  render()
+  clearTimeout(window._searchTimer)
+  window._searchTimer=setTimeout(function(){
+    let q=document.getElementById('search').value.trim()
+    document.getElementById('searchBox').classList.toggle('has-text',q.length>0)
+    searchTerm=q.toUpperCase()
+    render()
+  },60)
 }
 function clearSearch(){
+  clearTimeout(window._searchTimer)
   document.getElementById('search').value=''
   document.getElementById('searchBox').classList.remove('has-text')
   searchTerm=''
@@ -354,6 +358,7 @@ function render(){
   if(ck.length)items=items.filter(it=>it.type!=='vid'||activeChannels[it.canal])
   let q=searchTerm||document.getElementById('search').value.toUpperCase().trim()
   if(q)items=items.filter(it=>it.ticker.toUpperCase().includes(q))
+  if(!q)items=items.slice(0,500)
   // Group by date
   let groups={}
   for(let it of items){
