@@ -284,6 +284,7 @@ function onSearchInput(){
 }
 
 function clearSearch(){
+  clearTimeout(_timer)
   document.getElementById('search').value=''
   document.getElementById('searchBox').classList.remove('has-text')
   searchActive=false;render()
