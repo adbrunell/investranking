@@ -744,8 +744,7 @@ if(b)b.classList.remove('open')
     let dist=e.touches[0].clientY-startY
     if(dist>50){
       pulling=false;ptrEl.classList.add('show')
-      loadData()
-      setTimeout(()=>ptrEl.classList.remove('show'),1200)
+      setTimeout(function(){location.reload()},200)
     }
   },{passive:false})
   window.addEventListener('touchend',function(){pulling=false},{passive:true})
