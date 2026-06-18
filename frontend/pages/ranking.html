@@ -183,12 +183,12 @@ function pDate(s){
   if(!s)return null
   let d=new Date(s);return isNaN(d.getTime())?null:d
 }
-function fmtDateTime(s){
-  if(!s)return''
-  let d=new Date(s);if(isNaN(d.getTime()))return''
-  let dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=d.getFullYear()
-  let hh=String(d.getHours()).padStart(2,'0'),mi=String(d.getMinutes()).padStart(2,'0'),ss=String(d.getSeconds()).padStart(2,'0')
-  return dd+'/'+mm+'/'+yy+' '+hh+':'+mi+':'+ss
+function fmtDateTime(dateStr,timeStr){
+  if(!dateStr)return''
+  let p=dateStr.slice(0,10).split('-')
+  if(p.length<3)return''
+  let dd=p[2],mm=p[1],yy=p[0]
+  return dd+'/'+mm+'/'+yy+' '+(timeStr||'--:--:--')
 }
 
 async function api(url){
@@ -200,7 +200,7 @@ async function load(){
   document.getElementById('loading').style.display='flex'
   document.getElementById('feed').innerHTML=''
   try{
-    let quotes=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia&tipo=not.is.null&order=data_referencia.desc&limit=1000')
+    let quotes=await       api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia,horario_ultima_transacao&tipo=not.is.null&order=data_referencia.desc&limit=1000')
     allItems=[]
     for(let r of quotes||[]){
       let tick=r.codigo_instrumento
@@ -216,7 +216,7 @@ async function load(){
         fechamento:r.fechamento_anterior!=null?parseFloat(r.fechamento_anterior):null,
         tipo:tipo,
         data:r.data_referencia,
-        updated:r.atualizado_em
+        hora:r.horario_ultima_transacao||''
       })
     }
     document.getElementById('loading').style.display='none'
@@ -300,7 +300,7 @@ function render(){
     html+='<a class="rank-ticker" href="../pages/fii.html?ticker='+it.ticker+'" target="_blank">'+it.ticker+'</a>'
     if(tipoLabel&&tipoLabel!=='Ação')html+='<span class="rank-seg">'+tipoLabel+'</span>'
     if(it.preco!=null)html+='<span class="rank-price">R$ '+fmtShort(it.preco)+'</span>'
-    html+='<div class="rank-meta">'+fmtDateTime(it.updated)+'</div>'
+    html+='<div class="rank-meta">'+fmtDateTime(it.data,it.hora)+'</div>'
     html+='</div>'
     html+='<div class="rank-variacao">'
     html+='<span class="pct '+cls+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</span>'
