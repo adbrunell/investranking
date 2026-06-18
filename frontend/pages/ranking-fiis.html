@@ -197,8 +197,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
   <div class="panel-header">Filtros <button onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;margin-left:auto"><i class="fas fa-times"></i></button></div>
   <div class="panel-body">
     <div class="pgroup"><div class="pgroup-title">Liquidez</div>
-      <div class="prow"><label>Mín</label><input type="number" id="liqMin" placeholder="0" oninput="render()"></div>
-      <div class="prow"><label>Máx</label><input type="number" id="liqMax" placeholder="—" oninput="render()"></div>
+      <div class="prow"><label>Mín</label><input type="text" id="liqMin" inputmode="numeric" placeholder="0" oninput="fmtLiqInput(this);render()"></div>
+      <div class="prow"><label>Máx</label><input type="text" id="liqMax" inputmode="numeric" placeholder="—" oninput="fmtLiqInput(this);render()"></div>
       <div class="prow"><label>Peso</label><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wLiqLabel">0.5</span></span></div>
     </div>
     <div class="pgroup"><div class="pgroup-title">P/VP</div>
@@ -212,7 +212,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <div class="prow"><label>Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
     </div>
   </div>
-  <div class="panel-footer"><button class="filter-chip" onclick="document.querySelectorAll('.panel-body input').forEach(e=>e.value='');render()" style="font-size:10px">Limpar</button><button class="filter-chip active" onclick="togglePanel()" style="font-size:10px;margin-left:auto">Salvar</button></div>
+  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5'})" style="font-size:10px">Limpar</button><button class="filter-chip active" onclick="togglePanel()" style="font-size:10px;margin-left:auto">Salvar</button></div>
 </div>
 
 <div class="container">
@@ -260,6 +260,16 @@ function fmtPct(v){
   if(v==null||isNaN(v))return'—'
   return (v*100).toFixed(2)+'%'
 }
+function fmtLiqInput(el){
+  let v=el.value.replace(/\D/g,'')
+  if(v)el.value=parseInt(v,10).toLocaleString('pt-BR')
+  else el.value=''
+}
+function parseLiqVal(s){
+  if(!s)return null
+  let n=+(s.replace(/\./g,''))
+  return isNaN(n)?null:n
+}
 
 
 
@@ -278,12 +288,20 @@ async function load(){
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     populateDatalist()
-    // Restaurar setup salvo no localStorage
+    // Restaurar setup salvo ou aplicar defaults
     try {
       const saved = localStorage.getItem('rankingSetup')
       if (saved) {
         const f = JSON.parse(saved)
         if (f && f.tipos) aplicarFiltros(f)
+      } else {
+        // Defaults: Liq 1mi-20mi, PVP 0.5-1.5, DY >8%, pesos 10
+        aplicarFiltros({
+          tipos: {},
+          liqMin: '1.000.000', liqMax: '20.000.000', wLiq: '10',
+          pvpMin: '0.5', pvpMax: '1.5', wPvp: '10',
+          dyMin: '8', dyMax: '', wDy: '10'
+        })
       }
     } catch(e) {}
     document.getElementById('loading').style.display='none'
@@ -338,9 +356,9 @@ function render(){
   let fk=Object.keys(activeTipos).filter(k=>activeTipos[k])
   if(fk.length<Object.keys(activeTipos).length)items=items.filter(it=>fk.includes(it.tipo))
   if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
-  function fv(id){let e=document.getElementById(id);return e&&e.value?+e.value:null}
-  let flMin=fv('liqMin'),flMax=fv('liqMax'),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
-  if(flMin!=null||flMax!=null)items=items.filter(it=>{let v=+it.liquidez_media_30d;return(flMin==null||v>=flMin)&&(flMax==null||v<=flMax)})
+  function fv(id,raw){let e=document.getElementById(id);if(!e||!e.value)return null;let v=raw?e.value:+e.value;return v||v===0?v:null}
+  let flMin=fv('liqMin',1),flMax=fv('liqMax',1),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
+  if(flMin!=null||flMax!=null)items=items.filter(it=>{let v=+it.liquidez_media_30d;let mn=parseLiqVal(flMin),mx=parseLiqVal(flMax);return(mn==null||v>=mn)&&(mx==null||v<=mx)})
   if(fpMin!=null||fpMax!=null)items=items.filter(it=>{let v=it.p_vp;return v!=null&&(fpMin==null||v>=fpMin)&&(fpMax==null||v<=fpMax)})
   if(fdMin!=null||fdMax!=null)items=items.filter(it=>{let v=it.dividend_yield_12m;return v!=null&&(fdMin==null||v>=fdMin/100)&&(fdMax==null||v<=fdMax/100)})
 
@@ -436,7 +454,7 @@ function render(){
 // ─── Setups (localStorage) ──────────────────────────
 
 function capturarFiltros() {
-  function v(id) { const e = document.getElementById(id); return e ? e.value || '' : '' }
+  function v(id) { const e = document.getElementById(id); if (!e) return ''; return e.value || '' }
   function getActiveTipos() {
     const at = {}
     document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
@@ -453,7 +471,17 @@ function capturarFiltros() {
 }
 
 function aplicarFiltros(f) {
-  function s(id, val) { const e = document.getElementById(id); if (e) e.value = val || '' }
+  function s(id, val) {
+    const e = document.getElementById(id)
+    if (!e) return
+    if (id === 'liqMin' || id === 'liqMax') {
+      // Formatar numeros grandes
+      const raw = (val || '').replace(/\D/g, '')
+      e.value = raw ? parseInt(raw, 10).toLocaleString('pt-BR') : ''
+    } else {
+      e.value = val || ''
+    }
+  }
   // Tipos
   document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
     if (el.dataset.tipo === 'all') return
