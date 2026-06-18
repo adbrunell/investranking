@@ -25,7 +25,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .filters-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid var(--border);background:var(--card)}
 .filters-wrap::-webkit-scrollbar{display:none}
 .filters{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px;max-width:1100px;margin:0 auto;align-items:center}
-.filter-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent;user-select:none}
+.filter-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent;user-select:none}
 @media(hover:hover){.filter-chip:hover{border-color:var(--text);color:var(--text)}}
 .filter-chip.active{border-color:var(--text);color:var(--text);background:rgba(255,255,255,0.06)}
 .filter-chip.active[data-filter=doc]{border-color:var(--blue);color:var(--blue);background:rgba(66,133,244,.12)}
@@ -95,7 +95,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .topbar{height:auto;flex-wrap:wrap;padding:8px 14px 8px 48px;gap:6px}
 .topbar h1{font-size:16px}
 .search-box{max-width:none;order:3;width:100%}
-.filters{padding:6px 10px;gap:5px}
+.filters{padding:6px 10px;gap:4px}
+.filter-chip{padding:3px 8px;font-size:10px;gap:3px}
 .container{padding:0 10px 30px}
 .card-body{padding:6px 8px;gap:6px}
 .card-icon{width:22px;height:22px;font-size:11px;border-radius:5px;min-width:22px}
@@ -107,6 +108,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 @media(max-width:400px){
 .card-body{flex-wrap:nowrap}
 .spark{width:75px!important;height:16px!important}
+.filter-chip{padding:2px 6px;font-size:9px;gap:2px}
 }
 </style>
 </head>
