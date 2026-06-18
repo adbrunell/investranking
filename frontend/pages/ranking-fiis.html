@@ -306,7 +306,8 @@ function render(){
     if(sortKey==='segmento'){va=a.segmento||'';vb=b.segmento||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='ticker'){va=a.ticker||'';vb=b.ticker||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota_liq'||sortKey==='nota'){
+    if(sortKey==='nota_liq'){va=+a.liquidez_media_30d>0?((+a.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;vb=+b.liquidez_media_30d>0?((+b.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='nota'){
       let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0
       let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0
       let na=al*wl+ap*wp+ad*wd,nb=bl*wl+bp*wp+bd*wd
@@ -359,7 +360,7 @@ function render(){
     }
     html+='<div class="cell cell-atr"><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:'+(atratividade!=null?(atratividade>0.5?'var(--green)':'var(--red)'):'var(--muted)')+'"></div></div></div>'
     html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
-    let liqv=+it.liquidez_media_30d,nota_liq=liqv>0?(liqv-mnLiq)/rgLiq:0
+    let liqv=+it.liquidez_media_30d,nota_liq=liqv>0?((liqv-mnLiq)/rgLiq)*wl:0
     html+='<div class="cell cell-nota-liq">'+nota_liq.toFixed(3)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
