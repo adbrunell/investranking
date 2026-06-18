@@ -9,11 +9,7 @@
 <style>
 :root{--bg:#111318;--surface:#1a1d24;--surface2:#1f232b;--border:#2a2e36;--text:#e2e5e9;--text-muted:#8a909a;--accent:#ffde59;--accent-bg:rgba(255,222,89,0.08)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);padding:0 16px 16px;font-family:'Segoe UI',system-ui,sans-serif;overscroll-behavior:contain}
-#ptr-indicator{display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;font-size:11px;color:var(--text-muted);transition:height .2s;pointer-events:none}
-#ptr-indicator.show{height:32px}
-#ptr-indicator .spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
+body{background:var(--bg);color:var(--text);padding:0 16px 16px;font-family:'Segoe UI',system-ui,sans-serif}
 .container{max-width:1600px;margin:0 auto;min-height:100vh}
 .header{position:sticky;top:0;z-index:100;background:rgba(17,19,24,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:44px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 -16px 10px;padding:0 20px}
 .header h1{font-size:18px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:8px}
@@ -116,7 +112,6 @@ footer{display:none}
 </style>
 </head>
 <body>
-<div id="ptr-indicator"><div class="spinner"></div><span>Atualizando...</span></div>
 <div class="container">
 <div class="header">
 <div style="display:flex;align-items:center;gap:8px">
@@ -733,23 +728,7 @@ if(b)b.classList.remove('open')
 }
 })
 
-// --- Pull-to-refresh ---
-(function(){
-  let startY=0
-  let ptrEl=document.getElementById('ptr-indicator')
-  window.addEventListener('touchstart',function(e){
-    if(window.scrollY<=0) startY=e.touches[0].clientY
-    else startY=0
-  },{passive:true})
-  window.addEventListener('touchmove',function(e){
-    if(!startY||e.touches[0].clientY-startY<50)return
-    startY=0
-    ptrEl.classList.add('show')
-    setTimeout(function(){parent.location.reload()},300)
-  },{passive:true})
-  window.addEventListener('touchend',function(){startY=0},{passive:true})
-  window.addEventListener('touchcancel',function(){startY=0},{passive:true})
-})()
+
 </script>
 </body>
 </html>

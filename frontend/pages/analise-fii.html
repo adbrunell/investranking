@@ -8,11 +8,7 @@
 <style>
 :root{--bg:#0d1117;--card:#161b22;--text:#e2e5e9;--muted:#8b949e;--yellow:#ffde59;--green:#2ec4b6;--border:#21262d;--radius:8px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:0 16px 16px;min-height:100vh;-webkit-font-smoothing:antialiased;overscroll-behavior:contain}
-#ptr-indicator{display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;font-size:11px;color:var(--text-muted);transition:height .2s;pointer-events:none}
-#ptr-indicator.show{height:32px}
-#ptr-indicator .spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:0 16px 16px;min-height:100vh;-webkit-font-smoothing:antialiased}
 .topbar{position:sticky;top:0;z-index:100;background:rgba(13,17,23,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:44px;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 12px;padding:0 20px}
 .topbar h1{font-size:18px;font-weight:600;color:var(--yellow);display:flex;align-items:center;gap:8px}
 .topbar h1 span{color:var(--text);font-weight:400}
@@ -131,7 +127,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 </style>
 </head>
 <body>
-<div id="ptr-indicator"><div class="spinner"></div><span>Atualizando...</span></div>
 <div class="topbar">
   <h1>Scanner <span>de Fundos</span></h1>
   <div class="search-wrap" style="flex:1;max-width:200px">
@@ -1554,23 +1549,7 @@ window.addEventListener('resize', function() {
   }, 200)
 })
 
-// --- Pull-to-refresh ---
-(function(){
-  let startY=0
-  let ptrEl=document.getElementById('ptr-indicator')
-  window.addEventListener('touchstart',function(e){
-    if(window.scrollY<=0) startY=e.touches[0].clientY
-    else startY=0
-  },{passive:true})
-  window.addEventListener('touchmove',function(e){
-    if(!startY||e.touches[0].clientY-startY<50)return
-    startY=0
-    ptrEl.classList.add('show')
-    setTimeout(function(){parent.location.reload()},300)
-  },{passive:true})
-  window.addEventListener('touchend',function(){startY=0},{passive:true})
-  window.addEventListener('touchcancel',function(){startY=0},{passive:true})
-})()
+
 </script>
 </body>
 </html>
