@@ -96,8 +96,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .mode-volume .rank-volume{display:flex}
 
 @media(max-width:768px){
-.topbar{padding:0 12px 0 48px;height:44px;gap:6px}
-.topbar h1{font-size:15px;gap:4px}
+.topbar{padding:0 12px 0 48px;height:auto;min-height:44px;gap:4px;flex-wrap:wrap}
+.topbar h1{font-size:14px;gap:4px}
+.topbar .top-right{gap:4px}
+.status-market{padding:2px 7px;font-size:10px}
 .search-box{width:130px}
 .search-box input{font-size:11px;padding:5px 10px 5px 26px}
 .search-box svg{width:11px;height:11px;left:7px}
@@ -109,6 +111,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .rank-pos{width:26px;height:26px;font-size:11px}
 .rank-ticker{font-size:13px}
 .rank-price{font-size:12px}
+.rank-meta{font-size:9px}
 .rank-variacao .pct{font-size:13px;min-width:55px}
 .rank-variacao .bar-wrap{width:36px}
 .rank-volume{min-width:80px}
@@ -116,11 +119,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .rank-volume .vol-bar-wrap{width:40px}
 }
 @media(max-width:480px){
-.rank-variacao{min-width:60px}
+.rank-variacao{min-width:50px}
 .rank-variacao .bar-wrap{display:none}
 .rank-volume .vol-bar-wrap{display:none}
-.rank-price{display:none}
 .search-box{width:100px}
+.status-market{padding:2px 5px;font-size:9px;border-radius:12px;gap:3px}
 .asset-chip{display:none}
 .asset-chip.all{display:inline-flex}
 }
@@ -129,7 +132,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 <body>
 
 <div class="topbar">
-  <h1><i class="fas fa-chart-simple" style="font-size:14px"></i> Ranking <small>ao vivo</small></h1>
+  <h1><i class="fas fa-chart-simple" style="font-size:14px"></i> Ranking</h1>
   <div class="top-right">
     <div class="status-market" id="statusMarket"><span class="dot"></span><span id="statusLabel">—</span></div>
     <div class="search-box" id="searchBox">
