@@ -1556,20 +1556,20 @@ window.addEventListener('resize', function() {
 
 // --- Pull-to-refresh ---
 (function(){
-  let startY=0,pulling=false,ptrEl=document.getElementById('ptr-indicator')
+  let startY=0
+  let ptrEl=document.getElementById('ptr-indicator')
   window.addEventListener('touchstart',function(e){
-    if(window.scrollY<=0){startY=e.touches[0].clientY;pulling=true}
+    if(window.scrollY<=0) startY=e.touches[0].clientY
+    else startY=0
   },{passive:true})
   window.addEventListener('touchmove',function(e){
-    if(!pulling)return
-    let dist=e.touches[0].clientY-startY
-    if(dist>50){
-      pulling=false;ptrEl.classList.add('show')
-      setTimeout(function(){location.reload()},200)
-    }
-  },{passive:false})
-  window.addEventListener('touchend',function(){pulling=false},{passive:true})
-  window.addEventListener('touchcancel',function(){pulling=false},{passive:true})
+    if(!startY||e.touches[0].clientY-startY<50)return
+    startY=0
+    ptrEl.classList.add('show')
+    setTimeout(function(){parent.location.reload()},300)
+  },{passive:true})
+  window.addEventListener('touchend',function(){startY=0},{passive:true})
+  window.addEventListener('touchcancel',function(){startY=0},{passive:true})
 })()
 </script>
 </body>
