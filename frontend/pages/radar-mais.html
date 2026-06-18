@@ -25,7 +25,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .filters-wrap::-webkit-scrollbar{display:none}
 .filters{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px;max-width:1100px;margin:0 auto;align-items:center}
 .filter-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent;user-select:none}
-.filter-chip:hover{border-color:var(--text);color:var(--text)}
+@media(hover:hover){.filter-chip:hover{border-color:var(--text);color:var(--text)}}
 .filter-chip.active{border-color:var(--text);color:var(--text);background:rgba(255,255,255,0.06)}
 .filter-chip.active[data-filter=doc]{border-color:var(--blue);color:var(--blue);background:rgba(66,133,244,.12)}
 .filter-chip.active[data-filter=fato]{border-color:var(--orange);color:var(--orange);background:rgba(245,166,35,.12)}
