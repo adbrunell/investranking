@@ -118,7 +118,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   <h1><i class="fas fa-bullseye" style="font-size:15px"></i> Radar <span>+</span></h1>
   <div class="search-box" id="searchBox">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input id="search" placeholder="Buscar ticker..." oninput="onSearchInput()" autocomplete="off">
+    <input id="search" placeholder="Buscar ticker..." oninput="onSearch()" autocomplete="off" list="ticker-list">
+    <datalist id="ticker-list"></datalist>
     <button class="clear-btn" onclick="clearSearch()"><i class="fas fa-times"></i></button>
   </div>
 </div>
@@ -150,11 +151,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allItems=[],activeChannels={},allChannels=[],searchActive=false
+let allItems=[],activeChannels={},allChannels=[],searchTerm=''
 let activeFilters=(function(){
   try{let s=localStorage.getItem('radar_filters');return s?JSON.parse(s):{doc:true,fato:true,rend:true}}catch(e){return{doc:true,fato:true,rend:true}}
 })()
-let _timer=null
 
 function fmtDateStr(s){
   if(!s)return''
@@ -228,6 +228,10 @@ function buildItems(rel,fat,rend,vid){
   items.sort((a,b)=>{let da=a.date||'',db=b.date||'';if(da>db)return -1;if(da<db)return 1;return(a.ticker||'').localeCompare(b.ticker||'')})
   return items
 }
+function populateDatalist(){
+  let tickers=[...new Set(allItems.map(i=>i.ticker).filter(Boolean))].sort()
+  document.getElementById('ticker-list').innerHTML=tickers.map(t=>'<option value="'+t+'">').join('')
+}
 
 async function load(){
   try{
@@ -248,6 +252,7 @@ async function load(){
     allItems=buildItems(rel,fat,rend,vid)
     allChannels=[...new Set((vid||[]).map(v=>v.canal).filter(Boolean))].sort()
     buildChanDropdown()
+    populateDatalist()
     document.getElementById('loading').style.display='none'
     if(partial)document.getElementById('feed').insertAdjacentHTML('afterbegin','<div style="padding:8px 16px;font-size:11px;color:var(--orange);background:rgba(245,166,35,.1);border-bottom:1px solid var(--border)"><i class="fas fa-exclamation-triangle"></i> Alguns dados não puderam ser carregados (timeout). Atualize a página para tentar novamente.</div>')
     render()
@@ -278,49 +283,23 @@ async function loadFull(){
     allItems=newItems
     allChannels=[...new Set((vid.length?vid:old.filter(i=>i.type==='vid').map(i=>i.canal)).filter(Boolean))].sort()
     buildChanDropdown()
+    populateDatalist()
     render()
   }catch(e){/*silent*/}
 }
 
-function onSearchInput(){
+function onSearch(){
   let q=document.getElementById('search').value.trim()
   document.getElementById('searchBox').classList.toggle('has-text',q.length>0)
-  clearTimeout(_timer)
-  if(q.length>=2){_timer=setTimeout(()=>searchFullDB(q),200)}
-  else{searchActive=false;_timer=setTimeout(render,150)}
+  searchTerm=q.toUpperCase()
+  render()
 }
-
 function clearSearch(){
-  clearTimeout(_timer)
   document.getElementById('search').value=''
   document.getElementById('searchBox').classList.remove('has-text')
-  searchActive=false;render()
+  searchTerm=''
+  render()
   document.getElementById('search').focus()
-}
-
-async function searchFullDB(term){
-  searchActive=true
-  let feed=document.getElementById('feed')
-  feed.innerHTML='<div class="loading"><div class="spinner"></div><span>Buscando...</span></div>'
-  let upper=term.toUpperCase()
-  try{
-    let results=await Promise.allSettled([
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Relat*rio*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Fato*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
-      api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&ticker=eq.'+upper+'&order=publicacao.desc')
-    ])
-    let items=[]
-    for(let r of (results[0].status==='fulfilled'?results[0].value:[])){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'doc',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
-    for(let r of (results[1].status==='fulfilled'?results[1].value:[])){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'fato',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
-    for(let r of (results[2].status==='fulfilled'?results[2].value:[])){if(r.codigo_fundo&&r.link_visualizar){let val=r.rendimento?fmtBRL(r.rendimento):'';let com=r.data_com?fmtDateStr(r.data_com):'-';let pgto=r.data_pagamento?fmtDateStr(r.data_pagamento):'-';let dy=r.dividend_yield!=null?r.dividend_yield.toFixed(2):null;items.push({type:'rend',ticker:r.codigo_fundo,date:r.data_entrega,url:r.link_visualizar,com:com,pgto:pgto,valor:val,dy:dy,hist:r.historico_minigrafico||null,prevVal:r.rendimento_anterior,rendNum:r.rendimento})}}
-    for(let v of (results[3].status==='fulfilled'?results[3].value:[])){if(v.ticker)items.push({type:'vid',ticker:v.ticker,date:v.publicacao,titulo:v.titulo,url:v.link,canal:v.canal,duracao:v.duracao})}
-    items.sort((a,b)=>{let da=a.date||'',db=b.date||'';if(da>db)return -1;if(da<db)return 1;return(a.ticker||'').localeCompare(b.ticker||'')})
-    window._searchResults=items
-    render()
-  }catch(e){
-    feed.innerHTML='<div class="card-empty"><i class="fas fa-exclamation-circle"></i><br>Erro: '+e.message+'</div>'
-  }
 }
 
 function toggleFilter(el){
@@ -368,16 +347,13 @@ function toggleChan(el){
 }
 
 function render(){
-  let src=searchActive?(window._searchResults||[]):allItems
+  let items=allItems
   let fk=Object.keys(activeFilters)
-  let items=fk.length?src.filter(it=>activeFilters[it.type]):[]
-  // channel filter
+  items=fk.length?items.filter(it=>activeFilters[it.type]):[]
   let ck=Object.keys(activeChannels)
   if(ck.length)items=items.filter(it=>it.type!=='vid'||activeChannels[it.canal])
-  if(!searchActive){
-    let q=document.getElementById('search').value.toUpperCase().trim()
-    if(q)items=items.filter(it=>it.ticker.toUpperCase().includes(q))
-  }
+  let q=searchTerm||document.getElementById('search').value.toUpperCase().trim()
+  if(q)items=items.filter(it=>it.ticker.toUpperCase().includes(q))
   // Group by date
   let groups={}
   for(let it of items){
