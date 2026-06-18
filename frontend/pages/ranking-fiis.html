@@ -175,7 +175,7 @@ function fmtPct(v){
 
 async function load(){
   try{
-    let raw=await fetch(REST+'/"Ranking_FIIs"?limit=1000',{headers:H})
+    let raw=await fetch(REST+'/Ranking_FIIs?limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     populateDatalist()
