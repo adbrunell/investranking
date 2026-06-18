@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Ranking FIIs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;min-width:0}
+:root{--bg:#0c0e12;--card:#14171d;--card2:#1a1e26;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59;--green:#00c896;--red:#ff4757;--blue:#5b7fff;--radius:10px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--accent);color:#000}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(12,14,18,0.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 48px;height:48px;gap:10px}
+.topbar h1{font-size:17px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.topbar .top-right{display:flex;align-items:center;gap:8px}
+
+.search-box{position:relative;width:160px}
+.search-box input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 28px;color:var(--text);font-size:12px;outline:none;font-family:inherit;transition:border .25s}
+.search-box input:focus{border-color:var(--accent)}
+.search-box input::placeholder{color:var(--muted)}
+.search-box svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--muted);pointer-events:none}
+
+.filters-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid var(--border);background:var(--card)}
+.filters-wrap::-webkit-scrollbar{display:none}
+.filters{display:flex;gap:4px;padding:6px 12px;max-width:1100px;margin:0 auto;align-items:center;flex-wrap:nowrap}
+.filter-chip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:14px;font-size:10px;cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.filter-chip:hover{border-color:var(--text);color:var(--text)}
+.filter-chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.filter-chip:active{transform:scale(.93)}
+
+.container{max-width:1100px;margin:0 auto;padding:6px 12px 40px}
+
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 0;color:var(--muted);gap:12px}
+.loading .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.header-row{display:flex;align-items:center;padding:6px 10px;margin-bottom:2px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);position:sticky;top:94px;z-index:50;background:var(--bg)}
+.header-row .h{display:flex;align-items:center;gap:4px;cursor:pointer;transition:color .2s;user-select:none;padding:4px 0}
+.header-row .h:hover{color:var(--text)}
+.header-row .h.sorted{color:var(--accent)}
+.header-row .h .arrow{font-size:8px;opacity:0;transition:opacity .2s}
+.header-row .h.sorted .arrow{opacity:1}
+.h-rank{width:38px;flex-shrink:0;justify-content:center}
+.h-tipo{width:60px;flex-shrink:0}
+.h-seg{flex:1;min-width:80px}
+.h-ticker{width:80px;flex-shrink:0}
+.h-liq{width:90px;flex-shrink:0;justify-content:flex-end}
+.h-pvp{width:70px;flex-shrink:0;justify-content:flex-end}
+.h-dy{width:80px;flex-shrink:0;justify-content:flex-end}
+
+.row-card{display:flex;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:3px;animation:rowIn .35s ease-out both;transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:default}
+.row-card:hover{border-color:rgba(255,255,255,0.12);background:var(--card2)}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.cell{display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell-rank{width:38px;flex-shrink:0;justify-content:center;font-size:12px;font-weight:600;color:var(--muted)}
+.top3 .cell-rank{font-size:13px}
+.top3:nth-child(1) .cell-rank{color:#ffd700}
+.top3:nth-child(2) .cell-rank{color:#c0c0c0}
+.top3:nth-child(3) .cell-rank{color:#cd7f32}
+.cell-tipo{width:60px;flex-shrink:0}
+.tipo-badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;line-height:14px;white-space:nowrap}
+.tipo-Tijolo{background:rgba(91,127,255,.15);color:var(--blue)}
+.tipo-Papel{background:rgba(0,200,150,.15);color:var(--green)}
+.tipo-FoF{background:rgba(255,159,67,.15);color:var(--orange)}
+.tipo-Híbrido{background:rgba(255,222,89,.15);color:var(--accent)}
+.tipo-Fiagro{background:rgba(46,196,182,.15);color:#2ec4b6}
+.tipo-FI-Infra{background:rgba(91,127,255,.12);color:#7b9cff}
+.tipo-FIP-IE{background:rgba(200,130,255,.15);color:#c882ff}
+.cell-seg{flex:1;min-width:80px;font-size:12px;color:var(--muted)}
+.cell-ticker{width:80px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--accent)}
+.cell-liq{width:90px;flex-shrink:0;justify-content:flex-end;font-size:12px;color:var(--text);font-weight:500}
+.cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell-pvp .val{color:var(--text)}
+.cell-dy{width:80px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.cell-dy .val{color:var(--green)}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state i{font-size:36px;opacity:.3;margin-bottom:10px}
+
+@media(max-width:768px){
+.topbar{padding:0 12px 0 48px;height:44px;gap:6px}
+.topbar h1{font-size:15px;gap:4px}
+.search-box{width:120px}
+.search-box input{font-size:11px;padding:4px 8px 4px 24px}
+.search-box svg{width:10px;height:10px;left:6px}
+.filters{padding:4px 8px;gap:3px}
+.container{padding:4px 8px 30px}
+.header-row{padding:4px 8px;font-size:9px;top:86px}
+.row-card{padding:6px 8px;gap:0}
+.h-rank,.cell-rank{width:30px}
+.h-tipo,.cell-tipo{width:48px}
+.h-ticker,.cell-ticker{width:65px;font-size:12px}
+.h-liq,.cell-liq{width:70px;font-size:11px}
+.h-pvp,.cell-pvp{width:58px;font-size:12px}
+.h-dy,.cell-dy{width:65px;font-size:12px}
+.cell-seg{font-size:11px}
+.tipo-badge{font-size:8px;padding:1px 4px}
+}
+@media(max-width:480px){
+.h-rank,.cell-rank{display:none}
+.h-tipo,.cell-tipo{width:40px}
+.h-ticker,.cell-ticker{width:55px;font-size:11px}
+.h-liq,.cell-liq{width:60px;font-size:10px}
+.h-pvp,.cell-pvp{width:50px;font-size:11px}
+.h-dy,.cell-dy{width:55px;font-size:11px}
+.cell-seg{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><i class="fas fa-trophy" style="font-size:14px"></i> Ranking <small>FIIs</small></h1>
+  <div class="top-right">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="search" placeholder="Buscar ticker..." oninput="onSearch()" autocomplete="off" list="tickerList">
+      <datalist id="tickerList"></datalist>
+    </div>
+  </div>
+</div>
+
+<div class="filters-wrap">
+  <div class="filters" id="filters">
+    <button class="filter-chip active" data-tipo="all" onclick="toggleFiltro(this)">Todos</button>
+    <button class="filter-chip active" data-tipo="Tijolo" onclick="toggleFiltro(this)">Tijolo</button>
+    <button class="filter-chip active" data-tipo="Papel" onclick="toggleFiltro(this)">Papel</button>
+    <button class="filter-chip active" data-tipo="FoF" onclick="toggleFiltro(this)">FoF</button>
+    <button class="filter-chip active" data-tipo="Híbrido" onclick="toggleFiltro(this)">Híbrido</button>
+    <button class="filter-chip active" data-tipo="Fiagro" onclick="toggleFiltro(this)">Fiagro</button>
+    <button class="filter-chip active" data-tipo="FI-Infra" onclick="toggleFiltro(this)">FI-Infra</button>
+  </div>
+</div>
+
+<div class="container">
+  <div id="loading" class="loading"><div class="spinner"></div><span>Carregando...</span></div>
+  <div id="header" class="header-row" style="display:none">
+    <div class="h h-rank" onclick="setSort('rank')"># <span class="arrow">▼</span></div>
+    <div class="h h-tipo" onclick="setSort('tipo')">Tipo <span class="arrow">▼</span></div>
+    <div class="h h-seg" onclick="setSort('segmento')">Segmento <span class="arrow">▼</span></div>
+    <div class="h h-ticker" onclick="setSort('ticker')">Ticker <span class="arrow">▼</span></div>
+    <div class="h h-liq" onclick="setSort('liquidez')">Liquidez <span class="arrow">▼</span></div>
+    <div class="h h-pvp" onclick="setSort('pvp')">P/VP <span class="arrow">▼</span></div>
+    <div class="h h-dy" onclick="setSort('dy')">DY 12m <span class="arrow">▼</span></div>
+  </div>
+  <div id="feed"></div>
+</div>
+
+<script>
+const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
+const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
+
+let allData=[],sortKey='liquidez',sortDesc=true,searchTerm=''
+let activeTipos={}
+document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=true})
+
+function fmtLiq(v){
+  if(v==null||isNaN(v)||v===0)return'—'
+  if(v>=1e9)return(v/1e9).toFixed(1)+' bi'
+  if(v>=1e6)return(v/1e6).toFixed(1)+' mi'
+  if(v>=1e3)return(v/1e3).toFixed(0)+' mil'
+  return v.toFixed(0)
+}
+function fmtNum(v){
+  if(v==null||isNaN(v))return'—'
+  return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+}
+function fmtPct(v){
+  if(v==null||isNaN(v))return'—'
+  return (v*100).toFixed(2)+'%'
+}
+
+async function load(){
+  try{
+    let raw=await fetch(REST+'/"Ranking_FIIs"?limit=1000',{headers:H})
+    if(!raw.ok)throw new Error(raw.status)
+    allData=await raw.json()
+    populateDatalist()
+    document.getElementById('loading').style.display='none'
+    document.getElementById('header').style.display='flex'
+    render()
+  }catch(e){
+    document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.4;margin-bottom:8px"></i><br>Erro: '+e.message
+  }
+}
+
+function populateDatalist(){
+  let tickers=[...new Set(allData.map(d=>d.ticker).filter(Boolean))].sort()
+  document.getElementById('tickerList').innerHTML=tickers.map(t=>'<option value="'+t+'">').join('')
+}
+
+function toggleFiltro(el){
+  let k=el.dataset.tipo
+  if(k==='all'){
+    let allOn=Object.keys(activeTipos).every(t=>activeTipos[t])
+    let newVal=!allOn
+    document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
+      if(e.dataset.tipo!=='all'){e.classList.toggle('active',newVal);activeTipos[e.dataset.tipo]=newVal}
+    })
+    el.classList.toggle('active',newVal)
+  }else{
+    activeTipos[k]=!activeTipos[k]
+    el.classList.toggle('active')
+    let anyOn=Object.values(activeTipos).some(v=>v)
+    if(!anyOn){activeTipos[k]=true;el.classList.add('active')}
+    let allOn=Object.keys(activeTipos).every(t=>activeTipos[t])
+    document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active',allOn)
+  }
+  render()
+}
+
+function onSearch(){
+  searchTerm=document.getElementById('search').value.toUpperCase().trim()
+  render()
+}
+
+function setSort(key){
+  if(sortKey===key){sortDesc=!sortDesc}
+  else{sortKey=key;sortDesc=key==='tipo'||key==='segmento'||key==='ticker'?false:true}
+  document.querySelectorAll('.header-row .h').forEach(el=>el.classList.remove('sorted'))
+  let map={rank:'h-rank',tipo:'h-tipo',segmento:'h-seg',ticker:'h-ticker',liquidez:'h-liq',pvp:'h-pvp',dy:'h-dy'}
+  let el=document.querySelector('.'+map[key]);if(el)el.classList.add('sorted')
+  render()
+}
+
+function render(){
+  let items=[...allData]
+  let fk=Object.keys(activeTipos).filter(k=>activeTipos[k])
+  if(fk.length<Object.keys(activeTipos).length)items=items.filter(it=>fk.includes(it.tipo))
+  if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
+
+  items.sort((a,b)=>{
+    let va,vb
+    if(sortKey==='rank')return sortDesc?1:-1
+    if(sortKey==='tipo'){va=a.tipo||'';vb=b.tipo||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
+    if(sortKey==='segmento'){va=a.segmento||'';vb=b.segmento||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
+    if(sortKey==='ticker'){va=a.ticker||'';vb=b.ticker||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
+    if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='pvp'){va=a.p_vp!=null?a.p_vp:-999;vb=b.p_vp!=null?b.p_vp:-999;return sortDesc?vb-va:va-vb}
+    if(sortKey==='dy'){va=a.dividend_yield_12m!=null?a.dividend_yield_12m:-999;vb=b.dividend_yield_12m!=null?b.dividend_yield_12m:-999;return sortDesc?vb-va:va-vb}
+    return 0
+  })
+
+  if(!items.length){
+    document.getElementById('feed').innerHTML='<div class="empty-state"><i class="fas fa-inbox"></i><br>Nenhum fundo encontrado.</div>'
+    return
+  }
+
+  let html=''
+  for(let i=0;i<items.length;i++){
+    let it=items[i],pos=i+1
+    let top3=pos<=3?' top3':''
+    html+='<div class="row-card'+top3+'" style="animation-delay:'+(i*0.012)+'s">'
+    html+='<div class="cell cell-rank">'+pos+'</div>'
+    html+='<div class="cell cell-tipo"><span class="tipo-badge tipo-'+(it.tipo||'').replace(/ /g,'')+'">'+((it.tipo||'')==='FI-Infra'?'FI':it.tipo||'')+'</span></div>'
+    html+='<div class="cell cell-seg">'+(it.segmento||'')+'</div>'
+    html+='<div class="cell cell-ticker">'+(it.ticker||'')+'</div>'
+    html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
+    html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
+    html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
+    html+='</div>'
+  }
+  document.getElementById('feed').innerHTML=html
+}
+
+window.onload=load
+</script>
+</body>
+</html>
