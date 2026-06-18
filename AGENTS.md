@@ -41,7 +41,7 @@ All three use Playwright `headless=False`. The first two are explicitly skipped 
 - Named with timestamp prefix (`20260613000001_create_*`)
 
 ## Database
-**View vs Table**: Scripts query the view `00_Master` (columns: `Ticker`, `Classe`, `CNPJ`), while the actual table is `00_fundos_master` (`ticker`, `segmento`, `tipo`, `cnpj`).
+**View vs Table**: Scripts query the view `00_Master` (columns: `Ticker`, `Classe`, `CNPJ`), while the actual table is `00_fundos_master` (`ticker`, `segmento`, `tipo`, `cnpj`). `"Ranking_FIIs"` is a **materialized view** refreshed by `run_all.ps1` via `fn_refresh_ranking_fiis`.
 
 Key tables:
 - `00_fundos_master` — curated FII list (ticker, cnpj, segmento, tipo)

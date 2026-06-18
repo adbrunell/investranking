@@ -154,6 +154,13 @@ try {
 } catch {
   Write-Host "  [Aviso] Falha ao atualizar minigrafico: $_" -ForegroundColor Gray
 }
+# Atualiza Ranking FIIs (materialized view)
+try {
+  Invoke-RestMethod -Uri "$supabaseUrl/rest/v1/rpc/fn_refresh_ranking_fiis" -Method Post -Headers @{"apikey"=$apiKey; "Authorization"="Bearer $apiKey"} -TimeoutSec 120 | Out-Null
+  Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Ranking FIIs atualizado" -ForegroundColor Green
+} catch {
+  Write-Host "  [Aviso] Falha ao atualizar Ranking FIIs: $_" -ForegroundColor Gray
+}
 # Limpa cotacoes historicas (>2 anos)
 try {
   Invoke-RestMethod -Uri "$supabaseUrl/rest/v1/rpc/fn_limpar_b3_historico" -Method Post -Headers @{"apikey"=$apiKey; "Authorization"="Bearer $apiKey"} -TimeoutSec 120 | Out-Null
