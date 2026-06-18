@@ -16,9 +16,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .topbar h1{font-size:17px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:7px;white-space:nowrap}
 .topbar h1 small{font-size:11px;font-weight:400;color:var(--muted)}
 .topbar .top-right{display:flex;align-items:center;gap:6px}
-.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse-dot 2s ease-in-out infinite;margin-right:4px}
-@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
-.auto-refresh{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
 
 .search-box{position:relative;width:180px}
 .search-box input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 12px 6px 30px;color:var(--text);font-size:12px;outline:none;font-family:inherit;transition:border .25s}
@@ -36,12 +33,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .mode-btn:hover{color:var(--text)}
 .mode-btn.active{background:var(--accent);color:#000;box-shadow:0 2px 8px rgba(255,222,89,0.3)}
 .mode-btn:active{transform:scale(.92)}
-.seg-divider{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 4px}
-.seg-group{display:flex;gap:3px;flex-wrap:nowrap}
-.seg-chip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:14px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .25s;white-space:nowrap;flex-shrink:0}
-.seg-chip:hover{border-color:var(--text);color:var(--text)}
-.seg-chip.active{background:rgba(255,255,255,0.07);border-color:var(--text);color:var(--text)}
-.seg-chip:active{transform:scale(.93)}
+.asset-divider{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 4px}
+.asset-group{display:flex;gap:3px;flex-wrap:nowrap}
+.asset-chip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:14px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .25s;white-space:nowrap;flex-shrink:0}
+.asset-chip:hover{border-color:var(--text);color:var(--text)}
+.asset-chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.asset-chip:active{transform:scale(.93)}
 
 .stats-bar{display:flex;gap:14px;padding:9px 20px;max-width:1100px;margin:0 auto;align-items:center;font-size:11px;color:var(--muted);flex-wrap:wrap;border-bottom:1px solid var(--border)}
 .stats-bar .stat{display:flex;align-items:center;gap:4px}
@@ -104,7 +101,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .search-box svg{width:11px;height:11px;left:7px}
 .filters{padding:5px 10px;gap:4px}
 .mode-btn{padding:4px 10px;font-size:11px}
-.seg-chip{padding:3px 8px;font-size:10px}
+.asset-chip{padding:3px 8px;font-size:10px}
 .stats-bar{gap:10px;padding:6px 14px;font-size:10px}
 .container{padding:6px 10px 30px}
 .rank-card{padding:10px 12px;gap:8px}
@@ -123,8 +120,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .rank-volume .vol-bar-wrap{display:none}
 .rank-price{display:none}
 .search-box{width:100px}
-.seg-chip{display:none}
-.seg-chip.seg-all{display:inline-flex}
+.asset-chip{display:none}
+.asset-chip.all{display:inline-flex}
 }
 </style>
 </head>
@@ -133,7 +130,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 <div class="topbar">
   <h1><i class="fas fa-chart-simple" style="font-size:14px"></i> Ranking <small>ao vivo</small></h1>
   <div class="top-right">
-    <div class="auto-refresh"><span class="live-dot"></span><span id="refreshInfo">30s</span></div>
     <div class="search-box" id="searchBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="search" placeholder="Buscar ticker..." oninput="onSearch()" autocomplete="off">
@@ -149,15 +145,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <button class="mode-btn" data-mode="baixas" onclick="setMode(this)"><i class="fas fa-arrow-down" style="font-size:10px"></i> Baixas</button>
       <button class="mode-btn" data-mode="volume" onclick="setMode(this)"><i class="fas fa-water-chart" style="font-size:10px"></i> Volume</button>
     </div>
-    <div class="seg-divider"></div>
-    <div class="seg-group" id="segGroup">
-      <button class="seg-chip seg-all active" data-seg="all" onclick="setSeg(this)">Todos</button>
-      <button class="seg-chip" data-seg="Tijolo" onclick="setSeg(this)">Tijolo</button>
-      <button class="seg-chip" data-seg="Papel" onclick="setSeg(this)">Papel</button>
-      <button class="seg-chip" data-seg="FoF" onclick="setSeg(this)">FoF</button>
-      <button class="seg-chip" data-seg="Híbrido" onclick="setSeg(this)">Híbrido</button>
-      <button class="seg-chip" data-seg="Fiagro" onclick="setSeg(this)">Fiagro</button>
-      <button class="seg-chip" data-seg="FI-Infra" onclick="setSeg(this)">FI-Infra</button>
+    <div class="asset-divider"></div>
+    <div class="asset-group" id="assetGroup">
+      <button class="asset-chip all active" data-asset="acao" onclick="toggleAsset(this)"><i class="fas fa-building" style="font-size:9px"></i> Ações</button>
+      <button class="asset-chip active" data-asset="fii" onclick="toggleAsset(this)"><i class="fas fa-home" style="font-size:9px"></i> FIIs</button>
+      <button class="asset-chip active" data-asset="fiagro" onclick="toggleAsset(this)"><i class="fas fa-seedling" style="font-size:9px"></i> Fiagro</button>
+      <button class="asset-chip active" data-asset="fiinfra" onclick="toggleAsset(this)"><i class="fas fa-plug" style="font-size:9px"></i> FI-Infra</button>
     </div>
   </div>
 </div>
@@ -179,9 +172,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let mode='altas',seg='all',searchTerm=''
-let allItems=[],masterMap={},refreshTimer=null
-const SEG_ORDER=['Tijolo','Papel','FoF','Híbrido','Fiagro','FI-Infra','FIP-IE']
+let mode='altas',searchTerm=''
+let allItems=[]
+let assetFilter={acao:true,fii:true,fiagro:true,fiinfra:true}
+const ASSET_MAP={Ação:'acao',Tijolo:'fii',Papel:'fii',FoF:'fii',Híbrido:'fii','FIP-IE':'fii',Fiagro:'fiagro','FI-Infra':'fiinfra'}
 
 function fmtNum(n){
   if(n==null||isNaN(n))return'—'
@@ -209,39 +203,17 @@ async function api(url){
   if(!r.ok)throw new Error(r.status)
   return r.json()
 }
-async function apiAll(url){
-  let PAGE=1000,all=[],r
-  r=await fetch(url+'&limit='+PAGE,{headers:{...H,Prefer:'count=exact'}})
-  if(!r.ok)throw new Error('Falha ao carregar')
-  let total=0,cr=r.headers.get('content-range')
-  if(cr){let m=cr.match(/\/(\d+)$/);if(m)total=+m[1]}
-  all.push(...await r.json())
-  if(total>PAGE){
-    let offsets=[]
-    for(let i=PAGE;i<total;i+=PAGE)offsets.push(i)
-    for(let o of offsets){
-      r=await fetch(url+'&limit='+PAGE+'&offset='+o,{headers:H})
-      if(r.ok)all.push(...await r.json())
-    }
-  }
-  return all
-}
-
 async function load(){
   document.getElementById('loading').style.display='flex'
   document.getElementById('feed').innerHTML=''
   try{
-    let [quotes,master]=await Promise.all([
-      api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia&tipo=not.is.null&order=data_referencia.desc&limit=1000'),
-      apiAll(REST+'/00_Master?select=Ticker,Classe')
-    ])
-    masterMap={}
-    for(let r of master||[]){if(r.Ticker)masterMap[r.Ticker]=r.Classe||''}
+    let quotes=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia&tipo=not.is.null&order=data_referencia.desc&limit=1000')
     allItems=[]
     let latestUpdate=null
     for(let r of quotes||[]){
       let tick=r.codigo_instrumento
       if(!tick)continue
+      let tipo=r.tipo||''
       varia=r.variacao!=null?parseFloat(r.variacao):null
       if(varia==null||isNaN(varia))continue
       allItems.push({
@@ -250,7 +222,7 @@ async function load(){
         variacao:varia,
         volume:r.volume_total!=null?parseFloat(r.volume_total):0,
         fechamento:r.fechamento_anterior!=null?parseFloat(r.fechamento_anterior):null,
-        seg:masterMap[tick]||'',
+        tipo:tipo,
         data:r.data_referencia,
         updated:r.atualizado_em
       })
@@ -258,7 +230,6 @@ async function load(){
     }
     document.getElementById('loading').style.display='none'
     render()
-    startAutoRefresh()
     if(latestUpdate){
       let lu=pDate(latestUpdate)
       if(lu)document.getElementById('lastUpdate').textContent='Atualizado: '+lu.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
@@ -266,17 +237,6 @@ async function load(){
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.4;margin-bottom:8px"></i><br>Erro: '+e.message+'<br><button onclick="load()" style="margin-top:12px;background:var(--accent);color:#000;border:none;padding:8px 20px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit">Tentar novamente</button>'
   }
-}
-
-function startAutoRefresh(){
-  clearInterval(refreshTimer)
-  let count=30
-  document.getElementById('refreshInfo').textContent=count+'s'
-  refreshTimer=setInterval(()=>{
-    count--
-    if(count<=0){count=30;load();return}
-    document.getElementById('refreshInfo').textContent=count+'s'
-  },1000)
 }
 
 function setMode(el){
@@ -288,10 +248,12 @@ function setMode(el){
   render()
 }
 
-function setSeg(el){
-  document.querySelectorAll('.seg-chip').forEach(b=>b.classList.remove('active'))
-  el.classList.add('active')
-  seg=el.dataset.seg
+function toggleAsset(el){
+  let key=el.dataset.asset
+  assetFilter[key]=!assetFilter[key]
+  el.classList.toggle('active')
+  let anyOn=Object.values(assetFilter).some(v=>v)
+  if(!anyOn){assetFilter[key]=true;el.classList.add('active')}
   render()
 }
 
@@ -311,7 +273,10 @@ function clearSearch(){
 
 function render(){
   let items=[...allItems]
-  if(seg!=='all')items=items.filter(it=>it.seg===seg)
+  items=items.filter(it=>{
+    let cat=ASSET_MAP[it.tipo]
+    return cat?assetFilter[cat]:false
+  })
   if(searchTerm)items=items.filter(it=>it.ticker.includes(searchTerm))
 
   if(mode==='altas')items.sort((a,b)=>b.variacao-a.variacao)
@@ -340,13 +305,13 @@ function render(){
     let barPct=Math.min(pctAbs/maxVar*100,100)
     let volPct=Math.min(it.volume/maxVol*100,100)
     let cls=isUp?'up':'down'
-    let segLabel=it.seg||''
+    let tipoLabel=it.tipo||''
 
     html+='<div class="rank-card '+cls+'" style="animation-delay:'+(i*0.025)+'s">'
     html+='<div class="rank-pos">'+pos+'</div>'
     html+='<div class="rank-body">'
     html+='<a class="rank-ticker" href="../pages/fii.html?ticker='+it.ticker+'" target="_blank">'+it.ticker+'</a>'
-    if(segLabel)html+='<span class="rank-seg">'+segLabel+'</span>'
+    if(tipoLabel&&tipoLabel!=='Ação')html+='<span class="rank-seg">'+tipoLabel+'</span>'
     if(it.preco!=null)html+='<span class="rank-price">'+fmtShort(it.preco)+' <small>R$</small></span>'
     html+='</div>'
     html+='<div class="rank-variacao">'
