@@ -3,147 +3,175 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Status da Atualização</title>
+<title>Status</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-:root{--bg:#111318;--card:#1a1d24;--card2:#1f232b;--border:#2a2e36;--text:#e2e5e9;--muted:#8a909a;--accent:#ffde59;--green:#2ec4b6;--red:#ee6363;--orange:#f5a623;--blue:#4285F4;--purple:#9b59b6;--youtube:#ff0033;--radius:12px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:0 20px 20px;-webkit-font-smoothing:antialiased}
+:root{--bg:#111318;--card:#1a1d24;--border:#2a2e36;--text:#e2e5e9;--muted:#8a909a;--accent:#ffde59;--green:#2ec4b6;--red:#ee6363;--orange:#f5a623;--radius:8px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:12px 16px 20px;-webkit-font-smoothing:antialiased;font-size:13px}
 ::selection{background:var(--accent);color:#000}
-.topbar{position:sticky;top:0;z-index:100;background:rgba(17,19,24,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:44px;display:flex;align-items:center;gap:12px;padding:0 20px;margin:0 -20px 16px}
-.topbar h1{font-size:18px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:6px}
-.topbar h1 i{font-size:16px}
-.actions{display:flex;gap:8px;align-items:center;margin-left:auto}
-.action-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:5px}
-.action-btn:hover{border-color:var(--accent);color:var(--text)}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.topbar h1{font-size:17px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:5px}
+.topbar h1 i{font-size:15px}
+.actions{margin-left:auto;display:flex;gap:6px}
+.btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:14px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:4px}
+.btn:hover{border-color:var(--accent);color:var(--text)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinning i{animation:spin .8s linear infinite}
-.container{max-width:900px;margin:0 auto}
-.run-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;transition:border .2s}
-.run-card:hover{border-color:var(--accent)}
-.run-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--card2)}
-.run-time{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
-.run-badge{font-size:11px;color:var(--muted);margin-left:auto}
-.run-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:12px 16px}
-.script-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.02)}
-.script-item:hover{background:rgba(255,255,255,0.04)}
-.script-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
-.script-icon.green{background:rgba(46,196,182,0.12);color:var(--green)}
-.script-icon.blue{background:rgba(66,133,244,0.12);color:var(--blue)}
-.script-icon.yellow{background:rgba(255,222,89,0.12);color:var(--accent)}
-.script-icon.orange{background:rgba(245,166,35,0.12);color:var(--orange)}
-.script-icon.red{background:rgba(238,99,99,0.12);color:var(--red)}
-.script-icon.purple{background:rgba(155,89,182,0.12);color:var(--purple)}
-.script-name{font-size:12px;font-weight:500;color:var(--text);flex:1}
-.script-status{font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.script-status.ok{background:rgba(46,196,182,0.12);color:var(--green)}
-.script-status.erro{background:rgba(238,99,99,0.12);color:var(--red)}
-.script-status.skip{background:rgba(138,144,154,0.12);color:var(--muted)}
-.script-status.pendente{background:rgba(255,222,89,0.08);color:var(--accent)}
-.empty{padding:50px 20px;text-align:center;color:var(--muted)}
-.empty i{font-size:32px;display:block;margin-bottom:12px;opacity:.4}
-@media(max-width:600px){
-  body{padding:0 12px 12px}
-  .topbar{margin:0 -12px 12px;padding:0 12px}
-  .run-body{grid-template-columns:1fr}
+.summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.summary span{font-size:12px;padding:3px 10px;border-radius:10px;font-weight:500}
+.summary .ok{background:rgba(46,196,182,.12);color:var(--green)}
+.summary .erro{background:rgba(238,99,99,.12);color:var(--red)}
+.summary .skip{background:rgba(138,144,154,.12);color:var(--muted)}
+.wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
+th{position:sticky;top:0;z-index:2;background:var(--card);padding:7px 6px;text-align:center;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border);font-size:11px}
+th:first-child{text-align:left;padding-left:10px;min-width:80px}
+th:last-child{text-align:left;padding-right:10px}
+td{padding:5px 6px;text-align:center;border-bottom:1px solid rgba(42,46,54,.5);vertical-align:middle}
+td:first-child{text-align:left;padding-left:10px;font-size:11px;color:var(--muted)}
+td:last-child{text-align:left;padding-right:10px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;transition:transform .15s}
+.dot.ok{background:var(--green);box-shadow:0 0 6px rgba(46,196,182,.3)}
+.dot.erro{background:var(--red);box-shadow:0 0 6px rgba(238,99,99,.3)}
+.dot.skip{background:#555}
+.dot.pend{background:var(--accent);box-shadow:0 0 6px rgba(255,222,89,.3)}
+.dot-label{font-size:10px;color:var(--muted);margin-left:4px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+.empty i{font-size:28px;display:block;margin-bottom:10px;opacity:.4}
+.th-abbr{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px}
+@media(max-width:640px){
+  body{padding:8px 6px 16px}
+  th{font-size:10px;padding:6px 3px}
+  th:first-child{padding-left:6px;min-width:60px}
+  td{padding:4px 3px;font-size:11px}
+  td:first-child{padding-left:6px}
+  .dot{width:8px;height:8px}
 }
 </style>
 </head>
 <body>
 <div class="topbar">
-  <h1><i class="fas fa-sync-alt"></i> Status <span style="color:var(--text);font-weight:400;font-size:14px">da Atualização</span></h1>
+  <h1><i class="fas fa-sync-alt"></i> Status</h1>
   <div class="actions">
-    <button class="action-btn" onclick="carregar()"><i class="fas fa-redo"></i> Atualizar</button>
+    <button class="btn" onclick="carregar()"><i class="fas fa-redo"></i> Recarregar</button>
   </div>
 </div>
-<div class="container">
-  <div id="container"></div>
-  <div class="empty" id="emptyState">
+<div id="summary" class="summary"></div>
+<div class="wrap">
+  <div id="emptyState" class="empty">
     <i class="fas fa-database"></i>
-    Nenhum registro encontrado. Execute <code style="color:var(--accent)">run_all.ps1</code> para gerar o log.
+    Nenhum registro. Execute <code style="color:var(--accent)">run_all.ps1</code>.
   </div>
+  <div id="tableWrap"></div>
 </div>
 
 <script>
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
-
-const SCRIPTS = [
-  {col:'b3_aovivo', label:'B3 Ao Vivo', icon:'fas fa-chart-simple', cls:'green'},
-  {col:'fnet_dados', label:'FNET Documentos', icon:'fas fa-file-alt', cls:'blue'},
-  {col:'youtube', label:'YouTube', icon:'fab fa-youtube', cls:'red'},
-  {col:'cvm_fii', label:'CVM FII Mensal', icon:'fas fa-building', cls:'yellow'},
-  {col:'cvm_fiagro', label:'CVM Fiagro Mensal', icon:'fas fa-tractor', cls:'orange'},
-  {col:'cvm_cadastral', label:'CVM Cadastral', icon:'fas fa-address-card', cls:'purple'},
-  {col:'status_acoes', label:'StatusInvest Ações', icon:'fas fa-chart-line', cls:'green'},
-  {col:'status_dividendos', label:'StatusInvest Dividendos', icon:'fas fa-money-bill-wave', cls:'yellow'},
-  {col:'b3_cotahist', label:'B3 COTAHIST', icon:'fas fa-download', cls:'blue'},
+const DISPLAY_COLS=[
+  {id:'b3_live', abbr:'B3_Live', label:'B3 Ao Vivo', cols:['b3_aovivo']},
+  {id:'b3_hist', abbr:'B3_Hist', label:'B3 Histórico', cols:['b3_cotahist']},
+  {id:'fnet',    abbr:'FNET',    label:'FNET',          cols:['fnet_dados']},
+  {id:'cvm',     abbr:'CVM',     label:'CVM',           cols:['cvm_fii','cvm_fiagro','cvm_cadastral']},
+  {id:'st_acoes',abbr:'St_Ações',label:'StatusInvest Ações', cols:['status_acoes']},
+  {id:'st_rend', abbr:'St_Rend', label:'StatusInvest Rendimentos', cols:['status_dividendos']},
 ]
 
-function fmtStatus(s){
-  if(!s)return'<span class="script-status pendente"><i class="fas fa-spinner"></i> Pendente</span>'
-  let low=s.toLowerCase()
-  if(low.startsWith('ok'))return`<span class="script-status ok"><i class="fas fa-check-circle"></i> ${s}</span>`
-  if(low.startsWith('erro'))return`<span class="script-status erro"><i class="fas fa-times-circle"></i> ${s}</span>`
-  if(low.startsWith('skip'))return`<span class="script-status skip"><i class="fas fa-forward"></i> SKIP</span>`
-  return`<span class="script-status pendente"><i class="fas fa-spinner"></i> ${s}</span>`
+function dotStatus(v){
+  if(!v)return'pend'
+  let l=v.toLowerCase()
+  if(l.startsWith('ok'))return'ok'
+  if(l.startsWith('erro'))return'erro'
+  if(l.startsWith('skip'))return'skip'
+  return'pend'
 }
 
-function fmtTime(s){
+function dotCombined(row,cols){
+  let sts=cols.map(c=>row[c]).filter(Boolean).map(dotStatus)
+  if(!sts.length)return'pend'
+  if(sts.some(s=>s==='erro'))return'erro'
+  if(sts.every(s=>s==='ok'))return'ok'
+  if(sts.every(s=>s==='skip'))return'skip'
+  return'pend'
+}
+
+function dotHtml(status,title){
+  return'<span class="dot '+status+'" title="'+title+'"></span>'
+}
+
+function parseDT(s){
+  if(!s)return null
+  return new Date(s.includes('T')?s:s.replace(' ','T'))
+}
+
+function fmtDateOnly(s){
   if(!s)return'—'
-  let t=new Date(s+'Z')
-  return t.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+
-         t.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+  let p=s.slice(0,10).split('-')
+  return p.length<3?s:p[2]+'/'+p[1]+'/'+p[0]
 }
 
-function fmtRelTime(s){
-  if(!s)return''
-  let t=new Date(s+'Z'),n=new Date(),d=Math.floor((n-t)/1000)
-  if(d<60)return'agora'
-  if(d<3600)return`há ${Math.floor(d/60)}min`
-  if(d<86400)return`há ${Math.floor(d/3600)}h`
-  return fmtTime(s)
+function fmtTimeOnly(s){
+  let t=parseDT(s)
+  if(!t)return'—'
+  return t.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+}
+
+function fmtFull(s){
+  let t=parseDT(s)
+  if(!t)return'—'
+  return t.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+t.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
 }
 
 async function carregar(){
-  document.querySelector('.action-btn').classList.add('spinning')
-  const container=document.getElementById('container')
-  const empty=document.getElementById('emptyState')
+  document.querySelector('.btn').classList.add('spinning')
+  const tw=document.getElementById('tableWrap'),em=document.getElementById('emptyState')
   try{
-    let r=await fetch(`${REST}/00.log_atualizacao?select=*&order=id.desc&limit=50`,{headers:H})
+    let r=await fetch(REST+'/00.log_atualizacao?select=*&order=id.desc&limit=30',{headers:H})
     if(!r.ok)throw new Error(r.status)
     let rows=await r.json()
-    empty.style.display=rows.length?'none':'block'
-    container.innerHTML=rows.map(row=>{
-      let fin=row.finished_at
-      let rel=fmtRelTime(fin)
-      return `<div class="run-card">
-        <div class="run-header">
-          <i class="far fa-clock" style="color:var(--muted);font-size:12px"></i>
-          <span class="run-time">${fmtTime(fin)}</span>
-          <span style="font-size:11px;color:var(--muted)">${rel}</span>
-          <span class="run-badge"><i class="far fa-calendar-alt"></i> ${row.started_at?fmtTime(row.started_at):'—'} → ${fin?fmtTime(fin):'—'}</span>
-        </div>
-        <div class="run-body">
-          ${SCRIPTS.map(s=>{
-            let st=row[s.col]
-            return `<div class="script-item">
-              <div class="script-icon ${s.cls}"><i class="${s.icon}"></i></div>
-              <span class="script-name">${s.label}</span>
-              ${fmtStatus(st)}
-            </div>`
-          }).join('')}
-        </div>
-      </div>`
-    }).join('')
+    em.style.display=rows.length?'none':'block'
+    if(!rows.length){document.querySelector('.btn').classList.remove('spinning');return}
+    // summary
+    let latest=rows[0]
+    let counts={ok:0,erro:0,skip:0,pend:0}
+    for(let d of DISPLAY_COLS){let st=dotCombined(latest,d.cols);counts[st]++}
+    let sumHtml=''
+    if(counts.ok)sumHtml+='<span class="ok">'+counts.ok+' OK</span>'
+    if(counts.erro)sumHtml+='<span class="erro">'+counts.erro+' ERRO</span>'
+    if(counts.skip)sumHtml+='<span class="skip">'+counts.skip+' SKIP</span>'
+    if(counts.pend)sumHtml+='<span class="skip">'+counts.pend+' PEND</span>'
+    sumHtml+='<span style="font-size:11px;color:var(--muted);margin-left:auto">Últ: '+fmtDateOnly(latest.finished_at)+'</span>'
+    document.getElementById('summary').innerHTML=sumHtml
+    // legend
+    let legHtml='<div style="display:flex;gap:14px;margin-bottom:8px;font-size:11px;color:var(--muted)">'
+    legHtml+='<span><span class="dot ok" style="margin-right:4px"></span> OK</span>'
+    legHtml+='<span><span class="dot erro" style="margin-right:4px"></span> ERRO</span>'
+    legHtml+='<span><span class="dot skip" style="margin-right:4px"></span> SKIP</span>'
+    legHtml+='<span><span class="dot pend" style="margin-right:4px"></span> PEND</span>'
+    legHtml+='</div>'
+    // table
+    let html=legHtml+'<table><thead><tr><th title="Execução">#</th>'
+    for(let d of DISPLAY_COLS)html+='<th title="'+d.label+'">'+d.abbr+'</th>'
+    html+='<th></th></tr></thead><tbody>'
+    for(let i=0;i<rows.length;i++){
+      let r=rows[i],num=rows.length-i
+      html+='<tr><td title="'+fmtFull(r.finished_at)+'">#'+num+'</td>'
+      for(let d of DISPLAY_COLS){
+        let st=dotCombined(r,d.cols)
+        html+='<td>'+dotHtml(st,d.label)+'</td>'
+      }
+      html+='<td style="font-size:10px;color:var(--muted)">'+fmtTimeOnly(r.finished_at)+'</td></tr>'
+    }
+    html+='</tbody></table>'
+    tw.innerHTML=html
   }catch(e){
-    container.innerHTML=`<div class="run-card"><div style="padding:30px;text-align:center;color:var(--red)">
-      <i class="fas fa-exclamation-triangle"></i> Erro ao carregar: ${e.message}
-    </div></div>`
+    tw.innerHTML='<div class="empty"><i class="fas fa-exclamation-triangle"></i> Erro: '+e.message+'</div>'
   }
-  document.querySelector('.action-btn').classList.remove('spinning')
+  document.querySelector('.btn').classList.remove('spinning')
 }
-
 carregar()
 setInterval(carregar,30000)
 </script>

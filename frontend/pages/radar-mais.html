@@ -194,12 +194,17 @@ async function api(url){
 
 async function load(){
   try{
-    let [rel,fat,rend,vid]=await Promise.all([
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Relat*rio*&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Fato*&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&tipo=neq.&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
+    let results=await Promise.allSettled([
+      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Relat%C3%B3rios&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
+      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Fato%20Relevante&situacao_documento=eq.A&order=data_entrega.desc&limit=400'),
+      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=eq.Rendimentos%20e%20Amortiza%C3%A7%C3%B5es&tipo=neq.&situacao_documento=eq.A&order=data_entrega.desc&limit=200'),
       api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&order=publicacao.desc&limit=80').catch(()=>[])
     ])
+    let rel=results[0].status==='fulfilled'?results[0].value:[]
+    let fat=results[1].status==='fulfilled'?results[1].value:[]
+    let rend=results[2].status==='fulfilled'?results[2].value:[]
+    let vid=results[3].status==='fulfilled'?results[3].value:[]
+    let partial=results.slice(0,3).some(r=>r.status==='rejected')
     allItems=[]
     for(let r of rel||[]){if(r.codigo_fundo&&r.link_visualizar)allItems.push({type:'doc',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
     for(let r of fat||[]){if(r.codigo_fundo&&r.link_visualizar)allItems.push({type:'fato',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
@@ -209,6 +214,7 @@ async function load(){
     allItems.sort((a,b)=>{let da=a.date||'',db=b.date||'';if(da>db)return -1;if(da<db)return 1;return(a.ticker||'').localeCompare(b.ticker||'')})
     buildChanDropdown()
     document.getElementById('loading').style.display='none'
+    if(partial)document.getElementById('feed').insertAdjacentHTML('afterbegin','<div style="padding:8px 16px;font-size:11px;color:var(--orange);background:rgba(245,166,35,.1);border-bottom:1px solid var(--border)"><i class="fas fa-exclamation-triangle"></i> Alguns dados não puderam ser carregados (timeout). Atualize a página para tentar novamente.</div>')
     render()
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:24px;opacity:.5;margin-bottom:8px"></i><br>Erro: '+e.message
@@ -236,17 +242,17 @@ async function searchFullDB(term){
   feed.innerHTML='<div class="loading"><div class="spinner"></div><span>Buscando...</span></div>'
   let upper=term.toUpperCase()
   try{
-    let [rel,fat,rend,vid]=await Promise.all([
+    let results=await Promise.allSettled([
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Relat*rio*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=like.*Fato*&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&tipo=neq.&codigo_fundo=eq.'+upper+'&situacao_documento=eq.A&order=data_entrega.desc'),
-      api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&ticker=eq.'+upper+'&order=publicacao.desc').catch(()=>[])
+      api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&ticker=eq.'+upper+'&order=publicacao.desc')
     ])
     let items=[]
-    for(let r of rel||[]){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'doc',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
-    for(let r of fat||[]){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'fato',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
-    for(let r of rend||[]){if(r.codigo_fundo&&r.link_visualizar){let val=r.rendimento?fmtBRL(r.rendimento):'';let com=r.data_com?fmtDateStr(r.data_com):'-';let pgto=r.data_pagamento?fmtDateStr(r.data_pagamento):'-';let dy=r.dividend_yield!=null?r.dividend_yield.toFixed(2):null;items.push({type:'rend',ticker:r.codigo_fundo,date:r.data_entrega,url:r.link_visualizar,com:com,pgto:pgto,valor:val,dy:dy,hist:r.historico_minigrafico||null,prevVal:r.rendimento_anterior,rendNum:r.rendimento})}}
-    for(let v of vid||[]){if(v.ticker)items.push({type:'vid',ticker:v.ticker,date:v.publicacao,titulo:v.titulo,url:v.link,canal:v.canal,duracao:v.duracao})}
+    for(let r of (results[0].status==='fulfilled'?results[0].value:[])){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'doc',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
+    for(let r of (results[1].status==='fulfilled'?results[1].value:[])){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'fato',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
+    for(let r of (results[2].status==='fulfilled'?results[2].value:[])){if(r.codigo_fundo&&r.link_visualizar){let val=r.rendimento?fmtBRL(r.rendimento):'';let com=r.data_com?fmtDateStr(r.data_com):'-';let pgto=r.data_pagamento?fmtDateStr(r.data_pagamento):'-';let dy=r.dividend_yield!=null?r.dividend_yield.toFixed(2):null;items.push({type:'rend',ticker:r.codigo_fundo,date:r.data_entrega,url:r.link_visualizar,com:com,pgto:pgto,valor:val,dy:dy,hist:r.historico_minigrafico||null,prevVal:r.rendimento_anterior,rendNum:r.rendimento})}}
+    for(let v of (results[3].status==='fulfilled'?results[3].value:[])){if(v.ticker)items.push({type:'vid',ticker:v.ticker,date:v.publicacao,titulo:v.titulo,url:v.link,canal:v.canal,duracao:v.duracao})}
     items.sort((a,b)=>{let da=a.date||'',db=b.date||'';if(da>db)return -1;if(da<db)return 1;return(a.ticker||'').localeCompare(b.ticker||'')})
     window._searchResults=items
     render()
