@@ -414,24 +414,27 @@ function render(){
   }
   if(!html)html='<div class="card-empty"><i class="fas fa-inbox"></i><br>Nenhum item encontrado.</div>'
   document.getElementById('feed').innerHTML=html
-  drawSparklines()
+  requestAnimationFrame(drawSparklines)
 }
 function drawSparklines(){
-  document.querySelectorAll('.spark').forEach(c=>{
+  let els=document.querySelectorAll('.spark'),max=Math.min(els.length,150)
+  for(let i=0;i<max;i++){
+    let c=els[i];if(c.dataset._drawn)continue
     let vals=c.dataset.vals?JSON.parse(c.dataset.vals):null
-    if(!vals||!vals.length)return
-    let ctx=c.getContext('2d')
+    if(!vals||!vals.length)continue
+    let ctx=c.getContext('2d');if(!ctx)continue
     let w=c.width,h=c.height
     ctx.clearRect(0,0,w,h)
-    let max=Math.max(...vals,0.01)
+    let maxv=Math.max(...vals,0.01)
     let n=vals.length,gap=2
     let bw=Math.max(2,Math.floor((w-gap*(n-1))/n))
     ctx.fillStyle='rgba(255,255,255,0.75)'
-    vals.forEach((v,i)=>{
-      let bh=Math.max(2,(v/max)*(h-8))
-      ctx.fillRect(Math.floor(i*(bw+gap)),h-4-bh,bw,bh)
-    })
-  })
+    for(let j=0;j<n;j++){
+      let bh=Math.max(2,(vals[j]/maxv)*(h-8))
+      ctx.fillRect(Math.floor(j*(bw+gap)),h-4-bh,bw,bh)
+    }
+    c.dataset._drawn='1'
+  }
 }
 
 window.onload=load
