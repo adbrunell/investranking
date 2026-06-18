@@ -66,7 +66,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="overlay" onclick="closeMenu()"></div>
 
 <main id="main">
-  <iframe id="contentFrame" src="pages/mosaico.html"></iframe>
+  <iframe id="contentFrame" src="pages/mosaico.html?v=2"></iframe>
 </main>
 
 <script>
@@ -85,7 +85,7 @@ function abrir(pagina, el){
   document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'))
   if (el) el.classList.add('active')
   closeMenu()
-  document.getElementById('contentFrame').src = 'pages/' + pagina + '.html'
+  document.getElementById('contentFrame').src = 'pages/' + pagina + '.html?v=' + Date.now()
   history.replaceState(null, '', '?p=' + pagina)
 }
 
