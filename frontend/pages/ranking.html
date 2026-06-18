@@ -277,7 +277,6 @@ function render(){
     let cat=ASSET_MAP[it.tipo]
     return cat?assetFilter[cat]:false
   })
-  if(searchTerm)items=items.filter(it=>it.ticker.includes(searchTerm))
 
   if(mode==='altas')items.sort((a,b)=>b.variacao-a.variacao)
   else if(mode==='baixas')items.sort((a,b)=>a.variacao-b.variacao)
@@ -285,21 +284,23 @@ function render(){
 
   if(mode!=='volume')items=items.filter(it=>it.variacao!==0)
 
-  let top=items.slice(0,100)
-  let maxVar=mode!=='volume'?Math.max(...top.map(i=>Math.abs(i.variacao)),1):1
-  let maxVol=mode==='volume'?Math.max(...top.map(i=>i.volume),1):1
+  let ranked=searchTerm?items.filter(it=>it.ticker.includes(searchTerm)):items
+
+  let top=ranked.slice(0,100)
+  let maxVar=mode!=='volume'?Math.max(...items.map(i=>Math.abs(i.variacao)),1):1
+  let maxVol=mode==='volume'?Math.max(...items.map(i=>i.volume),1):1
 
   let feed=document.getElementById('feed')
   if(!top.length){
     feed.innerHTML='<div class="empty-state"><i class="fas fa-inbox"></i><br>Nenhum fundo encontrado.</div>'
-    updateStats(0,0,0)
+    updateStats(items.length,items.filter(i=>i.variacao>0).length,items.filter(i=>i.variacao<0).length)
     return
   }
 
   let html=''
   for(let i=0;i<top.length;i++){
     let it=top[i]
-    let pos=i+1
+    let pos=searchTerm?items.indexOf(it)+1:i+1
     let isUp=it.variacao>=0
     let pctAbs=Math.abs(it.variacao)
     let barPct=Math.min(pctAbs/maxVar*100,100)
