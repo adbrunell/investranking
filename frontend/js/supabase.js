@@ -41,9 +41,11 @@ function getSession() {
 // ─── Setups CRUD ─────────────────────────────────────
 async function salvarSetup(nome, filtros) {
   _check()
+  const user = (await _supabase.auth.getSession())?.data?.session?.user
+  if (!user) throw new Error('Usuário não autenticado')
   const { data, error } = await _supabase
     .from('setups')
-    .insert({ nome, filtros })
+    .insert({ user_id: user.id, nome, filtros })
     .select()
     .single()
   if (error) throw error
