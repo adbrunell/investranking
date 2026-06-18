@@ -154,6 +154,12 @@ try {
 } catch {
   Write-Host "  [Aviso] Falha ao atualizar minigrafico: $_" -ForegroundColor Gray
 }
+# Limpa cotacoes historicas (>2 anos)
+try {
+  Invoke-RestMethod -Uri "$supabaseUrl/rest/v1/rpc/fn_limpar_b3_historico" -Method Post -Headers @{"apikey"=$apiKey; "Authorization"="Bearer $apiKey"} -TimeoutSec 120 | Out-Null
+} catch {
+  Write-Host "  [Aviso] Falha ao limpar historico B3: $_" -ForegroundColor Gray
+}
 $state | ConvertTo-Json | Set-Content $stateFile
 
 Write-Host ""
