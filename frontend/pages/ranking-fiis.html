@@ -31,16 +31,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .filter-chip:active{transform:scale(.93)}
 .filter-range-wrap{overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border)}
 .filter-range-wrap::-webkit-scrollbar{display:none}
-.filter-range{display:flex;gap:6px;padding:5px 12px;max-width:1100px;margin:0 auto;align-items:center}
-.filter-range label{font-size:10px;color:var(--muted);white-space:nowrap}
-.filter-range label small{font-size:8px;opacity:.7}
-.slider-group{display:flex;align-items:center;gap:6px}
-.slider-group input[type=range]{-webkit-appearance:none;appearance:none;width:80px;height:4px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;margin:0}
-.slider-group input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:transform .15s}
-.slider-group input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
-.slider-group input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.slider-val{font-size:10px;color:var(--text);font-weight:600;min-width:32px;text-align:right;font-variant-numeric:tabular-nums}
-.slider-sep{font-size:10px;color:var(--muted)}
+.filter-range{display:flex;gap:4px;padding:5px 12px;max-width:1100px;margin:0 auto;align-items:center;flex-wrap:wrap}
+.filter-range label{font-size:10px;color:var(--muted);white-space:nowrap;font-weight:600;margin-right:2px}
+.filter-range input{width:70px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 6px;color:var(--text);font-size:11px;outline:none;font-family:inherit;transition:border .2s}
+.filter-range input:focus{border-color:var(--accent)}
+.filter-range input::placeholder{color:var(--muted);font-size:10px}
 
 .container{max-width:1100px;margin:0 auto;padding:6px 12px 40px}
 
@@ -110,8 +105,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .search-box input{font-size:11px;padding:4px 8px 4px 24px}
 .search-box svg{width:10px;height:10px;left:6px}
 .filters{padding:4px 8px;gap:3px}
-.filter-range{padding:4px 8px;gap:4px}
-.slider-group input[type=range]{width:60px}
+.filter-range{padding:4px 8px;gap:3px}
+.filter-range input{width:55px;font-size:10px}
 .container{padding:4px 8px 30px}
 .header-row{padding:4px 8px;font-size:8px;top:86px}
 .row-card{padding:6px 8px;gap:0}
@@ -173,16 +168,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 <div class="filter-range-wrap">
   <div class="filter-range">
     <label>Liq</label>
-    <div class="slider-group">
-      <input type="range" id="liqMin" min="0" max="100" value="0" oninput="onLiqRange()">
-      <span class="slider-val" id="liqMinVal">0</span>
-    </div>
-    <span class="slider-sep">—</span>
-    <div class="slider-group">
-      <input type="range" id="liqMax" min="0" max="100" value="100" oninput="onLiqRange()">
-      <span class="slider-val" id="liqMaxVal">∞</span>
-    </div>
-    <button class="filter-chip" onclick="resetLiqRange()" style="font-size:9px">✕</button>
+    <input type="number" id="liqMin" placeholder="min" oninput="render()">
+    <input type="number" id="liqMax" placeholder="max" oninput="render()">
+    <label>P/VP</label>
+    <input type="number" id="pvpMin" placeholder="min" oninput="render()" step="0.01">
+    <input type="number" id="pvpMax" placeholder="max" oninput="render()" step="0.01">
+    <label>DY</label>
+    <input type="number" id="dyMin" placeholder="min" oninput="render()" step="0.01">
+    <input type="number" id="dyMax" placeholder="max" oninput="render()" step="0.01">
+    <button class="filter-chip" onclick="document.querySelectorAll('.filter-range input').forEach(e=>e.value='');render()" style="font-size:9px">✕</button>
   </div>
 </div>
 
@@ -209,7 +203,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allData=[],sortKey='liquidez',sortDesc=true,searchTerm='',liqSorted=[]
+let allData=[],sortKey='liquidez',sortDesc=true,searchTerm=''
 let activeTipos={}
 document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=true})
 
@@ -229,35 +223,13 @@ function fmtPct(v){
   return (v*100).toFixed(2)+'%'
 }
 
-function fmtLiqShort(v){
-  if(v==null||isNaN(v)||v===0)return'0'
-  if(v>=1e9)return(v/1e9).toFixed(1)+'bi'
-  if(v>=1e6)return(v/1e6).toFixed(1)+'mi'
-  if(v>=1e3)return(v/1e3).toFixed(0)+'k'
-  return v.toFixed(0)
-}
-function valFromPct(p,min,max){return min+(max-min)*p/100}
-function onLiqRange(){
-  let elMin=document.getElementById('liqMin'),elMax=document.getElementById('liqMax')
-  let lo=+elMin.value,hi=+elMax.value
-  if(lo>hi){elMin.value=hi;lo=hi}
-  let mn=liqSorted[0]||0,mx=liqSorted[liqSorted.length-1]||1
-  document.getElementById('liqMinVal').textContent=fmtLiqShort(valFromPct(lo,mn,mx))
-  document.getElementById('liqMaxVal').textContent=hi>=100?'∞':fmtLiqShort(valFromPct(hi,mn,mx))
-  render()
-}
-function resetLiqRange(){
-  document.getElementById('liqMin').value=0;document.getElementById('liqMax').value=100
-  document.getElementById('liqMinVal').textContent='0';document.getElementById('liqMaxVal').textContent='∞'
-  render()
-}
+
 
 async function load(){
   try{
     let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
-    liqSorted=allData.map(d=>+d.liquidez_media_30d).filter(v=>v>0).sort((a,b)=>a-b)
     populateDatalist()
     document.getElementById('loading').style.display='none'
     document.getElementById('header').style.display='flex'
@@ -311,11 +283,11 @@ function render(){
   let fk=Object.keys(activeTipos).filter(k=>activeTipos[k])
   if(fk.length<Object.keys(activeTipos).length)items=items.filter(it=>fk.includes(it.tipo))
   if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
-  let liqMinEl=document.getElementById('liqMin'),liqMaxEl=document.getElementById('liqMax')
-  let mnL=liqSorted[0]||0,mxL=liqSorted[liqSorted.length-1]||1
-  let filtLiqMin=liqMinEl&&+liqMinEl.value>0?valFromPct(+liqMinEl.value,mnL,mxL):0
-  let filtLiqMax=liqMaxEl&&+liqMaxEl.value<100?valFromPct(+liqMaxEl.value,mnL,mxL):Infinity
-  if(filtLiqMin>0||filtLiqMax<Infinity)items=items.filter(it=>{let v=+it.liquidez_media_30d;return v>=filtLiqMin&&v<=filtLiqMax})
+  function fv(id){let e=document.getElementById(id);return e&&e.value?+e.value:null}
+  let flMin=fv('liqMin'),flMax=fv('liqMax'),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
+  if(flMin!=null||flMax!=null)items=items.filter(it=>{let v=+it.liquidez_media_30d;return(flMin==null||v>=flMin)&&(flMax==null||v<=flMax)})
+  if(fpMin!=null||fpMax!=null)items=items.filter(it=>{let v=it.p_vp;return v!=null&&(fpMin==null||v>=fpMin)&&(fpMax==null||v<=fpMax)})
+  if(fdMin!=null||fdMax!=null)items=items.filter(it=>{let v=it.dividend_yield_12m;return v!=null&&(fdMin==null||v>=fdMin/100)&&(fdMax==null||v<=fdMax/100)})
 
   let mnLiq=Infinity,mxLiq=-Infinity
   for(let z=0;z<items.length;z++){let lv=+items[z].liquidez_media_30d;if(lv>0){if(lv<mnLiq)mnLiq=lv;if(lv>mxLiq)mxLiq=lv}}
