@@ -177,7 +177,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <datalist id="tickerList"></datalist>
     </div>
     <button id="gearBtn" onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px" title="Filtros"><i class="fas fa-cog"></i></button>
-    <button id="saveBtn" onclick="toggleSavePanel()" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px" title="Salvar setup"><i class="fas fa-save"></i></button>
   </div>
 </div>
 
@@ -212,7 +211,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <div class="prow"><label>Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
     </div>
   </div>
-  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5'})" style="font-size:10px">Limpar</button><button class="filter-chip active" onclick="togglePanel()" style="font-size:10px;margin-left:auto">Salvar</button></div>
+  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5'})" style="font-size:10px">Limpar</button><button class="filter-chip active" onclick="togglePanel()" style="font-size:10px;margin-left:auto">Fechar</button></div>
 </div>
 
 <div class="container">
@@ -288,22 +287,22 @@ async function load(){
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     populateDatalist()
-    // Restaurar setup salvo ou aplicar defaults
+    // Aplicar filtros default
     try {
       const saved = localStorage.getItem('rankingSetup')
       if (saved) {
         const f = JSON.parse(saved)
         if (f && f.tipos) aplicarFiltros(f)
-      } else {
-        // Defaults: Liq 1mi-20mi, PVP 0.5-1.5, DY >8%, pesos 10
-        aplicarFiltros({
-          tipos: {},
+      }
+    } catch(e) {}
+    if (!localStorage.getItem('rankingSetup')) {
+      aplicarFiltros({
+        tipos: {},
           liqMin: '1.000.000', liqMax: '20.000.000', wLiq: '10',
           pvpMin: '0.5', pvpMax: '1.5', wPvp: '10',
           dyMin: '8', dyMax: '', wDy: '10'
-        })
-      }
-    } catch(e) {}
+      })
+    }
     document.getElementById('loading').style.display='none'
     document.getElementById('header').style.display='flex'
     render()
@@ -451,38 +450,17 @@ function render(){
   document.getElementById('feed').innerHTML=html
 }
 
-// ─── Setups (localStorage) ──────────────────────────
-
-function capturarFiltros() {
-  function v(id) { const e = document.getElementById(id); if (!e) return ''; return e.value || '' }
-  function getActiveTipos() {
-    const at = {}
-    document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
-      if (el.dataset.tipo !== 'all') at[el.dataset.tipo] = el.classList.contains('active')
-    })
-    return at
-  }
-  return {
-    tipos: getActiveTipos(),
-    liqMin: v('liqMin'), liqMax: v('liqMax'), wLiq: v('wLiq'),
-    pvpMin: v('pvpMin'), pvpMax: v('pvpMax'), wPvp: v('wPvp'),
-    dyMin: v('dyMin'), dyMax: v('dyMax'), wDy: v('wDy'),
-  }
-}
-
 function aplicarFiltros(f) {
   function s(id, val) {
     const e = document.getElementById(id)
     if (!e) return
     if (id === 'liqMin' || id === 'liqMax') {
-      // Formatar numeros grandes
       const raw = (val || '').replace(/\D/g, '')
       e.value = raw ? parseInt(raw, 10).toLocaleString('pt-BR') : ''
     } else {
       e.value = val || ''
     }
   }
-  // Tipos
   document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
     if (el.dataset.tipo === 'all') return
     const ativo = f.tipos && f.tipos[el.dataset.tipo]
@@ -491,11 +469,9 @@ function aplicarFiltros(f) {
   })
   const allOn = Object.keys(activeTipos).every(t => activeTipos[t])
   document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active', allOn)
-  // Inputs
   s('liqMin', f.liqMin); s('liqMax', f.liqMax); s('wLiq', f.wLiq)
   s('pvpMin', f.pvpMin); s('pvpMax', f.pvpMax); s('wPvp', f.wPvp)
   s('dyMin', f.dyMin); s('dyMax', f.dyMax); s('wDy', f.wDy)
-  // Atualiza labels de peso
   ;['wLiq','wPvp','wDy'].forEach(id => {
     const el = document.getElementById(id)
     const lbl = document.getElementById(id + 'Label')
@@ -503,43 +479,6 @@ function aplicarFiltros(f) {
   })
   render()
 }
-
-function toggleSavePanel() {
-  document.getElementById('savePanel').classList.toggle('open')
-  document.getElementById('panelOverlay').classList.toggle('open')
-}
-
-async function salvarSetupAtual() {
-  const status = document.getElementById('saveStatus')
-  const nome = document.getElementById('setupNome').value.trim() || 'Setup ' + new Date().toLocaleDateString('pt-BR')
-  try {
-    const filtros = capturarFiltros()
-    localStorage.setItem('rankingSetup', JSON.stringify(filtros))
-    localStorage.setItem('rankingSetupNome', nome)
-    status.innerHTML = '<span style="color:var(--green)">✓ Salvo</span>'
-    setTimeout(() => { document.getElementById('savePanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open') }, 600)
-  } catch (e) { status.textContent = 'Erro: ' + e.message }
-}
-
-function toggleSavePanel() {
-  document.getElementById('savePanel').classList.toggle('open')
-  document.getElementById('panelOverlay').classList.toggle('open')
-}
-
-// Painel de salvar
-document.body.insertAdjacentHTML('beforeend', `
-<div id="savePanel" class="slide-panel" style="right:-320px">
-  <div class="panel-header">Salvar Setup <button onclick="toggleSavePanel();document.getElementById('panelOverlay').classList.remove('open')" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;margin-left:auto"><i class="fas fa-times"></i></button></div>
-  <div class="panel-body">
-    <div class="pgroup">
-      <div class="pgroup-title">Nome do Setup</div>
-      <div class="prow"><input type="text" id="setupNome" placeholder="Ex: FIIs Tijolo com DY alto" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px;outline:none;font-family:inherit"></div>
-    </div>
-    <div id="saveStatus" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
-  </div>
-  <div class="panel-footer"><button class="filter-chip active" onclick="salvarSetupAtual()" style="font-size:10px;width:100%">Salvar</button></div>
-</div>
-`)
 
 load()
 </script>
