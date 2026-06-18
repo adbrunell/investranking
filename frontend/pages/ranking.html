@@ -188,7 +188,12 @@ function fmtDateTime(dateStr,timeStr){
   let p=dateStr.slice(0,10).split('-')
   if(p.length<3)return''
   let dd=p[2],mm=p[1],yy=p[0]
-  return dd+'/'+mm+'/'+yy+' '+(timeStr||'--:--:--')
+  let t=timeStr||''
+  let parts=t.split(':')
+  if(parts.length===3){t=parts[0]+':'+parts[1]+':'+parts[2]}
+  else if(parts.length===2){t=parts[0]+':'+parts[1]+':00'}
+  else{t='--:--:--'}
+  return dd+'/'+mm+'/'+yy+' '+t
 }
 
 async function api(url){
