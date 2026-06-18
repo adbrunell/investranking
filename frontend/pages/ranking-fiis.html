@@ -6,6 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Ranking FIIs</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;min-width:0}
 :root{--bg:#0c0e12;--card:#14171d;--card2:#1a1e26;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59;--green:#00c896;--red:#ff4757;--blue:#5b7fff;--radius:10px}
@@ -176,7 +178,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <input id="search" placeholder="Buscar ticker..." oninput="onSearch()" autocomplete="off" list="tickerList">
       <datalist id="tickerList"></datalist>
     </div>
-    <button id="gearBtn" onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px"><i class="fas fa-cog"></i></button>
+    <button id="gearBtn" onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px" title="Filtros"><i class="fas fa-cog"></i></button>
+    <button id="saveBtn" onclick="toggleSavePanel()" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px" title="Salvar setup"><i class="fas fa-save"></i></button>
+    <button id="loadBtn" onclick="toggleLoadPanel()" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px" title="Carregar setup"><i class="fas fa-folder-open"></i></button>
   </div>
 </div>
 
@@ -423,6 +427,166 @@ function render(){
   }
   document.getElementById('feed').innerHTML=html
 }
+
+// ─── Setups ──────────────────────────────────────────
+let currentSetupId = null
+
+function capturarFiltros() {
+  function v(id) { const e = document.getElementById(id); return e ? e.value || '' : '' }
+  function getActiveTipos() {
+    const at = {}
+    document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
+      if (el.dataset.tipo !== 'all') at[el.dataset.tipo] = el.classList.contains('active')
+    })
+    return at
+  }
+  return {
+    tipos: getActiveTipos(),
+    liqMin: v('liqMin'), liqMax: v('liqMax'), wLiq: v('wLiq'),
+    pvpMin: v('pvpMin'), pvpMax: v('pvpMax'), wPvp: v('wPvp'),
+    dyMin: v('dyMin'), dyMax: v('dyMax'), wDy: v('wDy'),
+  }
+}
+
+function aplicarFiltros(f) {
+  function s(id, val) { const e = document.getElementById(id); if (e) e.value = val || '' }
+  // Tipos
+  document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
+    if (el.dataset.tipo === 'all') return
+    const ativo = f.tipos && f.tipos[el.dataset.tipo]
+    el.classList.toggle('active', ativo !== false)
+    if (f.tipos) activeTipos[el.dataset.tipo] = ativo !== false
+  })
+  const allOn = Object.keys(activeTipos).every(t => activeTipos[t])
+  document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active', allOn)
+  // Inputs
+  s('liqMin', f.liqMin); s('liqMax', f.liqMax); s('wLiq', f.wLiq)
+  s('pvpMin', f.pvpMin); s('pvpMax', f.pvpMax); s('wPvp', f.wPvp)
+  s('dyMin', f.dyMin); s('dyMax', f.dyMax); s('wDy', f.wDy)
+  // Atualiza labels de peso
+  ;['wLiq','wPvp','wDy'].forEach(id => {
+    const el = document.getElementById(id)
+    const lbl = document.getElementById(id + 'Label')
+    if (el && lbl) lbl.textContent = (+el.value / 10).toFixed(1)
+  })
+  render()
+}
+
+function toggleSavePanel() {
+  const p = document.getElementById('savePanel')
+  document.getElementById('loadPanel').classList.remove('open')
+  document.getElementById('panelOverlay').classList.toggle('open')
+  p.classList.toggle('open')
+  if (p.classList.contains('open')) {
+    getSession().then(({ data }) => {
+      if (!data?.session) { document.getElementById('saveStatus').innerHTML = '<span style="color:var(--red)">Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar</span>'; return }
+      document.getElementById('saveStatus').textContent = currentSetupId ? 'Editando setup existente' : ''
+    })
+  }
+}
+
+async function salvarSetupAtual() {
+  const nome = document.getElementById('setupNome').value.trim()
+  if (!nome) { document.getElementById('saveStatus').textContent = 'Digite um nome'; return }
+  const status = document.getElementById('saveStatus')
+  status.textContent = 'Salvando...'
+  try {
+    const filtros = capturarFiltros()
+    if (currentSetupId) {
+      await atualizarSetup(currentSetupId, { nome, filtros })
+      status.textContent = 'Setup atualizado!'
+    } else {
+      await salvarSetup(nome, filtros)
+      currentSetupId = null
+      status.textContent = 'Setup salvo!'
+    }
+    document.getElementById('setupNome').value = ''
+  } catch (e) { status.textContent = 'Erro: ' + e.message }
+}
+
+function toggleLoadPanel() {
+  const p = document.getElementById('loadPanel')
+  document.getElementById('savePanel').classList.remove('open')
+  document.getElementById('panelOverlay').classList.toggle('open')
+  p.classList.toggle('open')
+  if (p.classList.contains('open')) carregarLista()
+}
+
+async function carregarLista() {
+  const div = document.getElementById('setupList')
+  div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Carregando...</div>'
+  try {
+    const { data: session } = await getSession()
+    if (!session?.session) { div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Faça <a href="login.html" style="color:var(--accent)">login</a></div>'; return }
+    const setups = await listarSetups()
+    if (!setups.length) { div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Nenhum setup salvo</div>'; return }
+    div.innerHTML = setups.map(s => `
+      <div class="setup-item">
+        <div class="setup-info" onclick="carregarSetup('${s.id}')">
+          <div class="setup-nome">${s.nome}</div>
+          <div class="setup-data">${new Date(s.created_at).toLocaleDateString('pt-BR')}</div>
+        </div>
+        <button class="setup-del" onclick="event.stopPropagation();deletarSetupConfirm('${s.id}')"><i class="fas fa-trash"></i></button>
+      </div>
+    `).join('')
+  } catch (e) { div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--red)">Erro: ' + e.message + '</div>' }
+}
+
+async function carregarSetup(id) {
+  try {
+    const setups = await listarSetups()
+    const s = setups.find(x => x.id === id)
+    if (!s) return
+    aplicarFiltros(s.filtros)
+    currentSetupId = s.id
+    document.getElementById('loadPanel').classList.remove('open')
+    document.getElementById('savePanel').classList.remove('open')
+    document.getElementById('panelOverlay').classList.remove('open')
+    document.getElementById('setupNome').value = s.nome
+  } catch (e) { alert('Erro ao carregar: ' + e.message) }
+}
+
+async function deletarSetupConfirm(id) {
+  if (!confirm('Deletar este setup?')) return
+  try {
+    await deletarSetup(id)
+    carregarLista()
+  } catch (e) { alert('Erro: ' + e.message) }
+}
+
+// Painel de salvar
+document.body.insertAdjacentHTML('beforeend', `
+<div id="savePanel" class="slide-panel" style="right:-320px">
+  <div class="panel-header">Salvar Setup <button onclick="toggleSavePanel();document.getElementById('panelOverlay').classList.remove('open')" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;margin-left:auto"><i class="fas fa-times"></i></button></div>
+  <div class="panel-body">
+    <div class="pgroup">
+      <div class="pgroup-title">Nome do Setup</div>
+      <div class="prow"><input type="text" id="setupNome" placeholder="Ex: FIIs Tijolo com DY alto" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px;outline:none;font-family:inherit"></div>
+    </div>
+    <div id="saveStatus" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+  </div>
+  <div class="panel-footer"><button class="filter-chip active" onclick="salvarSetupAtual()" style="font-size:10px;width:100%">Salvar</button></div>
+</div>
+`)
+
+// Painel de carregar
+document.body.insertAdjacentHTML('beforeend', `
+<div id="loadPanel" class="slide-panel" style="right:-320px">
+  <div class="panel-header">Meus Setups <button onclick="toggleLoadPanel();document.getElementById('panelOverlay').classList.remove('open')" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;margin-left:auto"><i class="fas fa-times"></i></button></div>
+  <div class="panel-body" id="setupList"><div style="padding:20px;text-align:center;color:var(--muted)">Faça login para ver seus setups</div></div>
+</div>
+`)
+
+// CSS extra pros itens de setup
+document.head.insertAdjacentHTML('beforeend', `<style>
+.setup-item{display:flex;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:background .15s}
+.setup-item:hover{background:var(--bg)}
+.setup-info{flex:1}
+.setup-nome{font-size:13px;font-weight:600;color:var(--text)}
+.setup-data{font-size:10px;color:var(--muted);margin-top:2px}
+.setup-del{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:6px;border-radius:4px}
+.setup-del:hover{background:rgba(255,71,87,.12);color:var(--red)}
+</style>`)
 
 window.onload=load
 </script>

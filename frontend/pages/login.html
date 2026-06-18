@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Login</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0e12;--card:#14171d;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:380px}
+.auth h1{font-size:20px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.auth p{font-size:13px;color:var(--muted);margin-bottom:20px}
+.auth label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.auth input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;font-family:inherit;margin-bottom:14px;transition:border .2s}
+.auth input:focus{border-color:var(--accent)}
+.auth .btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.auth .btn:hover{opacity:.85}
+.auth .btn:disabled{opacity:.4;cursor:not-allowed}
+.auth .link{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.auth .link a{color:var(--accent);text-decoration:none;font-weight:600}
+.auth .erro{background:rgba(255,71,87,.12);color:#ff4757;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:none}
+.auth .sucesso{background:rgba(0,200,150,.12);color:#00c896;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:none}
+</style>
+</head>
+<body>
+<div class="auth">
+  <h1>Entrar</h1>
+  <p>Acesse sua conta para salvar setups</p>
+  <div class="erro" id="erro"></div>
+  <div class="sucesso" id="sucesso"></div>
+  <label>E-mail</label>
+  <input type="email" id="email" placeholder="seu@email.com" autocomplete="email">
+  <label>Senha</label>
+  <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+  <button class="btn" id="btn" onclick="entrar()">Entrar</button>
+  <div class="link">Não tem conta? <a href="signup.html">Cadastre-se</a></div>
+</div>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+async function entrar(){
+  const btn=document.getElementById('btn'),erro=document.getElementById('erro'),sucesso=document.getElementById('sucesso')
+  btn.disabled=true;btn.textContent='Entrando...';erro.style.display='none';sucesso.style.display='none'
+  try{
+    await signIn(document.getElementById('email').value,document.getElementById('password').value)
+    sucesso.textContent='Login realizado! Redirecionando...';sucesso.style.display='block'
+    setTimeout(()=>{window.location.href='ranking-fiis.html'},800)
+  }catch(e){erro.textContent=e.message;erro.style.display='block';btn.disabled=false;btn.textContent='Entrar'}
+}
+// Se ja estiver logado, redireciona
+getSession().then(({data})=>{if(data?.session)window.location.href='ranking-fiis.html'})
+</script>
+</body>
+</html>
