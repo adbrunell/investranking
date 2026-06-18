@@ -113,6 +113,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-pvp .val{color:var(--text)}
 .cell-dy{width:65px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 .cell-nota-pvp,.cell-nota-dy{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell-nota-atr{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.h-nota-atr{width:50px;flex-shrink:0;justify-content:flex-end}
 .cell-nota{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
@@ -142,7 +144,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-pvp,.cell-pvp{width:50px;font-size:10px}
 .h-dy,.cell-dy{width:55px;font-size:10px}
 .h-nota-liq,.cell-nota-liq{width:55px;font-size:10px}
-.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy{width:45px;font-size:10px}
+.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy,.h-nota-atr,.cell-nota-atr{width:45px;font-size:10px}
 .h-nota,.cell-nota{width:42px;font-size:10px}
 .cell-seg{font-size:10px}
 .tipo-badge{font-size:7px;padding:1px 4px}
@@ -160,7 +162,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-pvp,.cell-pvp{width:45px;font-size:10px}
 .h-dy,.cell-dy{width:45px;font-size:10px}
 .h-nota-liq,.cell-nota-liq{width:45px;font-size:10px}
-.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy{width:40px;font-size:10px}
+.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy,.h-nota-atr,.cell-nota-atr{width:40px;font-size:10px}
 .h-nota,.cell-nota{width:38px;font-size:10px}
 .cell-seg{font-size:9px}
 }
@@ -210,8 +212,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <div class="prow"><label>Máx %</label><input type="number" id="dyMax" placeholder="—" oninput="render()" step="0.1"></div>
       <div class="prow"><label>Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
     </div>
+    <div class="pgroup"><div class="pgroup-title">Atratividade</div>
+      <div class="prow"><label>Peso</label><select id="wAtr" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wAtrLabel">0.5</span></span></div>
+    </div>
   </div>
-  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5'})" style="font-size:10px">Limpar</button><span id="panelSaveArea" style="margin-left:auto;font-size:10px;color:var(--muted)">⋯</span></div>
+  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5',wAtr:'5'})" style="font-size:10px">Limpar</button><span id="panelSaveArea" style="margin-left:auto;font-size:10px;color:var(--muted)">⋯</span></div>
 </div>
 
 <div class="container">
@@ -231,6 +236,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <div class="h h-nota-pvp" onclick="setSort('nota_pvp')">N.PVP <span class="arrow">▼</span></div>
     <div class="h h-dy" onclick="setSort('dy')">DY <span class="arrow">▼</span></div>
     <div class="h h-nota-dy" onclick="setSort('nota_dy')">N.DY <span class="arrow">▼</span></div>
+    <div class="h h-nota-atr" onclick="setSort('nota_atr')" style="width:50px;justify-content:flex-end">N.Atr <span class="arrow">▼</span></div>
     <div class="h h-nota" onclick="setSort('nota')" style="width:50px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
   </div>
   <div id="feed"></div>
@@ -276,7 +282,7 @@ function togglePanel(){
   document.getElementById('panel').classList.toggle('open')
   document.getElementById('panelOverlay').classList.toggle('open')
 }
-['wLiq','wPvp','wDy'].forEach(id=>{
+['wLiq','wPvp','wDy','wAtr'].forEach(id=>{
   let el=document.getElementById(id)
   el.onchange=function(){document.getElementById(id+'Label').textContent=(+this.value/10).toFixed(1);render()}
 })
@@ -305,7 +311,7 @@ async function load(){
             tipos: {},
             liqMin: '1.000.000', liqMax: '20.000.000', wLiq: '10',
             pvpMin: '0.5', pvpMax: '1.5', wPvp: '10',
-            dyMin: '8', dyMax: '', wDy: '10'
+            dyMin: '8', dyMax: '', wDy: '10', wAtr: '5'
           })
         } else {
           const saved = localStorage.getItem('rankingSetup')
@@ -363,7 +369,7 @@ function setSort(key){
   if(sortKey===key){sortDesc=!sortDesc}
   else{sortKey=key;sortDesc=key==='tipo'||key==='segmento'||key==='ticker'?false:true}
   document.querySelectorAll('.header-row .h').forEach(el=>el.classList.remove('sorted'))
-  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',atratividade:'h-atr',liquidez:'h-liq',nota_liq:'h-nota-liq',pvp:'h-pvp',nota_pvp:'h-nota-pvp',dy:'h-dy',nota_dy:'h-nota-dy',nota:'h-nota'}
+  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',atratividade:'h-atr',liquidez:'h-liq',nota_liq:'h-nota-liq',pvp:'h-pvp',nota_pvp:'h-nota-pvp',dy:'h-dy',nota_dy:'h-nota-dy',nota_atr:'h-nota-atr',nota:'h-nota'}
   let el=document.querySelector('.'+map[key]);if(el)el.classList.add('sorted')
   render()
 }
@@ -387,7 +393,7 @@ function render(){
     let dv=it.dividend_yield_12m;if(dv!=null&&dv>0){if(dv<mnDy)mnDy=dv;if(dv>mxDy)mxDy=dv}
   }
   let rgLiq=mxLiq>mnLiq?mxLiq-mnLiq:1,rgPvp=mxPvp>mnPvp?mxPvp-mnPvp:1,rgDy=mxDy>mnDy?mxDy-mnDy:1
-  let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10
+  let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10,wa=(+document.getElementById('wAtr').value||0)/10
 
   items.sort((a,b)=>{
     let va,vb
@@ -399,10 +405,11 @@ function render(){
     if(sortKey==='nota_liq'){va=+a.liquidez_media_30d>0?((+a.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;vb=+b.liquidez_media_30d>0?((+b.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota_pvp'){let apv=a.p_vp,bpv=b.p_vp;va=apv!=null&&apv>0?(1-(apv-mnPvp)/rgPvp)*wp:0;vb=bpv!=null&&bpv>0?(1-(bpv-mnPvp)/rgPvp)*wp:0;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota_dy'){let adv=a.dividend_yield_12m,bdv=b.dividend_yield_12m;va=adv!=null&&adv>0?((adv-mnDy)/rgDy)*wd:0;vb=bdv!=null&&bdv>0?((bdv-mnDy)/rgDy)*wd:0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='nota_atr'){let aa=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):0;let ba=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):0;va=aa*wa;vb=ba*wa;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota'){
-      let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0
-      let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0
-      let na=al*wl+ap*wp+ad*wd,nb=bl*wl+bp*wp+bd*wd
+      let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):0
+      let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):0
+      let na=al*wl+ap*wp+ad*wd+aat*wa,nb=bl*wl+bp*wp+bd*wd+bat*wa
       return sortDesc?nb-na:na-nb
     }
     if(sortKey==='cotacao'){va=+a.cotacao||0;vb=+b.cotacao||0;return sortDesc?vb-va:va-vb}
@@ -460,8 +467,10 @@ function render(){
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
     html+='<div class="cell cell-nota-dy">'+(sd*wd).toFixed(3)+'</div>'
+    let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s):0
+    html+='<div class="cell cell-nota-atr">'+(sa*wa).toFixed(3)+'</div>'
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
-    let nota=sl*wl+sp*wp+sd*wd
+    let nota=sl*wl+sp*wp+sd*wd+sa*wa
     html+='<div class="cell cell-nota">'+nota.toFixed(3)+'</div>'
     html+='</div>'
   }
@@ -489,8 +498,8 @@ function aplicarFiltros(f) {
   document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active', allOn)
   s('liqMin', f.liqMin); s('liqMax', f.liqMax); s('wLiq', f.wLiq)
   s('pvpMin', f.pvpMin); s('pvpMax', f.pvpMax); s('wPvp', f.wPvp)
-  s('dyMin', f.dyMin); s('dyMax', f.dyMax); s('wDy', f.wDy)
-  ;['wLiq','wPvp','wDy'].forEach(id => {
+  s('dyMin', f.dyMin); s('dyMax', f.dyMax); s('wDy', f.wDy); s('wAtr', f.wAtr)
+  ;['wLiq','wPvp','wDy','wAtr'].forEach(id => {
     const el = document.getElementById(id)
     const lbl = document.getElementById(id + 'Label')
     if (el && lbl) lbl.textContent = (+el.value / 10).toFixed(1)
@@ -519,6 +528,7 @@ async function salvarSetupAtual() {
       dyMin: document.getElementById('dyMin').value,
       dyMax: document.getElementById('dyMax').value,
       wDy: document.getElementById('wDy').value,
+      wAtr: document.getElementById('wAtr').value,
     }
   })()
   try {
