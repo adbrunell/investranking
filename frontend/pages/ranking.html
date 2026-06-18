@@ -70,8 +70,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .rank-ticker{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}
 .rank-ticker:hover{text-decoration:underline}
 .rank-seg{font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,0.05);color:var(--muted);font-weight:500;white-space:nowrap}
-.rank-price{font-size:14px;font-weight:500;color:var(--text);margin-left:auto;white-space:nowrap}
-.rank-price small{font-size:10px;color:var(--muted);font-weight:400}
+.rank-price{font-size:15px;font-weight:600;color:var(--accent);white-space:nowrap;margin-left:auto}
 
 .rank-variacao{display:flex;align-items:center;gap:6px;flex-shrink:0;min-width:80px;justify-content:flex-end}
 .rank-variacao .pct{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;transition:color .3s}
@@ -313,7 +312,7 @@ function render(){
     html+='<div class="rank-body">'
     html+='<a class="rank-ticker" href="../pages/fii.html?ticker='+it.ticker+'" target="_blank">'+it.ticker+'</a>'
     if(tipoLabel&&tipoLabel!=='Ação')html+='<span class="rank-seg">'+tipoLabel+'</span>'
-    if(it.preco!=null)html+='<span class="rank-price">'+fmtShort(it.preco)+' <small>R$</small></span>'
+    if(it.preco!=null)html+='<span class="rank-price">R$ '+fmtShort(it.preco)+'</span>'
     html+='</div>'
     html+='<div class="rank-variacao">'
     html+='<span class="pct '+cls+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</span>'
