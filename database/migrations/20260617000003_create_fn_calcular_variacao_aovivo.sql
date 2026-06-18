@@ -17,7 +17,13 @@ BEGIN
             last_ticker := r.codigo_instrumento;
             last_price := NULL;
         END IF;
-        IF last_price IS NOT NULL AND last_price > 0 THEN
+        IF last_price IS NULL THEN
+            UPDATE b3_cotacoes_aovivo
+            SET fechamento_anterior = NULL,
+                variacao = 0
+            WHERE codigo_instrumento = r.codigo_instrumento
+              AND data_referencia = r.data_referencia;
+        ELSE
             UPDATE b3_cotacoes_aovivo
             SET fechamento_anterior = last_price,
                 variacao = ROUND(((r.preco_ultimo_negocio - last_price) / last_price * 100)::numeric, 2)
