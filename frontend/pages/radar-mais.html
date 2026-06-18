@@ -88,7 +88,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .card-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;padding-left:10px}
 .card-actions a{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px;color:var(--muted);transition:all .2s}
 .card-actions a:hover{background:rgba(255,255,255,.06);color:var(--text)}
-.rend-right{display:flex;align-items:center;gap:6px;flex-shrink:0;padding-left:6px}
 .card-empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px}
 .card-empty i{font-size:32px;margin-bottom:10px;opacity:.4}
 
@@ -98,18 +97,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .search-box{max-width:none;order:3;width:100%}
 .filters{padding:6px 14px}
 .container{padding:0 10px 30px}
-.card-body{padding:6px 8px;gap:4px}
-.card-icon{width:22px;height:22px;font-size:10px;border-radius:5px;min-width:22px}
-.card-ticker{font-size:11px}
-.card-meta{font-size:10px}
-.rend-right{gap:4px}
-.rend-right .spark{width:50px!important;height:14px!important}
+.card-body{padding:8px 10px;gap:8px}
+.card-icon{width:26px;height:26px;font-size:12px;border-radius:6px}
+.card-ticker{font-size:12px}
+.spark{width:70px!important;height:20px!important}
 .date-header{top:80px;font-size:11px}
 }
 @media(max-width:400px){
-.card-body{flex-wrap:nowrap}
-.rend-right{gap:3px}
-.rend-right .spark{width:40px!important;height:12px!important}
+.card-body{flex-wrap:wrap}
+.card-valor{padding-left:0;width:100%;text-align:right}
+.spark{width:60px!important;height:16px!important}
 }
 </style>
 </head>
@@ -340,12 +337,10 @@ function render(){
         let varHtml=''
         if(it.prevVal!=null&&it.prevVal>0&&it.rendNum!=null){
           let pct=((it.rendNum-it.prevVal)/it.prevVal*100).toFixed(2),sig=pct>=0?'+':'',col=pct>=0?'var(--green)':'var(--red)'
-          varHtml='<span style="font-size:11px;font-weight:600;color:'+col+';flex-shrink:0">'+sig+pct+'%</span>'
+          varHtml='<div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;margin:0 4px"><span style="font-size:12px;font-weight:600;color:'+col+'">'+sig+pct+'%</span><span style="font-size:9px;color:var(--muted)">'+it.prevVal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+'</span></div>'
         }
-        let valorHtml=it.valor?'<span style="font-size:13px;font-weight:600;color:var(--accent);flex-shrink:0">'+it.valor+'</span>':''
-        let dyHtml=it.dy?'<span style="font-size:10px;color:var(--green);font-weight:500;flex-shrink:0">DY: '+it.dy+'%</span>':''
-        html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a><span style="font-size:10px;color:var(--muted);margin-left:4px">'+(it.com||'-')+' \u2022 '+(it.pgto||'-')+'</span></div>'
-        html+='</div><div class="rend-right">'+valorHtml+varHtml+dyHtml+'<canvas class="spark" data-vals=\''+JSON.stringify(it.hist||[]).replace(/'/g,"&#39;")+'\' width="80" height="20" style="flex-shrink:0;border-radius:3px"></canvas></div>'
+        html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a></div><div class="card-meta" style="color:var(--muted);font-size:11px">COM: '+(it.com||'-')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">Pgto: '+(it.pgto||'-')+'</div>'
+        html+='</div>'+(it.valor?'<div class="card-valor" style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:10px;color:var(--muted);font-weight:400">Valor</span><span>'+it.valor+'</span>'+(it.dy?'<span style="font-size:10px;color:var(--green);font-weight:500;margin-top:2px">DY: '+it.dy+'%</span>':'')+'</div>':'')+varHtml+'<canvas class="spark" data-vals=\''+JSON.stringify(it.hist||[]).replace(/'/g,"&#39;")+'\' width="100" height="28" style="flex-shrink:0;margin-left:0;border-radius:3px"></canvas>'
       }else{
         let dur=fmtDuracao(it.duracao)
         html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a></div><div class="card-meta">Canal: '+(it.canal||'')+'</div><div class="card-meta">T\u00edtulo: '+(it.titulo||'')+' ('+dur+')</div>'
