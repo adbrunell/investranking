@@ -139,9 +139,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
   <div id="loading" class="loading"><div class="spinner"></div><span>Carregando...</span></div>
   <div id="header" class="header-row" style="display:none">
     <div class="h h-rank" onclick="setSort('rank')"># <span class="arrow">▼</span></div>
-    <div class="h h-tipo" onclick="setSort('tipo')">Tipo <span class="arrow">▼</span></div>
-    <div class="h h-seg" onclick="setSort('segmento')">Segmento <span class="arrow">▼</span></div>
     <div class="h h-ticker" onclick="setSort('ticker')">Ticker <span class="arrow">▼</span></div>
+    <div class="h h-tipo" style="display:none" onclick="setSort('tipo')">Tipo <span class="arrow">▼</span></div>
+    <div class="h h-seg" style="display:none" onclick="setSort('segmento')">Segmento <span class="arrow">▼</span></div>
     <div class="h h-liq" onclick="setSort('liquidez')">Liquidez <span class="arrow">▼</span></div>
     <div class="h h-pvp" onclick="setSort('pvp')">P/VP <span class="arrow">▼</span></div>
     <div class="h h-dy" onclick="setSort('dy')">DY 12m <span class="arrow">▼</span></div>
@@ -255,9 +255,9 @@ function render(){
     let top3=pos<=3?' top3':''
     html+='<div class="row-card'+top3+'" style="animation-delay:'+(i*0.012)+'s">'
     html+='<div class="cell cell-rank">'+pos+'</div>'
-    html+='<div class="cell cell-tipo"><span class="tipo-badge tipo-'+(it.tipo||'').replace(/ /g,'')+'">'+((it.tipo||'')==='FI-Infra'?'FI':it.tipo||'')+'</span></div>'
-    html+='<div class="cell cell-seg">'+(it.segmento||'')+'</div>'
     html+='<div class="cell cell-ticker">'+(it.ticker||'')+'</div>'
+    html+='<div class="cell cell-tipo" style="display:none"><span class="tipo-badge tipo-'+(it.tipo||'').replace(/ /g,'')+'">'+((it.tipo||'')==='FI-Infra'?'FI':it.tipo||'')+'</span></div>'
+    html+='<div class="cell cell-seg" style="display:none">'+(it.segmento||'')+'</div>'
     html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
