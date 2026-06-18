@@ -358,7 +358,14 @@ function render(noLimit){
   if(ck.length)items=items.filter(it=>it.type!=='vid'||activeChannels[it.canal])
   let q=searchTerm||document.getElementById('search').value.toUpperCase().trim()
   if(q)items=items.filter(it=>it.ticker.toUpperCase().includes(q))
-  if(!q&&!noLimit)items=items.slice(0,500)
+  if(!q&&!noLimit){
+    let limited=[]
+    let counts={doc:500,fato:500,rend:1000,vid:50}
+    for(let it of items){
+      if(counts[it.type]>0){limited.push(it);counts[it.type]--}
+    }
+    items=limited
+  }
   // Group by date
   let groups={}
   for(let it of items){
