@@ -192,9 +192,9 @@ function fmtDateTime(dateStr,timeStr){
   let dd=p[2],mm=p[1],yy=p[0]
   let t=timeStr||''
   let parts=t.split(':')
-  if(parts.length===3){t=parts[0]+':'+parts[1]+':'+parts[2]}
-  else if(parts.length===2){t=parts[0]+':'+parts[1]+':00'}
-  else{t='--:--:--'}
+  if(parts.length===3){t=parts[0]+':'+parts[1]}
+  else if(parts.length===2){t=parts[0]+':'+parts[1]}
+  else{t='--:--'}
   return dd+'/'+mm+'/'+yy+' '+t
 }
 
