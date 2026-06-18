@@ -211,7 +211,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <div class="prow"><label>Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
     </div>
   </div>
-  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5'})" style="font-size:10px">Limpar</button><button class="filter-chip active" onclick="togglePanel()" style="font-size:10px;margin-left:auto">Fechar</button></div>
+  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5'})" style="font-size:10px">Limpar</button><span id="panelSaveArea" style="margin-left:auto;font-size:10px;color:var(--muted)">⋯</span></div>
 </div>
 
 <div class="container">
@@ -287,21 +287,39 @@ async function load(){
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     populateDatalist()
-    // Aplicar filtros default
+    // Auth check + setup
+    let loggedIn = false
     try {
-      const saved = localStorage.getItem('rankingSetup')
-      if (saved) {
-        const f = JSON.parse(saved)
-        if (f && f.tipos) aplicarFiltros(f)
+      const sess = await getSession()
+      loggedIn = !!sess?.data?.session
+      if (loggedIn) {
+        const setups = await listarSetups()
+        if (setups.length > 0) aplicarFiltros(setups[0].filtros)
       }
     } catch(e) {}
-    if (!localStorage.getItem('rankingSetup')) {
-      aplicarFiltros({
-        tipos: {},
-          liqMin: '1.000.000', liqMax: '20.000.000', wLiq: '10',
-          pvpMin: '0.5', pvpMax: '1.5', wPvp: '10',
-          dyMin: '8', dyMax: '', wDy: '10'
-      })
+    if (!loggedIn) {
+      // Aplicar filtros default
+      try {
+        if (!localStorage.getItem('rankingSetup')) {
+          aplicarFiltros({
+            tipos: {},
+            liqMin: '1.000.000', liqMax: '20.000.000', wLiq: '10',
+            pvpMin: '0.5', pvpMax: '1.5', wPvp: '10',
+            dyMin: '8', dyMax: '', wDy: '10'
+          })
+        } else {
+          const saved = localStorage.getItem('rankingSetup')
+          const f = JSON.parse(saved)
+          if (f && f.tipos) aplicarFiltros(f)
+        }
+      } catch(e) {}
+    }
+    // Atualizar botao do painel conforme auth
+    const area = document.getElementById('panelSaveArea')
+    if (loggedIn) {
+      area.innerHTML = '<button class="filter-chip active" onclick="salvarSetupAtual()" style="font-size:10px">Salvar</button><button class="filter-chip" onclick="togglePanel()" style="font-size:10px">Fechar</button>'
+    } else {
+      area.innerHTML = '<a href="login.html" style="color:var(--accent);text-decoration:none;font-weight:600">Logar para salvar</a><button class="filter-chip" onclick="togglePanel()" style="font-size:10px;margin-left:6px">Fechar</button>'
     }
     document.getElementById('loading').style.display='none'
     document.getElementById('header').style.display='flex'
@@ -480,7 +498,44 @@ function aplicarFiltros(f) {
   render()
 }
 
+async function salvarSetupAtual() {
+  try {
+    const sess = await getSession()
+    if (!sess?.data?.session) { alert('Faça login primeiro'); return }
+  } catch(e) { alert('Faça login primeiro'); return }
+  const filtros = (() => {
+    const tipos = {}
+    document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
+      if (el.dataset.tipo !== 'all') tipos[el.dataset.tipo] = el.classList.contains('active')
+    })
+    return {
+      tipos,
+      liqMin: document.getElementById('liqMin').value,
+      liqMax: document.getElementById('liqMax').value,
+      wLiq: document.getElementById('wLiq').value,
+      pvpMin: document.getElementById('pvpMin').value,
+      pvpMax: document.getElementById('pvpMax').value,
+      wPvp: document.getElementById('wPvp').value,
+      dyMin: document.getElementById('dyMin').value,
+      dyMax: document.getElementById('dyMax').value,
+      wDy: document.getElementById('wDy').value,
+    }
+  })()
+  try {
+    const setups = await listarSetups()
+    if (setups.length > 0) {
+      await atualizarSetup(setups[0].id, { nome: 'Meu Setup', filtros })
+    } else {
+      await salvarSetup('Meu Setup', filtros)
+    }
+    const area = document.getElementById('panelSaveArea')
+    area.innerHTML = '<span style="color:var(--green);font-size:10px">✓ Salvo</span><button class="filter-chip" onclick="togglePanel()" style="font-size:10px;margin-left:6px">Fechar</button>'
+  } catch(e) { alert('Erro ao salvar: ' + e.message) }
+}
+
 load()
 </script>
+<script defer src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script defer src="../js/supabase.js"></script>
 </body>
 </html>
