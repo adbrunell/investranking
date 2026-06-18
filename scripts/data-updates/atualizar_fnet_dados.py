@@ -233,7 +233,7 @@ def upsert_docs(docs: list[dict]) -> int:
     # Extrair detalhes de rendimentos do viewer FNET
     try:
         from atualizar_fnet_rendimentos import extrair_rendimentos
-        extrair_rendimentos()
+        extrair_rendimentos(max_docs=500)
     except Exception as e:
         logger.warning("Falha ao extrair detalhes de rendimentos: %s", e)
 

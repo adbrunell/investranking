@@ -249,5 +249,5 @@ def extrair_rendimentos(max_docs: int | None = None) -> int:
 
 
 if __name__ == "__main__":
-    n = extrair_rendimentos()
+    n = extrair_rendimentos(max_docs=500)
     print(f"RESULT:OK({n})")
