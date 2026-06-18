@@ -23,20 +23,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 .filters-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid var(--border);background:var(--card)}
 .filters-wrap::-webkit-scrollbar{display:none}
-.filters{display:flex;gap:8px;padding:8px 20px;max-width:1100px;margin:0 auto;align-items:center}
-.filter-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 14px;border-radius:16px;font-size:12px;cursor:pointer;transition:all .25s;font-family:inherit;white-space:nowrap}
+.filters{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px;max-width:1100px;margin:0 auto;align-items:center}
+.filter-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent;user-select:none}
+.filter-chip:hover{border-color:var(--text);color:var(--text)}
+.filter-chip.active{border-color:var(--text);color:var(--text);background:rgba(255,255,255,0.06)}
+.filter-chip.active[data-filter=doc]{border-color:var(--blue);color:var(--blue);background:rgba(66,133,244,.12)}
+.filter-chip.active[data-filter=fato]{border-color:var(--orange);color:var(--orange);background:rgba(245,166,35,.12)}
+.filter-chip.active[data-filter=rend]{border-color:var(--green);color:var(--green);background:rgba(46,196,182,.12)}
+.filter-chip.active[data-filter=vid]{border-color:var(--youtube);color:var(--youtube);background:rgba(255,0,51,.12)}
+.filter-chip .badge{font-size:10px;background:rgba(255,255,255,0.08);padding:0 6px;border-radius:8px;line-height:16px}
+.filter-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:18px;font-size:12px;cursor:pointer;transition:all .25s;font-family:inherit;white-space:nowrap}
 .filter-btn:hover{border-color:var(--accent);color:var(--text)}
-.filter-label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--muted);white-space:nowrap}
-.toggle-switch{position:relative;display:inline-block;width:30px;height:18px;flex-shrink:0}
-.toggle-switch input{opacity:0;width:0;height:0}
-.toggle-slider{position:absolute;inset:0;background:#444;border-radius:20px;cursor:pointer;transition:background .2s}
-.toggle-slider::before{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#888;transition:transform .2s,background .2s}
-.toggle-switch input:checked+.toggle-slider{background:#555}
-.toggle-switch input:checked+.toggle-slider::before{transform:translateX(12px);background:var(--accent)}
-.toggle-switch[data-type=doc] input:checked+.toggle-slider::before{background:#4285F4}
-.toggle-switch[data-type=fato] input:checked+.toggle-slider::before{background:#f5a623}
-.toggle-switch[data-type=rend] input:checked+.toggle-slider::before{background:#2ec4b6}
-.toggle-switch[data-type=vid] input:checked+.toggle-slider::before{background:#ff0033}
 .modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.65);display:none;align-items:center;justify-content:center;padding:20px}
 .modal-content{background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:420px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text)}
@@ -95,7 +92,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .topbar{height:auto;flex-wrap:wrap;padding:8px 14px;gap:6px}
 .topbar h1{font-size:16px}
 .search-box{max-width:none;order:3;width:100%}
-.filters{padding:6px 14px}
+.filters{padding:6px 10px;gap:5px}
 .container{padding:0 10px 30px}
 .card-body{padding:6px 8px;gap:6px}
 .card-icon{width:22px;height:22px;font-size:11px;border-radius:5px;min-width:22px}
@@ -127,10 +124,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 <div class="filters-wrap">
   <div class="filters" id="filters">
-    <label class="filter-label"><span class="toggle-switch" data-type="doc"><input type="checkbox" data-filter="doc" checked onchange="toggleFilter(this)"><span class="toggle-slider"></span></span>Relatórios</label>
-    <label class="filter-label"><span class="toggle-switch" data-type="fato"><input type="checkbox" data-filter="fato" checked onchange="toggleFilter(this)"><span class="toggle-slider"></span></span>Fatos Relevantes</label>
-    <label class="filter-label"><span class="toggle-switch" data-type="rend"><input type="checkbox" data-filter="rend" checked onchange="toggleFilter(this)"><span class="toggle-slider"></span></span>Rendimentos</label>
-    <label class="filter-label"><span class="toggle-switch" data-type="vid"><input type="checkbox" data-filter="vid" onchange="toggleFilter(this)"><span class="toggle-slider"></span></span>Vídeos</label>
+    <button class="filter-chip active" data-filter="doc" onclick="toggleFilter(this)"><i class="fas fa-file-alt" style="font-size:11px"></i> Relatórios</button>
+    <button class="filter-chip active" data-filter="fato" onclick="toggleFilter(this)"><i class="fas fa-bolt" style="font-size:11px"></i> Fatos</button>
+    <button class="filter-chip active" data-filter="rend" onclick="toggleFilter(this)"><i class="fas fa-money-bill-wave" style="font-size:11px"></i> Rendimentos</button>
+    <button class="filter-chip" data-filter="vid" onclick="toggleFilter(this)"><i class="fab fa-youtube" style="font-size:11px"></i> Vídeos</button>
     <button class="filter-btn" id="channelBtn" onclick="openChanModal()" style="display:none"><span id="channelLabel">Canais</span> <i class="fas fa-chevron-down" style="font-size:10px;margin-left:4px"></i></button>
   </div>
 </div>
@@ -267,7 +264,8 @@ async function searchFullDB(term){
 
 function toggleFilter(el){
   let f=el.dataset.filter
-  if(el.checked) activeFilters[f]=true
+  el.classList.toggle('active')
+  if(el.classList.contains('active')) activeFilters[f]=true
   else delete activeFilters[f]
   render()
 }
