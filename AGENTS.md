@@ -8,8 +8,8 @@
 
 ## Critical Setup
 - **Serve**: `.\servidor.ps1` → http://localhost:8080 (NUNCA abrir `frontend/index.html` via `file://`)
-- **Python**: `scripts/.venv/Scripts/python.exe` — activate or use directly
-- **Deps**: `pip install playwright && playwright install chromium` (required for captcha-based scrapers)
+- **Python**: `scripts/.venv/Scripts/python.exe` — use directly (not system Python)
+- **Deps**: `pip install playwright && playwright install chromium` (required for Playwright-based scrapers)
 - **Client key**: `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR`
 
 ## ETL Orchestration
@@ -19,15 +19,26 @@
 |---|---|---|
 | **Always** | `b3_cotacoes_aovivo`, `fnet_dados`, `youtube_videos` | Every run |
 | **2h interval** | `cvm_fii_mensal`, `cvm_fiagro_mensal`, `cvm_cadastral`, `statusinvest_acoes`, `statusinvest_dividendos` | Skip if <2h since last |
-| **Conditional** | `b3_cotahist` | Only if `aovivo` has newer data than `historico` |
+| **24h interval** | `b3_cotahist` | Skip if <24h since last; also skipped when running from Task Scheduler (captcha) |
 
 `fnet_dados` always calls `fnet_rendimentos` at the end.
 
-### Captcha-dependent scripts (require interactive browser)
-- `atualizar_b3_cotahist.py` — download COTAHIST ZIP from B3
-- `atualizar_statusinvest_acoes.py` — download stock screener CSV
+### Playwright scripts (may require captcha)
+- `atualizar_b3_cotahist.py` — download COTAHIST ZIP from B3 (captcha)
+- `atualizar_statusinvest_acoes.py` — download stock screener CSV (captcha)
+- `atualizar_statusinvest_dividendos.py` — download dividends CSV (uses Playwright but not explicitly captcha-skipped by `run_all.ps1`)
 
-Both use Playwright `headless=False` — **will wait for you to solve captcha**.
+All three use Playwright `headless=False`. The first two are explicitly skipped by `run_all.ps1` when running from Task Scheduler (`$captchaScripts` list).
+
+## Environment
+- **`.env` at project root** — loaded by `run_all.ps1` (line-by-line via `Get-Content`) and by most ETL scripts (inline `open().read().split("=")` or `os.environ["VAR"]`)
+- **`utils.scraper.config.Config`** — dataclass reading `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` from env; import via `from utils.scraper.config import config`
+- **`utils.scraper._fnet_base`** — shared FNET helpers (`_parse_date`, `_cookies_from_fnet`)
+- **MCP** (`scripts/mcp-supabase.ps1`): reads `.env` and pipes into `npx @supabase/mcp-server-supabase`
+
+## Database Migrations
+- SQL files in `database/migrations/` — apply manually via Supabase dashboard or `supabase_apply_migration` tool
+- Named with timestamp prefix (`20260613000001_create_*`)
 
 ## Database
 **View vs Table**: Scripts query the view `00_Master` (columns: `Ticker`, `Classe`, `CNPJ`), while the actual table is `00_fundos_master` (`ticker`, `segmento`, `tipo`, `cnpj`).
@@ -67,6 +78,7 @@ Key tables:
 - `fii.html`: loads `../js/app.js` + `../css/style.css`
 - Sidebar (`index.html`) shows: mosaico, radar-mais, analise-fii, status
 - Font Awesome 6.5.0 CDN for icons
+- **PostgREST REST API**: frontend calls Supabase REST API directly (`fetch` with `apikey` + `Authorization` headers), NOT the Supabase JS client
 
 ## opencode.json Config
 - **MCP**: Supabase via `scripts/mcp-supabase.ps1` (loads `.env` vars)
