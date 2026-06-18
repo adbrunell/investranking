@@ -25,6 +25,9 @@ BEGIN
             rendimento_anterior = CASE WHEN array_length(rends, 1) > 0 THEN rends[array_length(rends, 1)] ELSE NULL END
         WHERE fnet_documento_id = r.fnet_documento_id;
         rends := rends || r.rendimento;
+        IF array_length(rends, 1) > 36 THEN
+            rends := rends[array_length(rends, 1) - 35 : array_length(rends, 1)];
+        END IF;
     END LOOP;
 END;
 $$;
