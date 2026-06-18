@@ -477,11 +477,8 @@ function aplicarFiltros(f) {
 }
 
 function toggleSavePanel() {
-  const p = document.getElementById('savePanel')
-  document.getElementById('loadPanel').classList.remove('open')
+  document.getElementById('savePanel').classList.toggle('open')
   document.getElementById('panelOverlay').classList.toggle('open')
-  p.classList.toggle('open')
-}
 }
 
 async function salvarSetupAtual() {
