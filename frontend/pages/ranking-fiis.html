@@ -178,7 +178,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     </div>
     <button id="gearBtn" onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px" title="Filtros"><i class="fas fa-cog"></i></button>
     <button id="saveBtn" onclick="toggleSavePanel()" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px" title="Salvar setup"><i class="fas fa-save"></i></button>
-    <button id="loadBtn" onclick="toggleLoadPanel()" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px" title="Carregar setup"><i class="fas fa-folder-open"></i></button>
   </div>
 </div>
 
@@ -279,18 +278,14 @@ async function load(){
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     populateDatalist()
-    // Auto-carregar setup do usuario logado
+    // Restaurar setup salvo no localStorage
     try {
-      const sess = await getSession()
-      if (sess?.data?.session) {
-        const setups = await listarSetups()
-        if (setups.length > 0) {
-          aplicarFiltros(setups[0].filtros)
-          currentSetupId = setups[0].id
-          document.getElementById('setupNome').value = setups[0].nome || ''
-        }
+      const saved = localStorage.getItem('rankingSetup')
+      if (saved) {
+        const f = JSON.parse(saved)
+        if (f && f.tipos) aplicarFiltros(f)
       }
-    } catch(e) { /* sem sessao ou erro */ }
+    } catch(e) {}
     document.getElementById('loading').style.display='none'
     document.getElementById('header').style.display='flex'
     render()
@@ -438,8 +433,7 @@ function render(){
   document.getElementById('feed').innerHTML=html
 }
 
-// ─── Setups ──────────────────────────────────────────
-let currentSetupId = null
+// ─── Setups (localStorage) ──────────────────────────
 
 function capturarFiltros() {
   function v(id) { const e = document.getElementById(id); return e ? e.value || '' : '' }
@@ -492,73 +486,19 @@ function toggleSavePanel() {
 
 async function salvarSetupAtual() {
   const status = document.getElementById('saveStatus')
-  try {
-    const sess = await getSession()
-    if (!sess?.data?.session) { status.innerHTML = 'Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar'; return }
-  } catch (e) { status.innerHTML = 'Faça <a href="login.html" style="color:var(--accent)">login</a> para salvar'; return }
-  status.textContent = 'Salvando...'
+  const nome = document.getElementById('setupNome').value.trim() || 'Setup ' + new Date().toLocaleDateString('pt-BR')
   try {
     const filtros = capturarFiltros()
-    const nome = document.getElementById('setupNome').value.trim() || 'Setup ' + new Date().toLocaleDateString('pt-BR')
-    if (currentSetupId) {
-      await atualizarSetup(currentSetupId, { nome, filtros })
-    } else {
-      const saved = await salvarSetup(nome, filtros)
-      currentSetupId = saved.id
-    }
+    localStorage.setItem('rankingSetup', JSON.stringify(filtros))
+    localStorage.setItem('rankingSetupNome', nome)
     status.innerHTML = '<span style="color:var(--green)">✓ Salvo</span>'
     setTimeout(() => { document.getElementById('savePanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open') }, 600)
   } catch (e) { status.textContent = 'Erro: ' + e.message }
 }
 
-function toggleLoadPanel() {
-  const p = document.getElementById('loadPanel')
-  document.getElementById('savePanel').classList.remove('open')
+function toggleSavePanel() {
+  document.getElementById('savePanel').classList.toggle('open')
   document.getElementById('panelOverlay').classList.toggle('open')
-  p.classList.toggle('open')
-  if (p.classList.contains('open')) carregarLista()
-}
-
-async function carregarLista() {
-  const div = document.getElementById('setupList')
-  div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Carregando...</div>'
-  try {
-    const { data: session } = await getSession()
-    if (!session?.session) { div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Faça <a href="login.html" style="color:var(--accent)">login</a></div>'; return }
-    const setups = await listarSetups()
-    if (!setups.length) { div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Nenhum setup salvo</div>'; return }
-    div.innerHTML = setups.map(s => `
-      <div class="setup-item">
-        <div class="setup-info" onclick="carregarSetup('${s.id}')">
-          <div class="setup-nome">${s.nome}</div>
-          <div class="setup-data">${new Date(s.created_at).toLocaleDateString('pt-BR')}</div>
-        </div>
-        <button class="setup-del" onclick="event.stopPropagation();deletarSetupConfirm('${s.id}')"><i class="fas fa-trash"></i></button>
-      </div>
-    `).join('')
-  } catch (e) { div.innerHTML = '<div style="padding:20px;text-align:center;color:var(--red)">Erro: ' + e.message + '</div>' }
-}
-
-async function carregarSetup(id) {
-  try {
-    const setups = await listarSetups()
-    const s = setups.find(x => x.id === id)
-    if (!s) return
-    aplicarFiltros(s.filtros)
-    currentSetupId = s.id
-    document.getElementById('loadPanel').classList.remove('open')
-    document.getElementById('savePanel').classList.remove('open')
-    document.getElementById('panelOverlay').classList.remove('open')
-    document.getElementById('setupNome').value = s.nome
-  } catch (e) { alert('Erro ao carregar: ' + e.message) }
-}
-
-async function deletarSetupConfirm(id) {
-  if (!confirm('Deletar este setup?')) return
-  try {
-    await deletarSetup(id)
-    carregarLista()
-  } catch (e) { alert('Erro: ' + e.message) }
 }
 
 // Painel de salvar
@@ -576,28 +516,7 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>
 `)
 
-// Painel de carregar
-document.body.insertAdjacentHTML('beforeend', `
-<div id="loadPanel" class="slide-panel" style="right:-320px">
-  <div class="panel-header">Meus Setups <button onclick="toggleLoadPanel();document.getElementById('panelOverlay').classList.remove('open')" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;margin-left:auto"><i class="fas fa-times"></i></button></div>
-  <div class="panel-body" id="setupList"><div style="padding:20px;text-align:center;color:var(--muted)">Faça login para ver seus setups</div></div>
-</div>
-`)
-
-// CSS extra pros itens de setup
-document.head.insertAdjacentHTML('beforeend', `<style>
-.setup-item{display:flex;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:background .15s}
-.setup-item:hover{background:var(--bg)}
-.setup-info{flex:1}
-.setup-nome{font-size:13px;font-weight:600;color:var(--text)}
-.setup-data{font-size:10px;color:var(--muted);margin-top:2px}
-.setup-del{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:6px;border-radius:4px}
-.setup-del:hover{background:rgba(255,71,87,.12);color:var(--red)}
-</style>`)
-
 window.onload=load
 </script>
-<script defer src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script defer src="../js/supabase.js"></script>
 </body>
 </html>
