@@ -37,6 +37,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .filter-range input{width:50px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:10px;outline:none;font-family:inherit;transition:border .2s}
 .filter-range input:focus{border-color:var(--accent)}
 .filter-range input::placeholder{color:var(--muted);font-size:9px}
+.wsel{background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--accent);font-size:9px;padding:2px;outline:none;cursor:pointer;font-weight:600}
 
 .container{max-width:1100px;margin:0 auto;padding:6px 12px 40px}
 
@@ -95,6 +96,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 .cell-pvp .val{color:var(--text)}
 .cell-dy{width:80px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+.cell-nota{width:55px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-state i{font-size:36px;opacity:.3;margin-bottom:10px}
@@ -123,6 +125,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-pvp,.cell-pvp{width:58px;font-size:10px}
 .h-dy,.cell-dy{width:65px;font-size:10px}
 .h-nota-liq,.cell-nota-liq{width:60px;font-size:10px}
+.h-nota,.cell-nota{width:45px;font-size:10px}
 .cell-seg{font-size:10px}
 .tipo-badge{font-size:7px;padding:1px 4px}
 .atr-bar{width:32px;height:8px}
@@ -169,9 +172,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 </div>
 <div class="filter-range-wrap">
   <div class="filter-range">
-    <div class="fline"><label>Liq</label><input type="number" id="liqMin" placeholder="min" oninput="render()"><input type="number" id="liqMax" placeholder="max" oninput="render()"></div>
-    <div class="fline"><label>P/VP</label><input type="number" id="pvpMin" placeholder="min" oninput="render()" step="0.01"><input type="number" id="pvpMax" placeholder="max" oninput="render()" step="0.01"></div>
-    <div class="fline"><label>DY %</label><input type="number" id="dyMin" placeholder="min" oninput="render()" step="0.1"><input type="number" id="dyMax" placeholder="max" oninput="render()" step="0.1"></div>
+    <div class="fline"><label>Liq</label><input type="number" id="liqMin" placeholder="min" oninput="render()"><input type="number" id="liqMax" placeholder="max" oninput="render()"><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
+    <div class="fline"><label>P/VP</label><input type="number" id="pvpMin" placeholder="min" oninput="render()" step="0.01"><input type="number" id="pvpMax" placeholder="max" oninput="render()" step="0.01"><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
+    <div class="fline"><label>DY %</label><input type="number" id="dyMin" placeholder="min" oninput="render()" step="0.1"><input type="number" id="dyMax" placeholder="max" oninput="render()" step="0.1"><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
     <button class="filter-chip" onclick="document.querySelectorAll('.filter-range input').forEach(e=>e.value='');render()" style="font-size:9px;align-self:flex-start;margin-top:2px">✕</button>
   </div>
 </div>
@@ -191,6 +194,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <div class="h h-nota-liq" onclick="setSort('nota_liq')">Nota Liq <span class="arrow">▼</span></div>
     <div class="h h-pvp" onclick="setSort('pvp')">P/VP <span class="arrow">▼</span></div>
     <div class="h h-dy" onclick="setSort('dy')">DY 12m <span class="arrow">▼</span></div>
+    <div class="h h-nota" onclick="setSort('nota')" style="width:55px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
   </div>
   <div id="feed"></div>
 </div>
@@ -285,9 +289,15 @@ function render(){
   if(fpMin!=null||fpMax!=null)items=items.filter(it=>{let v=it.p_vp;return v!=null&&(fpMin==null||v>=fpMin)&&(fpMax==null||v<=fpMax)})
   if(fdMin!=null||fdMax!=null)items=items.filter(it=>{let v=it.dividend_yield_12m;return v!=null&&(fdMin==null||v>=fdMin/100)&&(fdMax==null||v<=fdMax/100)})
 
-  let mnLiq=Infinity,mxLiq=-Infinity
-  for(let z=0;z<items.length;z++){let lv=+items[z].liquidez_media_30d;if(lv>0){if(lv<mnLiq)mnLiq=lv;if(lv>mxLiq)mxLiq=lv}}
-  let rgLiq=mxLiq>mnLiq?mxLiq-mnLiq:1
+  let mnLiq=Infinity,mxLiq=-Infinity,mnPvp=Infinity,mxPvp=-Infinity,mnDy=Infinity,mxDy=-Infinity
+  for(let z=0;z<items.length;z++){
+    let it=items[z]
+    let lv=+it.liquidez_media_30d;if(lv>0){if(lv<mnLiq)mnLiq=lv;if(lv>mxLiq)mxLiq=lv}
+    let pv=it.p_vp;if(pv!=null&&pv>0){if(pv<mnPvp)mnPvp=pv;if(pv>mxPvp)mxPvp=pv}
+    let dv=it.dividend_yield_12m;if(dv!=null&&dv>0){if(dv<mnDy)mnDy=dv;if(dv>mxDy)mxDy=dv}
+  }
+  let rgLiq=mxLiq>mnLiq?mxLiq-mnLiq:1,rgPvp=mxPvp>mnPvp?mxPvp-mnPvp:1,rgDy=mxDy>mnDy?mxDy-mnDy:1
+  let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10
 
   items.sort((a,b)=>{
     let va,vb
@@ -296,7 +306,12 @@ function render(){
     if(sortKey==='segmento'){va=a.segmento||'';vb=b.segmento||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='ticker'){va=a.ticker||'';vb=b.ticker||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota_liq'){let na=+a.liquidez_media_30d,nb=+b.liquidez_media_30d;va=na>0?(na-mnLiq)/rgLiq:0;vb=nb>0?(nb-mnLiq)/rgLiq:0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='nota_liq'||sortKey==='nota'){
+      let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0
+      let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0
+      let na=al*wl+ap*wp+ad*wd,nb=bl*wl+bp*wp+bd*wd
+      return sortDesc?nb-na:na-nb
+    }
     if(sortKey==='cotacao'){va=+a.cotacao||0;vb=+b.cotacao||0;return sortDesc?vb-va:va-vb}
     if(sortKey==='variacao'){va=+a.variacao||0;vb=+b.variacao||0;return sortDesc?vb-va:va-vb}
     if(sortKey==='atratividade'){
@@ -348,6 +363,9 @@ function render(){
     html+='<div class="cell cell-nota-liq">'+nota_liq.toFixed(3)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
+    let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0,sp=it.p_vp!=null&&it.p_vp>0?(it.p_vp-mnPvp)/rgPvp:0,sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
+    let nota=sl*wl+sp*wp+sd*wd
+    html+='<div class="cell cell-nota">'+nota.toFixed(3)+'</div>'
     html+='</div>'
   }
   document.getElementById('feed').innerHTML=html
