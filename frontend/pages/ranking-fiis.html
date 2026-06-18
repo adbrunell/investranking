@@ -31,9 +31,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .filter-chip:active{transform:scale(.93)}
 .filter-range-wrap{overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border)}
 .filter-range-wrap::-webkit-scrollbar{display:none}
-.filter-range{display:flex;gap:4px;padding:5px 12px;max-width:1100px;margin:0 auto;align-items:center;flex-wrap:wrap}
-.filter-range label{font-size:10px;color:var(--muted);white-space:nowrap;font-weight:600;margin-right:2px}
-.filter-range input{width:70px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 6px;color:var(--text);font-size:11px;outline:none;font-family:inherit;transition:border .2s}
+.filter-range{display:flex;gap:6px;padding:6px 12px;max-width:1100px;margin:0 auto}
+.fline{display:flex;align-items:center;gap:4px}
+.fline label{font-size:10px;color:var(--muted);white-space:nowrap;font-weight:600;min-width:28px}
+.filter-range input{width:65px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px 5px;color:var(--text);font-size:11px;outline:none;font-family:inherit;transition:border .2s}
 .filter-range input:focus{border-color:var(--accent)}
 .filter-range input::placeholder{color:var(--muted);font-size:10px}
 
@@ -105,8 +106,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .search-box input{font-size:11px;padding:4px 8px 4px 24px}
 .search-box svg{width:10px;height:10px;left:6px}
 .filters{padding:4px 8px;gap:3px}
-.filter-range{padding:4px 8px;gap:3px}
+.filter-range{padding:4px 8px;gap:4px}
 .filter-range input{width:55px;font-size:10px}
+.fline label{min-width:24px;font-size:9px}
 .container{padding:4px 8px 30px}
 .header-row{padding:4px 8px;font-size:8px;top:86px}
 .row-card{padding:6px 8px;gap:0}
@@ -167,16 +169,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 </div>
 <div class="filter-range-wrap">
   <div class="filter-range">
-    <label>Liq</label>
-    <input type="number" id="liqMin" placeholder="min" oninput="render()">
-    <input type="number" id="liqMax" placeholder="max" oninput="render()">
-    <label>P/VP</label>
-    <input type="number" id="pvpMin" placeholder="min" oninput="render()" step="0.01">
-    <input type="number" id="pvpMax" placeholder="max" oninput="render()" step="0.01">
-    <label>DY</label>
-    <input type="number" id="dyMin" placeholder="min" oninput="render()" step="0.01">
-    <input type="number" id="dyMax" placeholder="max" oninput="render()" step="0.01">
-    <button class="filter-chip" onclick="document.querySelectorAll('.filter-range input').forEach(e=>e.value='');render()" style="font-size:9px">✕</button>
+    <div class="fline"><label>Liq</label><input type="number" id="liqMin" placeholder="min" oninput="render()"><input type="number" id="liqMax" placeholder="max" oninput="render()"></div>
+    <div class="fline"><label>P/VP</label><input type="number" id="pvpMin" placeholder="min" oninput="render()" step="0.01"><input type="number" id="pvpMax" placeholder="max" oninput="render()" step="0.01"></div>
+    <div class="fline"><label>DY %</label><input type="number" id="dyMin" placeholder="min" oninput="render()" step="0.1"><input type="number" id="dyMax" placeholder="max" oninput="render()" step="0.1"></div>
+    <button class="filter-chip" onclick="document.querySelectorAll('.filter-range input').forEach(e=>e.value='');render()" style="font-size:9px;align-self:flex-start;margin-top:2px">✕</button>
   </div>
 </div>
 
