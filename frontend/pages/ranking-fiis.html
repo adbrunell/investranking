@@ -47,6 +47,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-seg{flex:1;min-width:80px}
 .h-ticker{width:80px;flex-shrink:0}
 .h-liq{width:90px;flex-shrink:0;justify-content:flex-end}
+.h-cot{width:65px;flex-shrink:0;justify-content:flex-end}
+.h-var{width:70px;flex-shrink:0;justify-content:flex-end}
 .h-pvp{width:70px;flex-shrink:0;justify-content:flex-end}
 .h-dy{width:80px;flex-shrink:0;justify-content:flex-end}
 
@@ -72,6 +74,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-seg{flex:1;min-width:80px;font-size:12px;color:var(--muted)}
 .cell-ticker{width:80px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--accent)}
 .cell-liq{width:90px;flex-shrink:0;justify-content:flex-end;font-size:12px;color:var(--text);font-weight:500}
+.cell-cot{width:65px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell-var{width:70px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.cell-var .var-up{color:var(--green)}
+.cell-var .var-down{color:var(--red)}
 .cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .cell-pvp .val{color:var(--text)}
 .cell-dy{width:80px;flex-shrink:0;justify-content:flex-end;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -93,6 +99,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-tipo,.cell-tipo{width:48px}
 .h-ticker,.cell-ticker{width:65px;font-size:12px}
 .h-liq,.cell-liq{width:70px;font-size:11px}
+.h-cot,.cell-cot{width:55px;font-size:12px}
+.h-var,.cell-var{width:58px;font-size:12px}
 .h-pvp,.cell-pvp{width:58px;font-size:12px}
 .h-dy,.cell-dy{width:65px;font-size:12px}
 .cell-seg{font-size:11px}
@@ -102,6 +110,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-rank,.cell-rank{display:none}
 .h-tipo,.cell-tipo{width:40px}
 .h-ticker,.cell-ticker{width:55px;font-size:11px}
+.h-cot,.cell-cot{width:50px;font-size:11px}
+.h-var,.cell-var{width:52px;font-size:11px}
 .h-liq,.cell-liq{width:60px;font-size:10px}
 .h-pvp,.cell-pvp{width:50px;font-size:11px}
 .h-dy,.cell-dy{width:55px;font-size:11px}
@@ -141,6 +151,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <div class="h h-ticker" onclick="setSort('ticker')">Ticker <span class="arrow">▼</span></div>
     <div class="h h-tipo" style="display:none" onclick="setSort('tipo')">Tipo <span class="arrow">▼</span></div>
     <div class="h h-seg" style="display:none" onclick="setSort('segmento')">Segmento <span class="arrow">▼</span></div>
+    <div class="h h-cot" onclick="setSort('cotacao')">Cotação <span class="arrow">▼</span></div>
+    <div class="h h-var" onclick="setSort('variacao')">Variação <span class="arrow">▼</span></div>
     <div class="h h-liq" onclick="setSort('liquidez')">Liquidez <span class="arrow">▼</span></div>
     <div class="h h-pvp" onclick="setSort('pvp')">P/VP <span class="arrow">▼</span></div>
     <div class="h h-dy" onclick="setSort('dy')">DY 12m <span class="arrow">▼</span></div>
@@ -174,7 +186,7 @@ function fmtPct(v){
 
 async function load(){
   try{
-    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,liquidez_media_30d,p_vp,dividend_yield_12m&limit=1000',{headers:H})
+    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     populateDatalist()
@@ -220,7 +232,7 @@ function setSort(key){
   if(sortKey===key){sortDesc=!sortDesc}
   else{sortKey=key;sortDesc=key==='tipo'||key==='segmento'||key==='ticker'?false:true}
   document.querySelectorAll('.header-row .h').forEach(el=>el.classList.remove('sorted'))
-  let map={rank:'h-rank',tipo:'h-tipo',segmento:'h-seg',ticker:'h-ticker',liquidez:'h-liq',pvp:'h-pvp',dy:'h-dy'}
+  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',liquidez:'h-liq',pvp:'h-pvp',dy:'h-dy'}
   let el=document.querySelector('.'+map[key]);if(el)el.classList.add('sorted')
   render()
 }
@@ -238,6 +250,8 @@ function render(){
     if(sortKey==='segmento'){va=a.segmento||'';vb=b.segmento||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='ticker'){va=a.ticker||'';vb=b.ticker||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='cotacao'){va=+a.cotacao||0;vb=+b.cotacao||0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='variacao'){va=+a.variacao||0;vb=+b.variacao||0;return sortDesc?vb-va:va-vb}
     if(sortKey==='pvp'){va=a.p_vp!=null?a.p_vp:-999;vb=b.p_vp!=null?b.p_vp:-999;return sortDesc?vb-va:va-vb}
     if(sortKey==='dy'){va=a.dividend_yield_12m!=null?a.dividend_yield_12m:-999;vb=b.dividend_yield_12m!=null?b.dividend_yield_12m:-999;return sortDesc?vb-va:va-vb}
     return 0
@@ -257,6 +271,8 @@ function render(){
     html+='<div class="cell cell-ticker">'+(it.ticker||'')+'</div>'
     html+='<div class="cell cell-tipo" style="display:none"><span class="tipo-badge tipo-'+(it.tipo||'').replace(/ /g,'')+'">'+((it.tipo||'')==='FI-Infra'?'FI':it.tipo||'')+'</span></div>'
     html+='<div class="cell cell-seg" style="display:none">'+(it.segmento||'')+'</div>'
+    html+='<div class="cell cell-cot">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</div>'
+    html+='<div class="cell cell-var"><span class="'+(it.variacao>=0?'var-up':'var-down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></div>'
     html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
