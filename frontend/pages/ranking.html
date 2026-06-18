@@ -69,25 +69,19 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .rank-card:nth-child(2) .rank-pos{background:linear-gradient(135deg,#c0c0c0,#a8a8a8);color:#000;box-shadow:0 2px 10px rgba(192,192,192,0.25)}
 .rank-card:nth-child(3) .rank-pos{background:linear-gradient(135deg,#cd7f32,#b8722d);color:#fff;box-shadow:0 2px 10px rgba(205,127,50,0.25)}
 
-.rank-body{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rank-body{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .rank-ticker{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}
 .rank-ticker:hover{text-decoration:underline}
 .rank-seg{font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,0.05);color:var(--muted);font-weight:500;white-space:nowrap}
-.rank-price{font-size:15px;font-weight:600;color:var(--accent);white-space:nowrap;margin-left:auto}
+.rank-price{font-size:15px;font-weight:600;color:var(--accent);white-space:nowrap;padding:0 12px;flex-shrink:0}
 
-.rank-variacao{display:flex;align-items:center;gap:6px;flex-shrink:0;min-width:80px;justify-content:flex-end}
+.rank-variacao{flex-shrink:0;min-width:70px;text-align:right}
 .rank-variacao .pct{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;transition:color .3s}
 .rank-variacao .pct.up{color:var(--green)}
 .rank-variacao .pct.down{color:var(--red)}
-.rank-variacao .bar-wrap{width:50px;height:4px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;flex-shrink:0}
-.rank-variacao .bar-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
-.rank-variacao .bar-fill.up{background:var(--green)}
-.rank-variacao .bar-fill.down{background:var(--red)}
 
-.rank-volume{display:flex;align-items:center;gap:8px;flex-shrink:0;min-width:110px;justify-content:flex-end}
-.rank-volume .vol-num{font-size:12px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
-.rank-volume .vol-bar-wrap{width:60px;height:4px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;flex-shrink:0}
-.rank-volume .vol-bar-fill{height:100%;border-radius:3px;background:var(--blue);transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.rank-volume{flex-shrink:0;min-width:80px;text-align:right}
+.rank-volume .vol-num{font-size:15px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-state i{font-size:40px;opacity:.3;margin-bottom:12px}
@@ -112,18 +106,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .rank-card{padding:10px 12px;gap:8px}
 .rank-pos{width:26px;height:26px;font-size:11px}
 .rank-ticker{font-size:13px}
-.rank-price{font-size:12px}
+.rank-price{font-size:13px}
 .rank-meta{font-size:9px}
-.rank-variacao .pct{font-size:13px;min-width:55px}
-.rank-variacao .bar-wrap{width:36px}
-.rank-volume{min-width:80px}
-.rank-volume .vol-num{font-size:10px}
-.rank-volume .vol-bar-wrap{width:40px}
+.rank-variacao .pct{font-size:13px;min-width:50px}
+.rank-variacao{min-width:55px}
+.rank-volume{min-width:60px}
+.rank-volume .vol-num{font-size:13px}
 }
 @media(max-width:480px){
-.rank-variacao{min-width:50px}
-.rank-variacao .bar-wrap{display:none}
-.rank-volume .vol-bar-wrap{display:none}
+.rank-variacao{min-width:45px}
 .search-box{width:90px}
 .status-market{padding:2px 5px;font-size:9px;border-radius:12px;gap:3px}
 }
@@ -342,8 +333,6 @@ function render(isRefresh){
   let ranked=searchTerm?items.filter(it=>it.ticker.includes(searchTerm)):items
 
   let top=ranked.slice(0,100)
-  let maxVar=mode!=='volume'?Math.max(...items.map(i=>Math.abs(i.variacao)),1):1
-  let maxVol=mode==='volume'?Math.max(...items.map(i=>i.volume),1):1
 
   let feed=document.getElementById('feed')
   if(!top.length){
@@ -364,28 +353,19 @@ function render(isRefresh){
     let it=top[i]
     let pos=searchTerm?items.indexOf(it)+1:i+1
     let isUp=it.variacao>=0
-    let pctAbs=Math.abs(it.variacao)
-    let barPct=Math.min(pctAbs/maxVar*100,100)
-    let volPct=Math.min(it.volume/maxVol*100,100)
     let cls=isUp?'up':'down'
     let tipoLabel=it.tipo||''
 
     html+='<div class="rank-card '+cls+'" data-ticker="'+it.ticker+'" style="animation'+(isRefresh?':none':':cardIn .45s ease-out both;animation-delay:'+(i*0.025)+'s')+'">'
     html+='<div class="rank-pos">'+pos+'</div>'
     html+='<div class="rank-body">'
-    html+='<a class="rank-ticker" href="../pages/fii.html?ticker='+it.ticker+'" target="_blank">'+it.ticker+'</a>'
+    html+='<div class="rank-ticker">'+it.ticker+'</div>'
     if(tipoLabel&&tipoLabel!=='Ação')html+='<span class="rank-seg">'+tipoLabel+'</span>'
-    if(it.preco!=null)html+='<span class="rank-price">R$ '+fmtShort(it.preco)+'</span>'
     html+='<div class="rank-meta">'+fmtDateTime(it.data,it.hora)+'</div>'
     html+='</div>'
-    html+='<div class="rank-variacao">'
-    html+='<span class="pct '+cls+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</span>'
-    html+='<div class="bar-wrap"><div class="bar-fill '+cls+'" style="width:'+barPct+'%"></div></div>'
-    html+='</div>'
-    html+='<div class="rank-volume">'
-    html+='<span class="vol-num">'+fmtVolume(it.volume)+'</span>'
-    html+='<div class="vol-bar-wrap"><div class="vol-bar-fill" style="width:'+volPct+'%"></div></div>'
-    html+='</div>'
+    if(it.preco!=null)html+='<div class="rank-price">R$ '+fmtShort(it.preco)+'</div>'
+    html+='<div class="rank-variacao"><span class="pct '+cls+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</span></div>'
+    html+='<div class="rank-volume"><span class="vol-num">'+fmtVolume(it.volume)+'</span></div>'
     html+='</div>'
   }
   feed.innerHTML=html
