@@ -108,10 +108,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .card-body{flex-wrap:nowrap}
 .spark{width:55px!important;height:16px!important}
 }
+#ptr-indicator{display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;font-size:11px;color:var(--muted);transition:height .2s;pointer-events:none}
+#ptr-indicator.show{height:32px}
+#ptr-indicator .spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:6px}
 </style>
 </head>
 <body>
 
+<div id="ptr-indicator"><div class="spinner"></div><span>Atualizando...</span></div>
 <div class="topbar">
   <h1><i class="fas fa-bullseye" style="font-size:15px"></i> Radar <span>+</span></h1>
   <div class="search-box" id="searchBox">
@@ -379,6 +383,26 @@ function drawSparklines(){
 }
 
 window.onload=load
+
+// --- Pull-to-refresh ---
+(function(){
+  let startY=0,pulling=false,ptrEl=document.getElementById('ptr-indicator')
+  document.addEventListener('touchstart',function(e){
+    if(document.documentElement.scrollTop<=0){startY=e.touches[0].clientY;pulling=true}
+  },{passive:true})
+  document.addEventListener('touchmove',function(e){
+    if(!pulling)return
+    let dist=e.touches[0].clientY-startY
+    if(dist>80){
+      pulling=false
+      ptrEl.classList.add('show')
+      load()
+      setTimeout(()=>ptrEl.classList.remove('show'),1000)
+    }
+  },{passive:true})
+  document.addEventListener('touchend',function(){pulling=false},{passive:true})
+  document.addEventListener('touchcancel',function(){pulling=false},{passive:true})
+})()
 </script>
 </body>
 </html>

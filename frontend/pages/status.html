@@ -42,6 +42,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
 .empty i{font-size:28px;display:block;margin-bottom:10px;opacity:.4}
 .th-abbr{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px}
+#ptr-indicator{display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;font-size:11px;color:var(--muted);transition:height .2s;pointer-events:none}
+#ptr-indicator.show{height:32px}
+#ptr-indicator .spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:6px}
 @media(max-width:640px){
   body{padding:8px 6px 16px}
   th{font-size:10px;padding:6px 3px}
@@ -53,6 +56,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 </style>
 </head>
 <body>
+<div id="ptr-indicator"><div class="spinner"></div><span>Atualizando...</span></div>
 <div class="topbar">
   <h1><i class="fas fa-sync-alt"></i> Status</h1>
   <div class="actions">
@@ -174,6 +178,26 @@ async function carregar(){
 }
 carregar()
 setInterval(carregar,30000)
+
+// --- Pull-to-refresh ---
+(function(){
+  let startY=0,pulling=false,ptrEl=document.getElementById('ptr-indicator')
+  document.addEventListener('touchstart',function(e){
+    if(document.documentElement.scrollTop<=0){startY=e.touches[0].clientY;pulling=true}
+  },{passive:true})
+  document.addEventListener('touchmove',function(e){
+    if(!pulling)return
+    let dist=e.touches[0].clientY-startY
+    if(dist>80){
+      pulling=false
+      ptrEl.classList.add('show')
+      carregar()
+      setTimeout(()=>ptrEl.classList.remove('show'),1000)
+    }
+  },{passive:true})
+  document.addEventListener('touchend',function(){pulling=false},{passive:true})
+  document.addEventListener('touchcancel',function(){pulling=false},{passive:true})
+})()
 </script>
 </body>
 </html>
