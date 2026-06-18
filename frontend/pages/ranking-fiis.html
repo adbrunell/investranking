@@ -59,9 +59,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-cot{width:65px;flex-shrink:0;justify-content:flex-end}
 .h-var{width:70px;flex-shrink:0;justify-content:flex-end}
 .h-pvp{width:70px;flex-shrink:0;justify-content:flex-end}
-.h-dy{width:80px;flex-shrink:0;justify-content:flex-end}
-.h-nota-liq{width:70px;flex-shrink:0;justify-content:flex-end}
-.cell-nota-liq{width:70px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.h-dy{width:65px;flex-shrink:0;justify-content:flex-end}
+.h-nota-liq{width:55px;flex-shrink:0;justify-content:flex-end}
+.cell-nota-liq{width:55px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 
 .row-card{display:flex;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:3px;animation:rowIn .35s ease-out both;transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:default}
 .row-card:hover{border-color:rgba(255,255,255,0.12);background:var(--card2)}
@@ -95,8 +96,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .atr-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
 .cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 .cell-pvp .val{color:var(--text)}
-.cell-dy{width:80px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
-.cell-nota{width:55px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
+.cell-dy{width:65px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell-nota-pvp,.cell-nota-dy{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell-nota{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-state i{font-size:36px;opacity:.3;margin-bottom:10px}
@@ -122,10 +124,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-var,.cell-var{width:58px;font-size:10px}
 .h-graf,.cell-graf{width:60px}
 .h-atr,.cell-atr{width:50px}
-.h-pvp,.cell-pvp{width:58px;font-size:10px}
-.h-dy,.cell-dy{width:65px;font-size:10px}
-.h-nota-liq,.cell-nota-liq{width:60px;font-size:10px}
-.h-nota,.cell-nota{width:45px;font-size:10px}
+.h-pvp,.cell-pvp{width:50px;font-size:10px}
+.h-dy,.cell-dy{width:55px;font-size:10px}
+.h-nota-liq,.cell-nota-liq{width:55px;font-size:10px}
+.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy{width:45px;font-size:10px}
+.h-nota,.cell-nota{width:42px;font-size:10px}
 .cell-seg{font-size:10px}
 .tipo-badge{font-size:7px;padding:1px 4px}
 .atr-bar{width:32px;height:8px}
@@ -139,9 +142,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-graf,.cell-graf{display:none}
 .h-atr,.cell-atr{display:none}
 .h-liq,.cell-liq{width:60px;font-size:9px}
-.h-pvp,.cell-pvp{width:50px;font-size:10px}
-.h-dy,.cell-dy{width:55px;font-size:10px}
-.h-nota-liq,.cell-nota-liq{width:50px;font-size:10px}
+.h-pvp,.cell-pvp{width:45px;font-size:10px}
+.h-dy,.cell-dy{width:45px;font-size:10px}
+.h-nota-liq,.cell-nota-liq{width:45px;font-size:10px}
+.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy{width:40px;font-size:10px}
+.h-nota,.cell-nota{width:38px;font-size:10px}
 .cell-seg{font-size:9px}
 }
 </style>
@@ -190,11 +195,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <div class="h h-var" onclick="setSort('variacao')">Variação <span class="arrow">▼</span></div>
     <div class="h h-graf" style="justify-content:center;width:74px">Gráfico</div>
     <div class="h h-atr" onclick="setSort('atratividade')" style="width:60px;justify-content:center">Atrat. <span class="arrow">▼</span></div>
-    <div class="h h-liq" onclick="setSort('liquidez')">Liquidez <span class="arrow">▼</span></div>
-    <div class="h h-nota-liq" onclick="setSort('nota_liq')">Nota Liq <span class="arrow">▼</span></div>
+    <div class="h h-liq" onclick="setSort('liquidez')">Liq <span class="arrow">▼</span></div>
+    <div class="h h-nota-liq" onclick="setSort('nota_liq')">N.Liq <span class="arrow">▼</span></div>
     <div class="h h-pvp" onclick="setSort('pvp')">P/VP <span class="arrow">▼</span></div>
-    <div class="h h-dy" onclick="setSort('dy')">DY 12m <span class="arrow">▼</span></div>
-    <div class="h h-nota" onclick="setSort('nota')" style="width:55px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
+    <div class="h h-nota-pvp" onclick="setSort('nota_pvp')">N.PVP <span class="arrow">▼</span></div>
+    <div class="h h-dy" onclick="setSort('dy')">DY <span class="arrow">▼</span></div>
+    <div class="h h-nota-dy" onclick="setSort('nota_dy')">N.DY <span class="arrow">▼</span></div>
+    <div class="h h-nota" onclick="setSort('nota')" style="width:50px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
   </div>
   <div id="feed"></div>
 </div>
@@ -273,7 +280,7 @@ function setSort(key){
   if(sortKey===key){sortDesc=!sortDesc}
   else{sortKey=key;sortDesc=key==='tipo'||key==='segmento'||key==='ticker'?false:true}
   document.querySelectorAll('.header-row .h').forEach(el=>el.classList.remove('sorted'))
-  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',atratividade:'h-atr',liquidez:'h-liq',nota_liq:'h-nota-liq',pvp:'h-pvp',dy:'h-dy'}
+  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',atratividade:'h-atr',liquidez:'h-liq',nota_liq:'h-nota-liq',pvp:'h-pvp',nota_pvp:'h-nota-pvp',dy:'h-dy',nota_dy:'h-nota-dy',nota:'h-nota'}
   let el=document.querySelector('.'+map[key]);if(el)el.classList.add('sorted')
   render()
 }
@@ -307,6 +314,8 @@ function render(){
     if(sortKey==='ticker'){va=a.ticker||'';vb=b.ticker||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
     if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota_liq'){va=+a.liquidez_media_30d>0?((+a.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;vb=+b.liquidez_media_30d>0?((+b.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='nota_pvp'){let apv=a.p_vp,bpv=b.p_vp;va=apv!=null&&apv>0?((apv-mnPvp)/rgPvp)*wp:0;vb=bpv!=null&&bpv>0?((bpv-mnPvp)/rgPvp)*wp:0;return sortDesc?vb-va:va-vb}
+    if(sortKey==='nota_dy'){let adv=a.dividend_yield_12m,bdv=b.dividend_yield_12m;va=adv!=null&&adv>0?((adv-mnDy)/rgDy)*wd:0;vb=bdv!=null&&bdv>0?((bdv-mnDy)/rgDy)*wd:0;return sortDesc?vb-va:va-vb}
     if(sortKey==='nota'){
       let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0
       let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0
@@ -363,8 +372,12 @@ function render(){
     let liqv=+it.liquidez_media_30d,nota_liq=liqv>0?((liqv-mnLiq)/rgLiq)*wl:0
     html+='<div class="cell cell-nota-liq">'+nota_liq.toFixed(3)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
+    let sp=it.p_vp!=null&&it.p_vp>0?(it.p_vp-mnPvp)/rgPvp:0
+    html+='<div class="cell cell-nota-pvp">'+(sp*wp).toFixed(3)+'</div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
-    let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0,sp=it.p_vp!=null&&it.p_vp>0?(it.p_vp-mnPvp)/rgPvp:0,sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
+    let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
+    html+='<div class="cell cell-nota-dy">'+(sd*wd).toFixed(3)+'</div>'
+    let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
     let nota=sl*wl+sp*wp+sd*wd
     html+='<div class="cell cell-nota">'+nota.toFixed(3)+'</div>'
     html+='</div>'
