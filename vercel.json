@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/pages/inicio.html" },
+    { "source": "/", "destination": "/app.html" },
     { "source": "/js/:path*", "destination": "/js/:path*" },
     { "source": "/css/:path*", "destination": "/css/:path*" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
