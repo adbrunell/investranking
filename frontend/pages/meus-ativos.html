@@ -101,16 +101,7 @@ const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'
 let ativos=[],selectedTicker=null,searchCache={}
 
 function obterSessao(){
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i)
-      if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
-        const d=JSON.parse(localStorage.getItem(k))
-        if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))
-          return d
-      }
-    }
-  }catch(e){}
+  try{const d=JSON.parse(localStorage.getItem('ir_auth'));if(d&&d.access_token)return d}catch(e){}
   return null
 }
 

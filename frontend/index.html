@@ -94,20 +94,8 @@ function abrir(pagina, el){
   closeMenu()
   let cache='?v='+Date.now()
   // Protected pages: check auth before opening
-  if(['minha-conta','meus-ativos'].includes(pagina)){
-    let autenticado=false
-    try{
-      for(let i=0;i<localStorage.length;i++){
-        const k=localStorage.key(i)
-        if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
-          const d=JSON.parse(localStorage.getItem(k))
-          if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))
-            {autenticado=true;break}
-        }
-      }
-    }catch(e){}
-    if(!autenticado){pagina='login';cache=''}
-  }
+  if(['minha-conta','meus-ativos'].includes(pagina)&&!_irAuth())
+    {pagina='login';cache=''}
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
 }
@@ -125,21 +113,13 @@ document.addEventListener('DOMContentLoaded', initFromQuery)
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script>
-function temSessao(){
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i)
-      if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
-        const d=JSON.parse(localStorage.getItem(k))
-        if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))return d
-      }
-    }
-  }catch(e){}
+function _irAuth(){
+  try{const d=JSON.parse(localStorage.getItem('ir_auth'));if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))return d}catch(e){}
   return null
 }
 
 function atualizarSidebar(){
-  const token=temSessao()
+  const token=_irAuth()
   if(token){
     document.querySelector('a[href="pages/login.html"]').style.display='none'
     document.getElementById('navMeusAtivos').style.display=''
@@ -153,11 +133,10 @@ function atualizarSidebar(){
     document.getElementById('navLogout').style.display='none'
   }
 }
-// Check on load and on auth changes
+// Check on load
 atualizarSidebar()
-try{if(_supabase)_supabase.auth.onAuthStateChange(()=>{setTimeout(atualizarSidebar,100)})}catch(e){}
-// Also check periodically (for cross-tab sync)
-setInterval(atualizarSidebar,5000)
+// Check periodically (for cross-tab and iframe sync)
+setInterval(atualizarSidebar,3000)
 </script>
 </body>
 </html>
