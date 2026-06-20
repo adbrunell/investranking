@@ -60,30 +60,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .loading .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.header-row{display:flex;align-items:center;padding:6px 10px;margin-bottom:2px;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);position:sticky;top:94px;z-index:50;background:var(--bg)}
-.header-row .h{display:flex;align-items:center;gap:4px;cursor:pointer;transition:color .2s;user-select:none;padding:4px 0}
-.header-row .h:hover{color:var(--text)}
-.header-row .h.sorted{color:var(--accent)}
-.header-row .h .arrow{font-size:7px;opacity:0;transition:opacity .2s}
-.header-row .h.sorted .arrow{opacity:1}
-.h-rank{width:28px;flex-shrink:0;justify-content:center}
-.h-tipo{width:60px;flex-shrink:0}
-.h-seg{flex:1;min-width:80px}
-.h-ticker{width:60px;flex-shrink:0}
-.h-liq,.h-pvp,.h-dy{width:54px;flex-shrink:0;justify-content:flex-end}
-.h-cot{width:58px;flex-shrink:0;justify-content:flex-end}
-
-.row-card{display:flex;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:3px;animation:rowIn .35s ease-out both;transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:default}
-.row-card:hover{border-color:rgba(255,255,255,0.12);background:var(--card2)}
-@keyframes rowIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-
-.cell{display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cell-rank{width:28px;flex-shrink:0;justify-content:center;font-size:10px;font-weight:600;color:var(--muted)}
-.top3 .cell-rank{font-size:11px}
-.top3:nth-child(1) .cell-rank{color:#ffd700}
-.top3:nth-child(2) .cell-rank{color:#c0c0c0}
-.top3:nth-child(3) .cell-rank{color:#cd7f32}
-.cell-tipo{width:60px;flex-shrink:0}
 .tipo-badge{font-size:8px;padding:2px 5px;border-radius:3px;font-weight:600;line-height:14px;white-space:nowrap}
 .tipo-Tijolo{background:rgba(91,127,255,.15);color:var(--blue)}
 .tipo-Papel{background:rgba(0,200,150,.15);color:var(--green)}
@@ -92,25 +68,39 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tipo-Fiagro{background:rgba(46,196,182,.15);color:#2ec4b6}
 .tipo-FI-Infra{background:rgba(91,127,255,.12);color:#7b9cff}
 .tipo-FIP-IE{background:rgba(200,130,255,.15);color:#c882ff}
-.cell-seg{flex:1;min-width:80px;font-size:10px;color:var(--muted)}
-.cell-ticker{width:60px;flex-shrink:0;font-size:15px;font-weight:600;color:var(--accent)}
-.cell-liq,.cell-pvp,.cell-dy{width:54px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--muted)}
-.cell-cot{width:58px;flex-shrink:0;flex-direction:column;align-items:flex-end;gap:1px}
 .cot-val{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
-.cot-var{font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.cot-var{font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;display:block}
 .cot-var.up{color:var(--green)}
 .cot-var.down{color:var(--red)}
-.cell-graf{width:62px;flex-shrink:0;justify-content:center}
-.cell-atr{width:44px;flex-shrink:0;justify-content:center}
 .atr-bar{width:40px;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden}
 .atr-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
-
-
-
-.cell-nota{width:40px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
-
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-state i{font-size:36px;opacity:.3;margin-bottom:10px}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl-wrap table{width:100%;border-collapse:separate;border-spacing:0 2px;font-size:11px}
+.tbl-wrap thead{position:sticky;top:94px;z-index:50}
+.tbl-wrap thead th{padding:6px 10px;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;text-align:right}
+.tbl-wrap thead th:first-child{text-align:center}
+.tbl-wrap thead th:nth-child(2){text-align:left}
+.tbl-wrap thead th:nth-child(4){text-align:center}
+.tbl-wrap thead th:nth-child(5){text-align:center}
+.tbl-wrap tbody tr{background:var(--card);animation:rowIn .35s ease-out both;transition:background .15s}
+.tbl-wrap tbody tr:hover{background:var(--card2)}
+.tbl-wrap tbody td{padding:8px 10px;white-space:nowrap;text-align:right;vertical-align:middle}
+.tbl-wrap tbody td:first-child{text-align:center;font-size:10px;font-weight:600;color:var(--muted);min-width:24px}
+.tbl-wrap tbody td:nth-child(2){text-align:left;font-size:15px;font-weight:600;color:var(--accent);min-width:50px}
+.tbl-wrap tbody td:nth-child(3){text-align:right}
+.tbl-wrap tbody td:nth-child(4){text-align:center;min-width:58px}
+.tbl-wrap tbody td:nth-child(5){text-align:center;min-width:34px}
+.tbl-wrap tbody td:nth-child(6),
+.tbl-wrap tbody td:nth-child(7),
+.tbl-wrap tbody td:nth-child(8){text-align:right;font-size:11px;font-weight:400;color:var(--muted);min-width:38px}
+.tbl-wrap tbody td:nth-child(9){text-align:right;font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
+.tbl-wrap tbody tr:first-child td:first-child{color:#ffd700;font-size:11px}
+.tbl-wrap tbody tr:nth-child(2) td:first-child{color:#c0c0c0;font-size:11px}
+.tbl-wrap tbody tr:nth-child(3) td:first-child{color:#cd7f32;font-size:11px}
 
 @media(max-width:768px){
 .topbar{padding:0 12px 0 48px;height:44px;gap:6px}
@@ -123,34 +113,27 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .filter-range input{width:44px;font-size:9px;padding:2px 3px}
 .fline label{min-width:20px;font-size:8px}
 .container{padding:4px 8px 30px}
-.header-row{padding:4px 8px;font-size:8px;top:86px}
-.row-card{padding:6px 8px;gap:0}
-.h-rank,.cell-rank{width:24px}
-.h-tipo,.cell-tipo{width:48px}
-.h-ticker,.cell-ticker{width:52px;font-size:13px}
-.h-liq,.h-pvp,.h-dy,.cell-liq,.cell-pvp,.cell-dy{width:48px;font-size:10px}
-.h-cot,.cell-cot{width:52px}
+.tbl-wrap thead{top:86px}
+.tbl-wrap thead th{padding:4px 8px;font-size:8px}
+.tbl-wrap tbody td{padding:6px 8px}
+.tbl-wrap tbody td:nth-child(2){font-size:13px;min-width:40px}
 .cot-val{font-size:10px}
 .cot-var{font-size:8px}
-.h-graf,.cell-graf{width:54px}
-.h-atr,.cell-atr{width:38px}
-.h-nota,.cell-nota{width:36px;font-size:10px}
-.cell-seg{font-size:10px}
-.tipo-badge{font-size:7px;padding:1px 4px}
 .atr-bar{width:32px;height:8px}
+.tipo-badge{font-size:7px;padding:1px 4px}
 }
 @media(max-width:480px){
-.h-rank,.cell-rank{display:none}
-.h-tipo,.cell-tipo{width:40px}
-.h-ticker,.cell-ticker{width:48px;font-size:13px}
-.h-cot,.cell-cot{width:48px}
-.cot-val{font-size:10px}
-.cot-var{font-size:8px}
-.h-graf,.cell-graf{display:none}
-.h-atr,.cell-atr{display:none}
-.h-liq,.h-pvp,.h-dy,.cell-liq,.cell-pvp,.cell-dy{width:44px;font-size:10px}
-.h-nota,.cell-nota{width:34px;font-size:10px}
-.cell-seg{font-size:9px}
+.tbl-wrap thead th:first-child,
+.tbl-wrap tbody td:first-child,
+.tbl-wrap thead th:nth-child(4),
+.tbl-wrap tbody td:nth-child(4),
+.tbl-wrap thead th:nth-child(5),
+.tbl-wrap tbody td:nth-child(5){display:none}
+.tbl-wrap tbody td:nth-child(2){font-size:13px;min-width:36px}
+.tbl-wrap tbody td:nth-child(6),
+.tbl-wrap tbody td:nth-child(7),
+.tbl-wrap tbody td:nth-child(8){font-size:10px;min-width:34px}
+.tbl-wrap tbody td:nth-child(9){font-size:10px;min-width:30px}
 }
 .ps-row{display:flex;align-items:center;gap:8px;margin:6px 0}
 .ps-track-wrap{flex:1;position:relative;height:24px;display:flex;align-items:center}
@@ -161,9 +144,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .ps-max{z-index:2}
 .ps-min::-webkit-slider-thumb,.ps-max::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);border:2px solid var(--card);cursor:pointer;pointer-events:auto;box-shadow:0 1px 4px rgba(0,0,0,0.5)}
 .ps-min::-moz-range-thumb,.ps-max::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:2px solid var(--card);cursor:pointer;pointer-events:auto}
-.header-row{top:94px}
-@media(max-width:768px){.header-row{top:86px}}
-@media(max-width:480px){.header-row{top:86px}}
 </style>
 </head>
 <body>
@@ -246,20 +226,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 
 <div class="container">
   <div id="loading" class="loading"><div class="spinner"></div><span>Carregando...</span></div>
-  <div id="header" class="header-row" style="display:none">
-    <div class="h h-rank">#</div>
-    <div class="h h-ticker">Ticker</div>
-    <div class="h h-tipo" style="display:none">Tipo</div>
-    <div class="h h-seg" style="display:none">Segmento</div>
-    <div class="h h-cot" style="justify-content:flex-end">Cot./Var.</div>
-    <div class="h h-graf" style="justify-content:center;width:74px">Gráfico</div>
-    <div class="h h-atr" style="width:60px;justify-content:center">Atrat.</div>
-    <div class="h h-liq" style="justify-content:flex-end">Liq</div>
-    <div class="h h-pvp" style="justify-content:flex-end">P/VP</div>
-    <div class="h h-dy" style="justify-content:flex-end">DY</div>
-    <div class="h h-nota sorted" style="width:50px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
+  <div class="tbl-wrap" style="display:none" id="tblWrap">
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th style="text-align:left">Ticker</th>
+        <th style="text-align:right">Cot./Var.</th>
+        <th style="text-align:center">Gráfico</th>
+        <th style="text-align:center">Atrat.</th>
+        <th style="text-align:right">Liq</th>
+        <th style="text-align:right">P/VP</th>
+        <th style="text-align:right">DY</th>
+        <th style="text-align:right">Nota</th>
+      </tr></thead>
+      <tbody id="feed"></tbody>
+    </table>
   </div>
-  <div id="feed"></div>
 </div>
 
 <script>
@@ -350,7 +332,7 @@ async function load(){
       area.innerHTML = '<a href="login.html" style="color:var(--accent);text-decoration:none;font-weight:600">Logar para salvar</a><button class="filter-chip" onclick="togglePanel()" style="font-size:10px;margin-left:6px">Fechar</button>'
     }
     document.getElementById('loading').style.display='none'
-    document.getElementById('header').style.display='flex'
+    document.getElementById('tblWrap').style.display='block'
     render()
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.4;margin-bottom:8px"></i><br>Erro: '+e.message
@@ -423,13 +405,10 @@ function render(){
   let html=''
   for(let i=0;i<items.length;i++){
     let it=items[i],pos=i+1
-    let top3=pos<=3?' top3':''
-    html+='<div class="row-card'+top3+'" style="animation-delay:'+(i*0.012)+'s">'
-    html+='<div class="cell cell-rank">'+pos+'</div>'
-    html+='<div class="cell cell-ticker">'+(it.ticker||'')+'</div>'
-    html+='<div class="cell cell-tipo" style="display:none"><span class="tipo-badge tipo-'+(it.tipo||'').replace(/ /g,'')+'">'+((it.tipo||'')==='FI-Infra'?'FI':it.tipo||'')+'</span></div>'
-    html+='<div class="cell cell-seg" style="display:none">'+(it.segmento||'')+'</div>'
-    html+='<div class="cell cell-cot"><span class="cot-val">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</span><span class="cot-var '+(it.variacao>=0?'up':'down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></div>'
+    html+='<tr style="animation-delay:'+(i*0.012)+'s">'
+    html+='<td>'+pos+'</td>'
+    html+='<td>'+(it.ticker||'')+'</td>'
+    html+='<td><span class="cot-val">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</span><span class="cot-var '+(it.variacao>=0?'up':'down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></td>'
     let vals=it.historico_cotacoes;if(typeof vals==='string')try{vals=JSON.parse(vals)}catch(e){vals=null};if(!Array.isArray(vals))vals=null
     let min52=it.min_52s!=null?+it.min_52s:null
     let max52=it.max_52s!=null?+it.max_52s:null
@@ -438,26 +417,26 @@ function render(){
       atratividade=1-(it.cotacao-min52)/(max52-min52)
     }
     if(vals&&vals.length>1){
-      let n=vals.length,h=26,w=70,mn=+vals[0],mx=+vals[0]
+      let n=vals.length,h=26,w=58,mn=+vals[0],mx=+vals[0]
       for(let j=1;j<n;j++){let v=+vals[j];if(v<mn)mn=v;if(v>mx)mx=v}
       let rg=mx-mn||1,cor='#ffffff'
       let d='M0,'+((h-1-(+vals[0]-mn)/rg*(h-2))).toFixed(1)
       for(let j=1;j<n;j++)d+=' L'+(j/(n-1)*w).toFixed(1)+','+((h-1-(+vals[j]-mn)/rg*(h-2))).toFixed(1)
-      html+='<div class="cell cell-graf"><svg width="70" height="26" viewBox="0 0 70 26"><rect width="70" height="26" fill="var(--card)" rx="3"/><path fill="none" stroke="'+cor+'" stroke-width="1" d="'+d+'"/></svg></div>'
+      html+='<td><svg width="58" height="24" viewBox="0 0 58 24"><rect width="58" height="24" fill="var(--card)" rx="2"/><path fill="none" stroke="'+cor+'" stroke-width="1.5" d="'+d+'"/></svg></td>'
     }else{
-      html+='<div class="cell cell-graf" style="color:var(--muted);font-size:9px">—</div>'
+      html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
-    html+='<div class="cell cell-atr"><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:var(--text)"></div></div></div>'
-    html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
-    html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
+    html+='<td><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:var(--text)"></div></div></td>'
+    html+='<td>'+fmtLiq(it.liquidez_media_30d)+'</td>'
+    html+='<td>'+fmtNum(it.p_vp)+'</td>'
     let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
-    html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
+    html+='<td>'+fmtPct(it.dividend_yield_12m)+'</td>'
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
     let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s):0
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
     let nota=sl*wl+sp*wp+sd*wd+sa*wa
-    html+='<div class="cell cell-nota">'+nota.toFixed(3)+'</div>'
-    html+='</div>'
+    html+='<td>'+nota.toFixed(3)+'</td>'
+    html+='</tr>'
   }
   document.getElementById('feed').innerHTML=html
 }
