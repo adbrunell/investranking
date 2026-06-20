@@ -292,22 +292,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 <div class="container">
   <div id="loading" class="loading"><div class="spinner"></div><span>Carregando...</span></div>
   <div id="header" class="header-row" style="display:none">
-    <div class="h h-rank" onclick="setSort('rank')"># <span class="arrow">▼</span></div>
-    <div class="h h-ticker" onclick="setSort('ticker')">Ticker <span class="arrow">▼</span></div>
-    <div class="h h-tipo" style="display:none" onclick="setSort('tipo')">Tipo <span class="arrow">▼</span></div>
-    <div class="h h-seg" style="display:none" onclick="setSort('segmento')">Segmento <span class="arrow">▼</span></div>
-    <div class="h h-cot" onclick="setSort('cotacao')">Cotação <span class="arrow">▼</span></div>
-    <div class="h h-var" onclick="setSort('variacao')">Variação <span class="arrow">▼</span></div>
+    <div class="h h-rank">#</div>
+    <div class="h h-ticker">Ticker</div>
+    <div class="h h-tipo" style="display:none">Tipo</div>
+    <div class="h h-seg" style="display:none">Segmento</div>
+    <div class="h h-cot">Cotação</div>
+    <div class="h h-var">Variação</div>
     <div class="h h-graf" style="justify-content:center;width:74px">Gráfico</div>
-    <div class="h h-atr" onclick="setSort('atratividade')" style="width:60px;justify-content:center">Atrat. <span class="arrow">▼</span></div>
-    <div class="h h-liq" onclick="setSort('liquidez')">Liq <span class="arrow">▼</span></div>
-    <div class="h h-nota-liq" onclick="setSort('nota_liq')">N.Liq <span class="arrow">▼</span></div>
-    <div class="h h-pvp" onclick="setSort('pvp')">P/VP <span class="arrow">▼</span></div>
-    <div class="h h-nota-pvp" onclick="setSort('nota_pvp')">N.PVP <span class="arrow">▼</span></div>
-    <div class="h h-dy" onclick="setSort('dy')">DY <span class="arrow">▼</span></div>
-    <div class="h h-nota-dy" onclick="setSort('nota_dy')">N.DY <span class="arrow">▼</span></div>
-    <div class="h h-nota-atr" onclick="setSort('nota_atr')" style="width:50px;justify-content:flex-end">N.Atr <span class="arrow">▼</span></div>
-    <div class="h h-nota" onclick="setSort('nota')" style="width:50px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
+    <div class="h h-atr" style="width:60px;justify-content:center">Atrat.</div>
+    <div class="h h-liq">Liq</div>
+    <div class="h h-nota-liq">N.Liq</div>
+    <div class="h h-pvp">P/VP</div>
+    <div class="h h-nota-pvp">N.PVP</div>
+    <div class="h h-dy">DY</div>
+    <div class="h h-nota-dy">N.DY</div>
+    <div class="h h-nota-atr" style="width:50px;justify-content:flex-end">N.Atr</div>
+    <div class="h h-nota sorted" style="width:50px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
   </div>
   <div id="feed"></div>
 </div>
@@ -316,7 +316,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allData=[],sortKey='liquidez',sortDesc=true,searchTerm=''
+let allData=[],searchTerm=''
 let activeTipos={}
 document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=true})
 
@@ -436,15 +436,6 @@ function onSearch(){
   render()
 }
 
-function setSort(key){
-  if(sortKey===key){sortDesc=!sortDesc}
-  else{sortKey=key;sortDesc=key==='tipo'||key==='segmento'||key==='ticker'?false:true}
-  document.querySelectorAll('.header-row .h').forEach(el=>el.classList.remove('sorted'))
-  let map={rank:'h-rank',ticker:'h-ticker',tipo:'h-tipo',segmento:'h-seg',cotacao:'h-cot',variacao:'h-var',atratividade:'h-atr',liquidez:'h-liq',nota_liq:'h-nota-liq',pvp:'h-pvp',nota_pvp:'h-nota-pvp',dy:'h-dy',nota_dy:'h-nota-dy',nota_atr:'h-nota-atr',nota:'h-nota'}
-  let el=document.querySelector('.'+map[key]);if(el)el.classList.add('sorted')
-  render()
-}
-
 function render(){
   let items=[...allData]
   let fk=Object.keys(activeTipos).filter(k=>activeTipos[k])
@@ -467,32 +458,10 @@ function render(){
   let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10,wa=(+document.getElementById('wAtr').value||0)/10
 
   items.sort((a,b)=>{
-    let va,vb
-    if(sortKey==='rank')return sortDesc?1:-1
-    if(sortKey==='tipo'){va=a.tipo||'';vb=b.tipo||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
-    if(sortKey==='segmento'){va=a.segmento||'';vb=b.segmento||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
-    if(sortKey==='ticker'){va=a.ticker||'';vb=b.ticker||'';return sortDesc?vb.localeCompare(va):va.localeCompare(vb)}
-    if(sortKey==='liquidez'){va=+a.liquidez_media_30d||0;vb=+b.liquidez_media_30d||0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota_liq'){va=+a.liquidez_media_30d>0?((+a.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;vb=+b.liquidez_media_30d>0?((+b.liquidez_media_30d-mnLiq)/rgLiq)*wl:0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota_pvp'){let apv=a.p_vp,bpv=b.p_vp;va=apv!=null&&apv>0?(1-(apv-mnPvp)/rgPvp)*wp:0;vb=bpv!=null&&bpv>0?(1-(bpv-mnPvp)/rgPvp)*wp:0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota_dy'){let adv=a.dividend_yield_12m,bdv=b.dividend_yield_12m;va=adv!=null&&adv>0?((adv-mnDy)/rgDy)*wd:0;vb=bdv!=null&&bdv>0?((bdv-mnDy)/rgDy)*wd:0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota_atr'){let aa=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):0;let ba=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):0;va=aa*wa;vb=ba*wa;return sortDesc?vb-va:va-vb}
-    if(sortKey==='nota'){
-      let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):0
-      let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):0
-      let na=al*wl+ap*wp+ad*wd+aat*wa,nb=bl*wl+bp*wp+bd*wd+bat*wa
-      return sortDesc?nb-na:na-nb
-    }
-    if(sortKey==='cotacao'){va=+a.cotacao||0;vb=+b.cotacao||0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='variacao'){va=+a.variacao||0;vb=+b.variacao||0;return sortDesc?vb-va:va-vb}
-    if(sortKey==='atratividade'){
-      let aa=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):-1
-      let bb=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):-1
-      return sortDesc?bb-aa:aa-bb
-    }
-    if(sortKey==='pvp'){va=a.p_vp!=null?a.p_vp:-999;vb=b.p_vp!=null?b.p_vp:-999;return sortDesc?vb-va:va-vb}
-    if(sortKey==='dy'){va=a.dividend_yield_12m!=null?a.dividend_yield_12m:-999;vb=b.dividend_yield_12m!=null?b.dividend_yield_12m:-999;return sortDesc?vb-va:va-vb}
-    return 0
+    let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):0
+    let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):0
+    let na=al*wl+ap*wp+ad*wd+aat*wa,nb=bl*wl+bp*wp+bd*wd+bat*wa
+    return nb-na
   })
 
   if(!items.length){
