@@ -368,8 +368,33 @@ async function load(){
       loggedIn = !!sess?.data?.session
       if (loggedIn) {
         try{const setups=await listarSetups();if(setups.length>0)aplicarFiltros(setups[0].filtros)}catch(e){}
-        // Also restore from localStorage (overrides DB if user changed filters after last save)
-        try{const saved=localStorage.getItem('rankingSetup');if(saved){const f=JSON.parse(saved);if(f&&f.liqMin!=null){document.getElementById('liqMin').value=f.liqMin||'';document.getElementById('liqMax').value=f.liqMax||'';document.getElementById('wLiq').value=f.wLiq||'5';document.getElementById('pvpMin').value=f.pvpMin||'';document.getElementById('pvpMax').value=f.pvpMax||'';document.getElementById('wPvp').value=f.wPvp||'5';document.getElementById('dyMin').value=f.dyMin||'';document.getElementById('dyMax').value=f.dyMax||'';document.getElementById('wDy').value=f.wDy||'5';document.getElementById('wAtr').value=f.wAtr||'5';syncSliFromPanel()}}}catch(e){}
+        // Restore filters from localStorage (they are auto-saved on every render())
+        try{
+          const saved=localStorage.getItem('rankingSetup')
+          if(saved){
+            const f=JSON.parse(saved)
+            if(f&&f.liqMin!=null){
+              document.getElementById('liqMin').value=f.liqMin||''
+              document.getElementById('liqMax').value=f.liqMax||''
+              document.getElementById('wLiq').value=f.wLiq||'5'
+              document.getElementById('pvpMin').value=f.pvpMin||''
+              document.getElementById('pvpMax').value=f.pvpMax||''
+              document.getElementById('wPvp').value=f.wPvp||'5'
+              document.getElementById('dyMin').value=f.dyMin||''
+              document.getElementById('dyMax').value=f.dyMax||''
+              document.getElementById('wDy').value=f.wDy||'5'
+              document.getElementById('wAtr').value=f.wAtr||'5'
+              syncSliFromPanel()
+            }
+          }else if(!localStorage.getItem('rankingSetup')){
+            // First time: apply defaults
+            aplicarFiltros({
+              liqMin:'1.000.000',liqMax:'20.000.000',wLiq:'10',
+              pvpMin:'0.5',pvpMax:'1.5',wPvp:'10',
+              dyMin:'8',dyMax:'',wDy:'10',wAtr:'5'
+            })
+          }
+        }catch(e){}
         // Load user tickers for "Meus Ativos" filter (separate try/catch to not break flow)
         try{
           const ativos=await listarAtivos()
