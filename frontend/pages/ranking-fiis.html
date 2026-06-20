@@ -367,9 +367,8 @@ async function load(){
       const sess = await getSession()
       loggedIn = !!sess?.data?.session
       if (loggedIn) {
-        const setups = await listarSetups()
-        if (setups.length > 0) aplicarFiltros(setups[0].filtros)
-        // Load user tickers for "Meus Ativos" filter
+        try{const setups=await listarSetups();if(setups.length>0)aplicarFiltros(setups[0].filtros)}catch(e){}
+        // Load user tickers for "Meus Ativos" filter (separate try/catch to not break flow)
         try{const ativos=await listarAtivos();userTickers=ativos.map(a=>a.ticker).filter(Boolean)}catch(e){}
       }
     } catch(e) {}

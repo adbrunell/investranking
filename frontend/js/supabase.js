@@ -118,13 +118,13 @@ async function salvarSetup(nome, filtros) {
 }
 
 async function listarSetups() {
-  _check();await _restaurarSessao()
-  const { data, error } = await _supabase
-    .from('setups')
-    .select('*')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data || []
+  _check()
+  try{await _restaurarSessao()}catch(e){}
+  try{
+    const { data, error } = await _supabase.from('setups').select('*').order('created_at', { ascending: false })
+    if(error)throw error
+    return data||[]
+  }catch(e){return []}
 }
 
 async function atualizarSetup(id, updates) {
