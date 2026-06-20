@@ -45,7 +45,15 @@ async function entrar(){
   const btn=document.getElementById('btn'),erro=document.getElementById('erro'),sucesso=document.getElementById('sucesso')
   btn.disabled=true;btn.textContent='Entrando...';erro.style.display='none';sucesso.style.display='none'
   try{
-    await signIn(document.getElementById('email').value,document.getElementById('password').value)
+    const {data}=await _supabase.auth.signInWithPassword({email:document.getElementById('email').value,password:document.getElementById('password').value})
+    if(data?.session){
+      localStorage.setItem('ir_auth',JSON.stringify({
+        access_token:data.session.access_token,
+        refresh_token:data.session.refresh_token,
+        user:data.session.user,
+        expires_at:data.session.expires_at
+      }))
+    }
     sucesso.textContent='Login realizado! Redirecionando...';sucesso.style.display='block'
     setTimeout(()=>{window.top.location.href='/?p=ranking-fiis'},800)
   }catch(e){erro.textContent=e.message;erro.style.display='block';btn.disabled=false;btn.textContent='Entrar'}
