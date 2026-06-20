@@ -231,7 +231,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
         <th>#</th>
         <th style="text-align:left">Fundo</th>
         <th style="text-align:right">Cotação</th>
-        <th style="text-align:center">Histórico<br>1A</th>
+        <th style="text-align:center">Dividendos<br>12m</th>
         <th style="text-align:center">Atratividade</th>
         <th style="text-align:right">Liquidez<br>Diária</th>
         <th style="text-align:right">P/VP</th>
@@ -290,7 +290,7 @@ function togglePanel(){
 
 async function load(){
   try{
-    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes&limit=1000',{headers:H})
+    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes,historico_dividendos&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     allData=allData.filter(d=>d.dividend_yield_12m==null||d.dividend_yield_12m<=1)
@@ -415,13 +415,16 @@ function render(){
     if(min52!=null&&max52!=null&&max52>min52&&it.cotacao!=null){
       atratividade=1-(it.cotacao-min52)/(max52-min52)
     }
-    if(vals&&vals.length>1){
-      let n=vals.length,h=24,w=80,mn=+vals[0],mx=+vals[0]
-      for(let j=1;j<n;j++){let v=+vals[j];if(v<mn)mn=v;if(v>mx)mx=v}
-      let rg=mx-mn||1,cor='#ffffff'
-      let d='M0,'+((h-1-(+vals[0]-mn)/rg*(h-2))).toFixed(1)
-      for(let j=1;j<n;j++)d+=' L'+(j/(n-1)*w).toFixed(1)+','+((h-1-(+vals[j]-mn)/rg*(h-2))).toFixed(1)
-      html+='<td><svg width="80" height="24" viewBox="0 0 80 24"><rect width="80" height="24" fill="var(--card)" rx="2"/><path fill="none" stroke="'+cor+'" stroke-width="1.5" d="'+d+'"/></svg></td>'
+    let divs=it.historico_dividendos;if(typeof divs==='string')try{divs=JSON.parse(divs)}catch(e){divs=null};if(!Array.isArray(divs))divs=null
+    if(divs&&divs.length>1){
+      let n=divs.length,h=24,w=80,bw=Math.max(3,Math.floor((w-4)/n)-1),mx=divs[0]
+      for(let j=1;j<n;j++){let v=+divs[j];if(v>mx)mx=v}
+      let rg=mx||1,bars=''
+      for(let j=0;j<n;j++){
+        let bh=((+divs[j])/rg)*(h-4),x=2+j*(bw+1),y=h-2-bh
+        bars+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+bw+'" height="'+bh.toFixed(1)+'" fill="#ffffff" rx="1"/>'
+      }
+      html+='<td><svg width="80" height="24" viewBox="0 0 80 24"><rect width="80" height="24" fill="var(--card)" rx="2"/>'+bars+'</svg></td>'
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
