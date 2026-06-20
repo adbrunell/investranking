@@ -369,7 +369,19 @@ async function load(){
       if (loggedIn) {
         try{const setups=await listarSetups();if(setups.length>0)aplicarFiltros(setups[0].filtros)}catch(e){}
         // Load user tickers for "Meus Ativos" filter (separate try/catch to not break flow)
-        try{const ativos=await listarAtivos();userTickers=ativos.map(a=>a.ticker).filter(Boolean)}catch(e){}
+        try{
+          const ativos=await listarAtivos()
+          userTickers=ativos.map(a=>a.ticker).filter(Boolean)
+          // Auto-activate Meus Ativos filter if user has assets
+          if(userTickers.length&&!activeTipos['meus-ativos']){
+            activeTipos['meus-ativos']=true
+            document.getElementById('filterMeusAtivos').classList.add('active')
+            // Desliga os chips de tipo
+            document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
+              if(e.dataset.tipo!=='meus-ativos'){e.classList.remove('active');activeTipos[e.dataset.tipo]=false}
+            })
+          }
+        }catch(e){}
       }
     } catch(e) {}
     if (!loggedIn) {
