@@ -111,7 +111,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:nth-child(7){min-width:80px;padding:8px 4px}
 .tbl-wrap tbody td:nth-child(8){min-width:44px;padding:8px 4px}
 .tbl-wrap tbody td:nth-child(10){text-align:center;min-width:88px}
-.tbl-wrap tbody td:nth-child(11){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
+.tbl-wrap tbody td:nth-child(11){min-width:52px}
+.tbl-wrap tbody td:nth-child(12){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
 .tbl-wrap tbody tr:first-child td:first-child{color:#ffd700;font-size:16px}
 .tbl-wrap tbody tr:nth-child(2) td:first-child{color:#c0c0c0;font-size:15px}
 .tbl-wrap tbody tr:nth-child(3) td:first-child{color:#cd7f32;font-size:14px}
@@ -146,7 +147,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:nth-child(8){min-width:36px}
 .tbl-wrap tbody td:nth-child(9){min-width:44px}
 .tbl-wrap tbody td:nth-child(10){min-width:72px}
-.tbl-wrap tbody td:nth-child(11){font-size:10px;min-width:30px}
+.tbl-wrap tbody td:nth-child(11){min-width:44px}
+.tbl-wrap tbody td:nth-child(12){font-size:10px;min-width:30px}
 }
 .pf-row{display:flex;gap:6px;margin-bottom:8px}
 .pf-cell{flex:1;display:flex;flex-direction:column;gap:2px}
@@ -289,6 +291,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
         <th>Atratividade</th>
         <th>Cotação</th>
         <th>Dividendos<br>12m</th>
+        <th>Último</th>
         <th>Nota</th>
       </tr></thead>
       <tbody id="feed"></tbody>
@@ -499,6 +502,12 @@ function render(){
         bars+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+Math.max(1,bw-1)+'" height="'+bh.toFixed(1)+'" fill="#ffffff" rx="1"/>'
       }
       html+='<td><svg width="100%" height="24" viewBox="0 0 80 24" preserveAspectRatio="none"><rect width="80" height="24" fill="var(--card)" rx="2"/>'+bars+'</svg></td>'
+    }else{
+      html+='<td style="color:var(--muted);font-size:9px">—</td>'
+    }
+    if(divs&&divs.length>0){
+      let ultVal=+divs[divs.length-1],ultDy=it.cotacao>0?ultVal/it.cotacao:0
+      html+='<td><div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2">'+fmtNum(ultVal)+'</div><div style="font-size:9px;font-weight:400;font-variant-numeric:tabular-nums;line-height:1;color:var(--muted)">'+(ultDy>0?(ultDy*100).toFixed(2)+'%':'—')+'</div></td>'
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
