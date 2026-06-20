@@ -181,8 +181,12 @@ async function init(){
         document.getElementById('inputNome').value=perfil.nome||''
         document.getElementById('inputEstado').value=perfil.estado||''
         if(perfil.estado)carregarCidades(perfil.cidade||'')
+      }else{
+        console.warn('Nenhum perfil encontrado')
       }
-    }catch(e){}
+    }catch(e){
+      console.warn('Erro ao carregar perfil:',e)
+    }
   }catch(e){
     mostrarToast('Erro ao carregar: '+e.message,true)
   }

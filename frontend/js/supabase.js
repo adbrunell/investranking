@@ -85,7 +85,7 @@ async function deletarSetup(id) {
 
 // ─── User Ativos CRUD ────────────────────────────
 async function listarAtivos() {
-  const uid=_token()?.user?.id
+  const uid=_userId()
   if(!uid)throw new Error('Usuário não autenticado')
   const r=await _api('user_ativos?select=*&user_id=eq.'+uid+'&order=ticker.asc')
   if(!r.ok)throw new Error(await r.text())
@@ -93,7 +93,7 @@ async function listarAtivos() {
 }
 
 async function adicionarAtivo(ticker, quantidade) {
-  const uid=_token()?.user?.id
+  const uid=_userId()
   if(!uid)throw new Error('Usuário não autenticado')
   const r=await _api('user_ativos',{method:'POST',body:JSON.stringify({user_id:uid,ticker,quantidade})})
   if(!r.ok)throw new Error(await r.text())
@@ -123,6 +123,26 @@ function _token(){
   return null
 }
 
+function _userId(){
+  try{
+    const t=_token()
+    if(!t)return null
+    // Try all known locations for user id
+    if(t.user?.id)return t.user.id
+    if(t.identities?.length&&t.identities[0].user_id)return t.identities[0].user_id
+    if(t.sub)return t.sub
+    // Decode JWT sub (base64url -> base64)
+    const raw=t.access_token
+    const p=raw.split('.')[1]
+    if(!p)return null
+    let b64=p.replace(/-/g,'+').replace(/_/g,'/')
+    while(b64.length%4)b64+='='
+    const d=JSON.parse(atob(b64))
+    return d.sub||null
+  }catch(e){}
+  return null
+}
+
 function _api(path,opts){
   const t=_token()
   if(!t)return Promise.reject(new Error('Não autenticado'))
@@ -131,7 +151,7 @@ function _api(path,opts){
 
 // ─── User Profile CRUD ──────────────────────────
 async function getProfile() {
-  const uid=_token()?.user?.id
+  const uid=_userId()
   if(!uid)throw new Error('Usuário não autenticado')
   const r=await _api('user_profiles?user_id=eq.'+uid+'&limit=1')
   if(!r.ok)throw new Error(await r.text())
@@ -140,9 +160,7 @@ async function getProfile() {
 }
 
 async function upsertProfile(profile) {
-  const t=_token()
-  if(!t)throw new Error('Usuário não autenticado')
-  const uid=t.user?.id
+  const uid=_userId()
   if(!uid)throw new Error('Usuário não autenticado')
   // Try update first
   const up=await _api('user_profiles?user_id=eq.'+uid,{method:'PATCH',body:JSON.stringify({...profile,updated_at:new Date().toISOString()})})
