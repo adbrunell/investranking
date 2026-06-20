@@ -199,7 +199,7 @@ async function upsertProfile(profile) {
 async function resetSenha(email) {
   _check()
   const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/pages/recuperar-senha.html'
+    redirectTo: 'https://www.investranking.com.br/pages/recuperar-senha.html'
   })
   if (error) throw error
 }
