@@ -95,8 +95,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tipo-FI-Infra{background:rgba(91,127,255,.12);color:#7b9cff}
 .tipo-FIP-IE{background:rgba(200,130,255,.15);color:#c882ff}
 .cell-seg{flex:1;min-width:80px;font-size:10px;color:var(--muted)}
-.cell-ticker{width:80px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--accent)}
-.cell-liq{width:90px;flex-shrink:0;justify-content:flex-end;font-size:10px;color:var(--text);font-weight:500}
+.cell-ticker{width:80px;flex-shrink:0;font-size:15px;font-weight:600;color:var(--accent)}
+.cell-liq{width:90px;flex-shrink:0;justify-content:flex-end;font-size:11px;color:var(--muted);font-weight:400}
 .cell-cot{width:72px;flex-shrink:0;flex-direction:column;align-items:flex-end;gap:1px}
 .cot-val{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
 .cot-var{font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
@@ -106,9 +106,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-atr{width:60px;flex-shrink:0;justify-content:center}
 .atr-bar{width:40px;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden}
 .atr-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
-.cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.cell-pvp .val{color:var(--text)}
-.cell-dy{width:65px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--muted)}
+.cell-dy{width:65px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--muted)}
 
 
 .cell-nota{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
@@ -148,7 +147,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 @media(max-width:480px){
 .h-rank,.cell-rank{display:none}
 .h-tipo,.cell-tipo{width:40px}
-.h-ticker,.cell-ticker{width:55px;font-size:11px}
+.h-ticker,.cell-ticker{width:55px;font-size:13px}
 .h-cot,.cell-cot{width:54px}
 .cot-val{font-size:10px}
 .cot-var{font-size:8px}
@@ -448,14 +447,14 @@ function render(){
     if(vals&&vals.length>1){
       let n=vals.length,h=26,w=70,mn=+vals[0],mx=+vals[0]
       for(let j=1;j<n;j++){let v=+vals[j];if(v<mn)mn=v;if(v>mx)mx=v}
-      let rg=mx-mn||1,cor=+vals[n-1]>=+vals[0]?'#00c896':'#ff4757'
+      let rg=mx-mn||1,cor='#ffffff'
       let d='M0,'+((h-1-(+vals[0]-mn)/rg*(h-2))).toFixed(1)
       for(let j=1;j<n;j++)d+=' L'+(j/(n-1)*w).toFixed(1)+','+((h-1-(+vals[j]-mn)/rg*(h-2))).toFixed(1)
       html+='<div class="cell cell-graf"><svg width="70" height="26" viewBox="0 0 70 26"><rect width="70" height="26" fill="var(--card)" rx="3"/><path fill="none" stroke="'+cor+'" stroke-width="1" d="'+d+'"/></svg></div>'
     }else{
       html+='<div class="cell cell-graf" style="color:var(--muted);font-size:9px">—</div>'
     }
-    html+='<div class="cell cell-atr"><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:'+(atratividade!=null?(atratividade>0.5?'var(--green)':'var(--red)'):'var(--muted)')+'"></div></div></div>'
+    html+='<div class="cell cell-atr"><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:var(--text)"></div></div></div>'
     html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
     let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
