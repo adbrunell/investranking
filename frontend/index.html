@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Invest Ranking</title>
+<title>Invest Ranking — Análise de FIIs e Ações</title>
+<meta name="description" content="Ranking interativo de Fundos Imobiliários (FIIs) com indicadores como Dividend Yield, P/VP, Liquidez, Maturidade LCI e muito mais. Ferramentas de análise e scanner de fundos.">
+<meta property="og:title" content="Invest Ranking — Análise de FIIs">
+<meta property="og:description" content="Ranking interativo de Fundos Imobiliários com DY, P/VP, liquidez e minigráficos.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.investranking.com.br">
+<link rel="canonical" href="https://www.investranking.com.br">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -98,6 +104,9 @@ function abrir(pagina, el){
     {pagina='login';cache=''}
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
+  // Update page title dynamically
+  var titles={mosaico:'Home',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
+  document.title='Invest Ranking'+(titles[pagina]?' — '+titles[pagina]:'')
 }
 
 // --- Page restoration from query string ---
