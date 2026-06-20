@@ -308,7 +308,7 @@ const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'
 
 let allData=[],searchTerm='',userTickers=[]
 let activeTipos={}
-document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=true})
+document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=el.classList.contains('active')})
 
 function fmtLiq(v){
   if(v==null||isNaN(v)||v===0)return'—'
