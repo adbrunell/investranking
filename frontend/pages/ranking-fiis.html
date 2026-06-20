@@ -80,25 +80,19 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 
 .tbl-wrap table{width:100%;border-collapse:separate;border-spacing:0 2px;font-size:11px}
 .tbl-wrap thead{position:sticky;top:48px;z-index:50}
-.tbl-wrap thead th{padding:8px 10px 6px;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;text-align:right;line-height:1.3}
-.tbl-wrap thead th:first-child{text-align:center}
-.tbl-wrap thead th:nth-child(2){text-align:left}
-.tbl-wrap thead th:nth-child(4),
-.tbl-wrap thead th:nth-child(5),
-.tbl-wrap thead th:nth-child(9){text-align:center}
+.tbl-wrap thead th{padding:8px 10px 6px;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;text-align:center;line-height:1.3}
 .tbl-wrap tbody tr{background:var(--card);animation:rowIn .35s ease-out both;transition:background .15s}
 .tbl-wrap tbody tr:hover{background:var(--card2)}
-.tbl-wrap tbody td{padding:8px 10px;white-space:nowrap;text-align:right;vertical-align:middle}
-.tbl-wrap tbody td:first-child{text-align:center;font-size:13px;font-weight:700;color:var(--text);min-width:30px}
-.tbl-wrap tbody td:nth-child(2){text-align:left;font-size:15px;font-weight:600;color:var(--accent);min-width:36px}
-.tbl-wrap tbody td:nth-child(3){text-align:right}
-.tbl-wrap tbody td:nth-child(4){text-align:center;min-width:80px;padding:8px 4px}
-.tbl-wrap tbody td:nth-child(5){text-align:center;min-width:44px;padding:8px 4px}
+.tbl-wrap tbody td{padding:8px 10px;white-space:nowrap;text-align:center;vertical-align:middle}
+.tbl-wrap tbody td:first-child{font-size:13px;font-weight:700;color:var(--text);min-width:30px}
+.tbl-wrap tbody td:nth-child(2){font-size:15px;font-weight:600;color:var(--accent);min-width:36px}
+.tbl-wrap tbody td:nth-child(4){min-width:80px;padding:8px 4px}
+.tbl-wrap tbody td:nth-child(5){min-width:44px;padding:8px 4px}
 .tbl-wrap tbody td:nth-child(6),
 .tbl-wrap tbody td:nth-child(7),
-.tbl-wrap tbody td:nth-child(8){text-align:right;font-size:11px;font-weight:400;color:var(--muted);min-width:38px}
-.tbl-wrap tbody td:nth-child(9){text-align:center;min-width:88px}
-.tbl-wrap tbody td:nth-child(10){text-align:right;font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
+.tbl-wrap tbody td:nth-child(8){font-size:11px;font-weight:400;color:var(--muted);min-width:38px}
+.tbl-wrap tbody td:nth-child(9){min-width:88px}
+.tbl-wrap tbody td:nth-child(10){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
 .tbl-wrap tbody tr:first-child td:first-child{color:#ffd700;font-size:16px}
 .tbl-wrap tbody tr:nth-child(2) td:first-child{color:#c0c0c0;font-size:15px}
 .tbl-wrap tbody tr:nth-child(3) td:first-child{color:#cd7f32;font-size:14px}
@@ -442,7 +436,7 @@ function render(){
         let bh=((+divs[j])/rg)*(h-4),x=2+j*(bw+1),y=h-2-bh
         bars+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+bw+'" height="'+bh.toFixed(1)+'" fill="#ffffff" rx="1"/>'
       }
-      html+='<td><svg width="80" height="24" viewBox="0 0 80 24"><rect width="80" height="24" fill="var(--card)" rx="2"/>'+bars+'</svg></td>'
+      html+='<td><svg width="100%" height="24" viewBox="0 0 80 24" preserveAspectRatio="none"><rect width="80" height="24" fill="var(--card)" rx="2"/>'+bars+'</svg></td>'
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
