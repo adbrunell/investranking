@@ -460,14 +460,14 @@ function restaurarFiltros(){
       const el=id=>document.getElementById(id)
       if(el('liqMin'))el('liqMin').value=f.liqMin||''
       if(el('liqMax'))el('liqMax').value=f.liqMax||''
-      if(el('wLiq'))el('wLiq').value=f.wLiq||'5'
+      if(el('wLiq')){el('wLiq').value=f.wLiq||'5';el('wLiq').dispatchEvent(new Event('change'))}
       if(el('pvpMin'))el('pvpMin').value=f.pvpMin||''
       if(el('pvpMax'))el('pvpMax').value=f.pvpMax||''
-      if(el('wPvp'))el('wPvp').value=f.wPvp||'5'
+      if(el('wPvp')){el('wPvp').value=f.wPvp||'5';el('wPvp').dispatchEvent(new Event('change'))}
       if(el('dyMin'))el('dyMin').value=f.dyMin||''
       if(el('dyMax'))el('dyMax').value=f.dyMax||''
-      if(el('wDy'))el('wDy').value=f.wDy||'5'
-      if(el('wAtr'))el('wAtr').value=f.wAtr||'5'
+      if(el('wDy')){el('wDy').value=f.wDy||'5';el('wDy').dispatchEvent(new Event('change'))}
+      if(el('wAtr')){el('wAtr').value=f.wAtr||'5';el('wAtr').dispatchEvent(new Event('change'))}
       // Restore slider positions
       ;['liq','pvp','dy'].forEach(m=>{
         const minEl=document.querySelector('.ps-min[data-m="'+m+'"]')
@@ -481,15 +481,14 @@ function restaurarFiltros(){
       const el=id=>document.getElementById(id)
       if(el('liqMin'))el('liqMin').value='1.000.000'
       if(el('liqMax'))el('liqMax').value='20.000.000'
-      if(el('wLiq'))el('wLiq').value='10'
+      if(el('wLiq')){el('wLiq').value='10';el('wLiq').dispatchEvent(new Event('change'))}
       if(el('pvpMin'))el('pvpMin').value='0.5'
       if(el('pvpMax'))el('pvpMax').value='1.5'
-      if(el('wPvp'))el('wPvp').value='10'
+      if(el('wPvp')){el('wPvp').value='10';el('wPvp').dispatchEvent(new Event('change'))}
       if(el('dyMin'))el('dyMin').value='8'
       if(el('dyMax'))el('dyMax').value=''
-      if(el('wDy'))el('wDy').value='10'
-      if(el('wAtr'))el('wAtr').value='5'
-      // Set slider to match
+      if(el('wDy')){el('wDy').value='10';el('wDy').dispatchEvent(new Event('change'))}
+      if(el('wAtr')){el('wAtr').value='5';el('wAtr').dispatchEvent(new Event('change'))}
       syncSliFromPanel()
     }
   }catch(e){}
