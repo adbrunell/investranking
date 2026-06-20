@@ -97,12 +97,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="close" onclick="event.stopPropagation();closeMenu()"><i class="fas fa-times"></i></button>
   </div>
   <div class="scroll">
-    <div class="nav-label">Conta</div>
-    <a class="nav-item" href="pages/login.html" onclick="abrir('login',this);return false"><i class="fas fa-sign-in-alt icon"></i><span class="txt">Entrar</span></a>
-    <a class="nav-item" id="navMeusAtivos" href="pages/meus-ativos.html" onclick="abrir('meus-ativos',this);return false" style="display:none"><i class="fas fa-briefcase icon"></i><span class="txt">Meus Ativos</span></a>
-    <a class="nav-item" id="navMinhaConta" href="pages/minha-conta.html" onclick="abrir('minha-conta',this);return false" style="display:none"><i class="fas fa-user icon"></i><span class="txt">Minha Conta</span></a>
-    <a class="nav-item" id="navLogout" href="#" onclick="return false" style="display:none"><i class="fas fa-sign-out-alt icon"></i><span class="txt" id="navUser">Sair</span></a>
-    <div class="nav-divider"></div>
     <div class="nav-label">Geral</div>
     <a class="nav-item" href="pages/inicio.html" onclick="abrir('inicio',this);return false"><i class="fas fa-home icon"></i><span class="txt">Página Inicial</span></a>
     <div class="nav-divider"></div>
@@ -113,6 +107,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <a class="nav-item" href="pages/ranking.html" onclick="abrir('ranking',this);return false"><i class="fas fa-chart-simple icon"></i><span class="txt">Cotações</span></a>
     <div class="nav-divider"></div>
     <a class="nav-item" href="pages/status.html" onclick="abrir('status',this);return false"><i class="fas fa-sync-alt icon"></i><span class="txt">Status</span></a>
+    <div class="nav-divider"></div>
+    <div class="nav-label">Conta</div>
+    <a class="nav-item" href="pages/login.html" onclick="abrir('login',this);return false"><i class="fas fa-sign-in-alt icon"></i><span class="txt">Entrar</span></a>
+    <a class="nav-item" id="navMeusAtivos" href="pages/meus-ativos.html" onclick="abrir('meus-ativos',this);return false" style="display:none"><i class="fas fa-briefcase icon"></i><span class="txt">Meus Ativos</span></a>
+    <a class="nav-item" id="navMinhaConta" href="pages/minha-conta.html" onclick="abrir('minha-conta',this);return false" style="display:none"><i class="fas fa-user icon"></i><span class="txt">Minha Conta</span></a>
+    <div class="nav-divider"></div>
+    <a class="nav-item" id="navLogout" href="#" onclick="return false" style="display:none"><i class="fas fa-sign-out-alt icon"></i><span class="txt" id="navUser">Sair</span></a>
     <div class="nav-divider"></div>
     <button class="collapse-btn" id="collapseBtn" onclick="toggleSidebar()"><i class="fas fa-chevron-left icon"></i><span class="txt"> Recolher</span></button>
   </div>
@@ -146,10 +147,8 @@ function toggleSidebar(){
 }
 
 function closeMenu(){
-  if(window.innerWidth<768){
-    document.getElementById('sidebar').classList.remove('open')
-    document.getElementById('overlay').classList.remove('show')
-  }
+  document.getElementById('sidebar').classList.remove('open')
+  document.getElementById('overlay').classList.remove('show')
 }
 
 function abrir(pagina, el){
