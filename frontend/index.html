@@ -66,6 +66,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <a class="nav-item" id="navMinhaConta" href="pages/minha-conta.html" onclick="abrir('minha-conta',this);return false" style="display:none"><i class="fas fa-user icon"></i><span class="txt">Minha Conta</span></a>
     <a class="nav-item" id="navLogout" href="#" onclick="return false" style="display:none"><i class="fas fa-sign-out-alt icon"></i><span class="txt" id="navUser">Sair</span></a>
     <div class="nav-divider"></div>
+    <div class="nav-label">Geral</div>
+    <a class="nav-item" href="pages/inicio.html" onclick="abrir('inicio',this);return false"><i class="fas fa-home icon"></i><span class="txt">Página Inicial</span></a>
+    <div class="nav-divider"></div>
     <div class="nav-label">Ferramentas</div>
     <a class="nav-item" href="pages/ranking-fiis.html" onclick="abrir('ranking-fiis',this);return false"><i class="fas fa-trophy icon"></i><span class="txt">Ranking FIIs</span></a>
     <a class="nav-item" href="pages/radar-mais.html" onclick="abrir('radar-mais',this);return false"><i class="fas fa-bullseye icon"></i><span class="txt">Anúncios</span></a>
@@ -79,7 +82,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="overlay" onclick="closeMenu()"></div>
 
 <main id="main">
-  <iframe id="contentFrame" src="pages/landing.html"></iframe>
+  <iframe id="contentFrame" src="pages/inicio.html"></iframe>
 </main>
 
 <script>
@@ -105,14 +108,14 @@ function abrir(pagina, el){
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
   // Update page title dynamically
-  var titles={landing:'',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
+  var titles={inicio:'',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar',inicio:'Página Inicial','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
   document.title='Invest Ranking'+(titles[pagina]?' — '+titles[pagina]:'')
 }
 
 // --- Page restoration from query string ---
 function initFromQuery(){
   let params = new URLSearchParams(location.search)
-  let pagina = params.get('p') || 'landing'
+  let pagina = params.get('p') || 'inicio'
   let el = document.querySelector(`.nav-item[href="pages/${pagina}.html"]`)
   abrir(pagina, el)
 }

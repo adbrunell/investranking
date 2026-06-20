@@ -1,10 +1,7 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/app.html" },
-    { "source": "/js/:path*", "destination": "/js/:path*" },
-    { "source": "/css/:path*", "destination": "/css/:path*" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/(.*)", "destination": "/app.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
