@@ -92,7 +92,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:first-child{text-align:center;font-size:13px;font-weight:700;color:var(--text);min-width:30px}
 .tbl-wrap tbody td:nth-child(2){text-align:left;font-size:15px;font-weight:600;color:var(--accent);min-width:36px}
 .tbl-wrap tbody td:nth-child(3){text-align:right}
-.tbl-wrap tbody td:nth-child(4){text-align:center;min-width:88px}
+.tbl-wrap tbody td:nth-child(4){text-align:center;min-width:96px}
 .tbl-wrap tbody td:nth-child(5){text-align:center;min-width:34px}
 .tbl-wrap tbody td:nth-child(6),
 .tbl-wrap tbody td:nth-child(7),
@@ -420,11 +420,11 @@ function render(){
       atratividade=1-(it.cotacao-min52)/(max52-min52)
     }
     if(vals&&vals.length>1){
-      let n=vals.length,h=24,w=80,mn=+vals[0],mx=+vals[0]
+      let n=vals.length,h=24,w=90,mn=+vals[0],mx=+vals[0]
       for(let j=1;j<n;j++){let v=+vals[j];if(v<mn)mn=v;if(v>mx)mx=v}
       let rg=mx-mn||1,cor='#ffffff',d='M0,'+((h-1-(+vals[0]-mn)/rg*(h-2))).toFixed(1)
       for(let j=1;j<n;j++)d+=' L'+(j/(n-1)*w).toFixed(1)+','+((h-1-(+vals[j]-mn)/rg*(h-2))).toFixed(1)
-      html+='<td><svg width="80" height="24" viewBox="0 0 80 24"><rect width="80" height="24" fill="var(--card)" rx="2"/><path fill="none" stroke="'+cor+'" stroke-width="1.5" d="'+d+'"/></svg></td>'
+      html+='<td><svg width="90" height="24" viewBox="0 0 90 24"><rect width="90" height="24" fill="var(--card)" rx="2"/><path fill="none" stroke="'+cor+'" stroke-width="1" d="'+d+'"/></svg></td>'
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
