@@ -131,18 +131,13 @@ function toggleMenu(){
 }
 
 function toggleSidebar(){
-  let s=document.getElementById('sidebar')
+  let s=document.getElementById('sidebar'),o=document.getElementById('overlay')
+  s.classList.toggle('open')
+  let isOpen=s.classList.contains('open')
+  o.classList.toggle('show',isOpen)
   if(window.innerWidth>=768){
-    s.classList.toggle('open')
     let btn=document.getElementById('collapseBtn')
-    if(s.classList.contains('open')){
-      btn.innerHTML='<i class="fas fa-chevron-left icon"></i><span class="txt"> Recolher</span>'
-    }else{
-      btn.innerHTML='<i class="fas fa-chevron-right icon"></i><span class="txt"> Expandir</span>'
-    }
-  }else{
-    s.classList.toggle('open')
-    document.getElementById('overlay').classList.toggle('show',s.classList.contains('open'))
+    btn.innerHTML=isOpen?'<i class="fas fa-chevron-left icon"></i><span class="txt"> Recolher</span>':'<i class="fas fa-chevron-right icon"></i><span class="txt"> Expandir</span>'
   }
 }
 
