@@ -89,6 +89,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
         <input type="password" id="inputNovaSenha" placeholder="Nova senha (mín. 6 caracteres)">
       </div>
     </div>
+    <div class="card" style="border-color:rgba(255,71,87,.3)">
+      <div class="card-title" style="color:var(--red)"><i class="fas fa-exclamation-triangle"></i> Zona de Perigo</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Apagar sua conta remove todos os seus dados (perfil, ativos, setups) e não pode ser desfeito.</p>
+      <button onclick="deletarContaClick()" style="width:100%;background:transparent;border:1px solid var(--red);color:var(--red);padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.background='rgba(255,71,87,.1)'" onmouseout="this.style.background='transparent'"><i class="fas fa-trash-alt"></i> Deletar minha conta</button>
+    </div>
   </div>
 </div>
 
@@ -227,6 +232,22 @@ async function salvar(){
   }
 
   btn.disabled=false;btn.textContent='Salvar'
+}
+
+async function deletarContaClick(){
+  if(!confirm('TEM CERTEZA? Esta ação é permanente e não pode ser desfeita.'))return
+  if(!confirm('Todos os seus dados serão perdidos. Digite CONFIRMAR para continuar.')||prompt('Digite CONFIRMAR para deletar sua conta:')!=='CONFIRMAR')return
+  const btn=document.getElementById('btnSalvar')
+  btn.disabled=true;btn.textContent='Deletando conta...'
+  try{
+    await deletarConta()
+    localStorage.removeItem('ir_auth')
+    mostrarToast('Conta deletada.',false)
+    setTimeout(()=>{window.top.location.href='/?p=login'},1500)
+  }catch(e){
+    mostrarToast('Erro: '+e.message,true)
+    btn.disabled=false;btn.textContent='Salvar'
+  }
 }
 
 init()

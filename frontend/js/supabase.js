@@ -202,6 +202,13 @@ async function resetSenha(email) {
   if (error) throw error
 }
 
+async function deletarConta() {
+  const t=_getAuth()
+  if(!t)throw new Error('Usuário não autenticado')
+  const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/fn_deletar_conta',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token}})
+  if(!r.ok)throw new Error(await r.text())
+}
+
 async function updatePassword(currentPassword, newPassword) {
   const a=_getAuth()
   if(!a)throw new Error('Usuário não autenticado')
