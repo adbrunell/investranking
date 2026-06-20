@@ -131,6 +131,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:nth-child(9){min-width:72px}
 .tbl-wrap tbody td:nth-child(10){font-size:10px;min-width:30px}
 }
+.pf-row{display:flex;gap:6px;margin-bottom:8px}
+.pf-cell{flex:1;display:flex;flex-direction:column;gap:2px}
+.pf-label{font-size:9px;color:var(--muted);font-weight:600}
+.pf-cell input,.pf-cell select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 6px;color:var(--text);font-size:11px;outline:none;font-family:inherit}
+.pf-cell input:focus,.pf-cell select:focus{border-color:var(--accent)}
+.pf-cell select{color:var(--accent);font-weight:600;cursor:pointer}
+.pf-cell .pweight{font-size:10px;color:var(--muted);text-align:center}
 .ps-row{display:flex;align-items:center;gap:8px;margin:6px 0}
 .ps-track-wrap{flex:1;position:relative;height:24px;display:flex;align-items:center}
 .ps-track{position:relative;width:100%;height:4px;background:var(--border);border-radius:2px}
@@ -181,9 +188,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
           </div>
         </div>
       </div>
-      <div class="prow"><label>Mín</label><input type="text" id="liqMin" inputmode="numeric" placeholder="0" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
-      <div class="prow"><label>Máx</label><input type="text" id="liqMax" inputmode="numeric" placeholder="—" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
-      <div class="prow"><label>Peso</label><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wLiqLabel">0.5</span></span></div>
+      <div class="pf-row">
+        <div class="pf-cell"><label class="pf-label">Mín</label><input type="text" id="liqMin" inputmode="numeric" placeholder="0" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
+        <div class="pf-cell"><label class="pf-label">Máx</label><input type="text" id="liqMax" inputmode="numeric" placeholder="—" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
+        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wLiqLabel">0.5</span></span></div>
+      </div>
     </div>
     <div class="pgroup"><div class="pgroup-title">P/VP</div>
       <div class="ps-row">
@@ -195,9 +204,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
           </div>
         </div>
       </div>
-      <div class="prow"><label>Mín</label><input type="number" id="pvpMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.01"></div>
-      <div class="prow"><label>Máx</label><input type="number" id="pvpMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.01"></div>
-      <div class="prow"><label>Peso</label><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wPvpLabel">0.5</span></span></div>
+      <div class="pf-row">
+        <div class="pf-cell"><label class="pf-label">Mín</label><input type="number" id="pvpMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.01"></div>
+        <div class="pf-cell"><label class="pf-label">Máx</label><input type="number" id="pvpMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.01"></div>
+        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wPvpLabel">0.5</span></span></div>
+      </div>
     </div>
     <div class="pgroup"><div class="pgroup-title">DY</div>
       <div class="ps-row">
@@ -209,9 +220,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
           </div>
         </div>
       </div>
-      <div class="prow"><label>Mín %</label><input type="number" id="dyMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.1"></div>
-      <div class="prow"><label>Máx %</label><input type="number" id="dyMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.1"></div>
-      <div class="prow"><label>Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
+      <div class="pf-row">
+        <div class="pf-cell"><label class="pf-label">Mín %</label><input type="number" id="dyMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.1"></div>
+        <div class="pf-cell"><label class="pf-label">Máx %</label><input type="number" id="dyMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.1"></div>
+        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
+      </div>
     </div>
     <div class="pgroup"><div class="pgroup-title">Atratividade</div>
       <div class="prow"><label>Peso</label><select id="wAtr" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wAtrLabel">0.5</span></span></div>
