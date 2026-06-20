@@ -369,37 +369,7 @@ async function load(){
       if (loggedIn) {
         try{const setups=await listarSetups();if(setups.length>0)aplicarFiltros(setups[0].filtros)}catch(e){}
         // Restore filters from localStorage (they are auto-saved on every render())
-        try{
-          const saved=localStorage.getItem('rankingSetup')
-          if(saved){
-            const f=JSON.parse(saved)
-            const el=id=>document.getElementById(id)
-            el('liqMin')&&(el('liqMin').value=f.liqMin||'')
-            el('liqMax')&&(el('liqMax').value=f.liqMax||'')
-            el('wLiq')&&(el('wLiq').value=f.wLiq||'5')
-            el('pvpMin')&&(el('pvpMin').value=f.pvpMin||'')
-            el('pvpMax')&&(el('pvpMax').value=f.pvpMax||'')
-            el('wPvp')&&(el('wPvp').value=f.wPvp||'5')
-            el('dyMin')&&(el('dyMin').value=f.dyMin||'')
-            el('dyMax')&&(el('dyMax').value=f.dyMax||'')
-            el('wDy')&&(el('wDy').value=f.wDy||'5')
-            el('wAtr')&&(el('wAtr').value=f.wAtr||'5')
-            // Restore slider positions directly (more reliable)
-            ;['liq','pvp','dy'].forEach(m=>{
-              const minEl=document.querySelector('.ps-min[data-m="'+m+'"]')
-              const maxEl=document.querySelector('.ps-max[data-m="'+m+'"]')
-              if(minEl&&f['sli_'+m+'_min']!=null)minEl.value=f['sli_'+m+'_min']
-              if(maxEl&&f['sli_'+m+'_max']!=null)maxEl.value=f['sli_'+m+'_max']
-            })
-            updSliDisp()
-          }else{
-            aplicarFiltros({liqMin:'1.000.000',liqMax:'20.000.000',wLiq:'10',pvpMin:'0.5',pvpMax:'1.5',wPvp:'10',dyMin:'8',dyMax:'',wDy:'10',wAtr:'5'})
-          }
-          if(!activeTipos['meus-ativos'])render()
-        }catch(e){
-          // Fallback: apply defaults on error
-          try{aplicarFiltros({liqMin:'1.000.000',liqMax:'20.000.000',wLiq:'10',pvpMin:'0.5',pvpMax:'1.5',wPvp:'10',dyMin:'8',dyMax:'',wDy:'10',wAtr:'5'})}catch(e2){}
-        }
+        restaurarFiltros()
         // Load user tickers for "Meus Ativos" filter (separate try/catch to not break flow)
         try{
           const ativos=await listarAtivos()
@@ -418,21 +388,7 @@ async function load(){
       }
     } catch(e) {}
     if (!loggedIn) {
-      // Aplicar filtros default
-      try {
-        if (!localStorage.getItem('rankingSetup')) {
-          aplicarFiltros({
-            tipos: {},
-            liqMin: '1.000.000', liqMax: '20.000.000', wLiq: '10',
-            pvpMin: '0.5', pvpMax: '1.5', wPvp: '10',
-            dyMin: '8', dyMax: '', wDy: '10', wAtr: '5'
-          })
-        } else {
-          const saved = localStorage.getItem('rankingSetup')
-          const f = JSON.parse(saved)
-          if (f && f.tipos) aplicarFiltros(f)
-        }
-      } catch(e) {}
+      try{restaurarFiltros()}catch(e){}
     }
     // Atualizar botao do painel conforme auth
     const area = document.getElementById('panelSaveArea')
@@ -493,6 +449,50 @@ function toggleFiltro(el){
 function onSearch(){
   searchTerm=document.getElementById('search').value.toUpperCase().trim()
   render()
+}
+
+// Restore filter values from localStorage (shared between logged-in and non-logged-in paths)
+function restaurarFiltros(){
+  try{
+    const saved=localStorage.getItem('rankingSetup')
+    if(saved){
+      const f=JSON.parse(saved)
+      const el=id=>document.getElementById(id)
+      if(el('liqMin'))el('liqMin').value=f.liqMin||''
+      if(el('liqMax'))el('liqMax').value=f.liqMax||''
+      if(el('wLiq'))el('wLiq').value=f.wLiq||'5'
+      if(el('pvpMin'))el('pvpMin').value=f.pvpMin||''
+      if(el('pvpMax'))el('pvpMax').value=f.pvpMax||''
+      if(el('wPvp'))el('wPvp').value=f.wPvp||'5'
+      if(el('dyMin'))el('dyMin').value=f.dyMin||''
+      if(el('dyMax'))el('dyMax').value=f.dyMax||''
+      if(el('wDy'))el('wDy').value=f.wDy||'5'
+      if(el('wAtr'))el('wAtr').value=f.wAtr||'5'
+      // Restore slider positions
+      ;['liq','pvp','dy'].forEach(m=>{
+        const minEl=document.querySelector('.ps-min[data-m="'+m+'"]')
+        const maxEl=document.querySelector('.ps-max[data-m="'+m+'"]')
+        if(minEl&&f['sli_'+m+'_min']!=null)minEl.value=f['sli_'+m+'_min']
+        if(maxEl&&f['sli_'+m+'_max']!=null)maxEl.value=f['sli_'+m+'_max']
+      })
+      updSliDisp()
+    }else{
+      // First visit: apply defaults
+      const el=id=>document.getElementById(id)
+      if(el('liqMin'))el('liqMin').value='1.000.000'
+      if(el('liqMax'))el('liqMax').value='20.000.000'
+      if(el('wLiq'))el('wLiq').value='10'
+      if(el('pvpMin'))el('pvpMin').value='0.5'
+      if(el('pvpMax'))el('pvpMax').value='1.5'
+      if(el('wPvp'))el('wPvp').value='10'
+      if(el('dyMin'))el('dyMin').value='8'
+      if(el('dyMax'))el('dyMax').value=''
+      if(el('wDy'))el('wDy').value='10'
+      if(el('wAtr'))el('wAtr').value='5'
+      // Set slider to match
+      syncSliFromPanel()
+    }
+  }catch(e){}
 }
 
 function render(){
