@@ -149,9 +149,10 @@ async function listarAtivos() {
 async function adicionarAtivo(ticker, quantidade) {
   const uid=_userId()
   if(!uid)throw new Error('Usuário não autenticado')
-  const r=await _api('user_ativos',{method:'POST',body:JSON.stringify({user_id:uid,ticker,quantidade})})
+  const r=await _api('user_ativos?select=*',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify({user_id:uid,ticker,quantidade})})
   if(!r.ok)throw new Error(await r.text())
-  return await r.json()
+  const d=await r.json()
+  return Array.isArray(d)?d[0]:d
 }
 
 async function atualizarAtivo(id, quantidade) {
