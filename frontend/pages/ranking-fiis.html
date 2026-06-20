@@ -83,7 +83,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap thead th{padding:8px 10px 6px;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;text-align:right;line-height:1.3}
 .tbl-wrap thead th:first-child{text-align:center}
 .tbl-wrap thead th:nth-child(2){text-align:left}
-.tbl-wrap thead th:nth-child(5){text-align:center}
+.tbl-wrap thead th:nth-child(4),
+.tbl-wrap thead th:nth-child(5),
+.tbl-wrap thead th:nth-child(9){text-align:center}
 .tbl-wrap tbody tr{background:var(--card);animation:rowIn .35s ease-out both;transition:background .15s}
 .tbl-wrap tbody tr:hover{background:var(--card2)}
 .tbl-wrap tbody td{padding:8px 10px;white-space:nowrap;text-align:right;vertical-align:middle}
@@ -91,12 +93,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:nth-child(2){text-align:left;font-size:15px;font-weight:600;color:var(--accent);min-width:36px}
 .tbl-wrap tbody td:nth-child(3){text-align:right}
 .tbl-wrap tbody td:nth-child(4){text-align:center;min-width:88px}
-.tbl-wrap thead th:nth-child(4){text-align:center}
 .tbl-wrap tbody td:nth-child(5){text-align:center;min-width:34px}
 .tbl-wrap tbody td:nth-child(6),
 .tbl-wrap tbody td:nth-child(7),
 .tbl-wrap tbody td:nth-child(8){text-align:right;font-size:11px;font-weight:400;color:var(--muted);min-width:38px}
-.tbl-wrap tbody td:nth-child(9){text-align:right;font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
+.tbl-wrap tbody td:nth-child(9){text-align:center;min-width:88px}
+.tbl-wrap tbody td:nth-child(10){text-align:right;font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
 .tbl-wrap tbody tr:first-child td:first-child{color:#ffd700;font-size:11px}
 .tbl-wrap tbody tr:nth-child(2) td:first-child{color:#c0c0c0;font-size:11px}
 .tbl-wrap tbody tr:nth-child(3) td:first-child{color:#cd7f32;font-size:11px}
@@ -132,7 +134,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:nth-child(6),
 .tbl-wrap tbody td:nth-child(7),
 .tbl-wrap tbody td:nth-child(8){font-size:10px;min-width:34px}
-.tbl-wrap tbody td:nth-child(9){font-size:10px;min-width:30px}
+.tbl-wrap tbody td:nth-child(9){min-width:72px}
+.tbl-wrap tbody td:nth-child(10){font-size:10px;min-width:30px}
 }
 .ps-row{display:flex;align-items:center;gap:8px;margin:6px 0}
 .ps-track-wrap{flex:1;position:relative;height:24px;display:flex;align-items:center}
@@ -231,11 +234,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
         <th>#</th>
         <th style="text-align:left">Fundo</th>
         <th style="text-align:right">Cotação</th>
-        <th style="text-align:center">Dividendos<br>12m</th>
+        <th style="text-align:center">Histórico<br>1A</th>
         <th style="text-align:center">Atratividade</th>
         <th style="text-align:right">Liquidez<br>Diária</th>
         <th style="text-align:right">P/VP</th>
         <th style="text-align:right">DY<br>12m</th>
+        <th style="text-align:center">Dividendos<br>12m</th>
         <th style="text-align:right">Nota</th>
       </tr></thead>
       <tbody id="feed"></tbody>
@@ -415,6 +419,20 @@ function render(){
     if(min52!=null&&max52!=null&&max52>min52&&it.cotacao!=null){
       atratividade=1-(it.cotacao-min52)/(max52-min52)
     }
+    if(vals&&vals.length>1){
+      let n=vals.length,h=24,w=80,mn=+vals[0],mx=+vals[0]
+      for(let j=1;j<n;j++){let v=+vals[j];if(v<mn)mn=v;if(v>mx)mx=v}
+      let rg=mx-mn||1,cor='#ffffff',d='M0,'+((h-1-(+vals[0]-mn)/rg*(h-2))).toFixed(1)
+      for(let j=1;j<n;j++)d+=' L'+(j/(n-1)*w).toFixed(1)+','+((h-1-(+vals[j]-mn)/rg*(h-2))).toFixed(1)
+      html+='<td><svg width="80" height="24" viewBox="0 0 80 24"><rect width="80" height="24" fill="var(--card)" rx="2"/><path fill="none" stroke="'+cor+'" stroke-width="1.5" d="'+d+'"/></svg></td>'
+    }else{
+      html+='<td style="color:var(--muted);font-size:9px">—</td>'
+    }
+    html+='<td><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:var(--text)"></div></div></td>'
+    html+='<td>'+fmtLiq(it.liquidez_media_30d)+'</td>'
+    html+='<td>'+fmtNum(it.p_vp)+'</td>'
+    let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
+    html+='<td>'+fmtPct(it.dividend_yield_12m)+'</td>'
     let divs=it.historico_dividendos;if(typeof divs==='string')try{divs=JSON.parse(divs)}catch(e){divs=null};if(!Array.isArray(divs))divs=null
     if(divs&&divs.length>1){
       let n=divs.length,h=24,w=80,bw=Math.max(3,Math.floor((w-4)/n)-1),mx=divs[0]
@@ -428,11 +446,6 @@ function render(){
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
-    html+='<td><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:var(--text)"></div></div></td>'
-    html+='<td>'+fmtLiq(it.liquidez_media_30d)+'</td>'
-    html+='<td>'+fmtNum(it.p_vp)+'</td>'
-    let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
-    html+='<td>'+fmtPct(it.dividend_yield_12m)+'</td>'
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
     let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s):0
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
