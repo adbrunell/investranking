@@ -95,8 +95,18 @@ function abrir(pagina, el){
   let cache='?v='+Date.now()
   // Protected pages: check auth before opening
   if(['minha-conta','meus-ativos'].includes(pagina)){
-    const token=localStorage.getItem('sb-oaqmnaekrpukwmrxjtud-auth-token')
-    if(!token){pagina='login';cache=''}
+    let autenticado=false
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i)
+        if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
+          const d=JSON.parse(localStorage.getItem(k))
+          if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))
+            {autenticado=true;break}
+        }
+      }
+    }catch(e){}
+    if(!autenticado){pagina='login';cache=''}
   }
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
@@ -115,13 +125,27 @@ document.addEventListener('DOMContentLoaded', initFromQuery)
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script>
-function atualizarSidebar(session){
-  if(session){
+function temSessao(){
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i)
+      if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
+        const d=JSON.parse(localStorage.getItem(k))
+        if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))return d
+      }
+    }
+  }catch(e){}
+  return null
+}
+
+function atualizarSidebar(){
+  const token=temSessao()
+  if(token){
     document.querySelector('a[href="pages/login.html"]').style.display='none'
     document.getElementById('navMeusAtivos').style.display=''
     document.getElementById('navMinhaConta').style.display=''
-    const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{await signOut();window.top.location.href='/'}
-    document.getElementById('navUser').textContent=session.user.email?.split('@')[0]||'Sair'
+    const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{try{await signOut()}catch(e){}window.top.location.href='/'}
+    document.getElementById('navUser').textContent=token.user?.email?.split('@')[0]||'Sair'
   }else{
     document.querySelector('a[href="pages/login.html"]').style.display=''
     document.getElementById('navMeusAtivos').style.display='none'
@@ -129,17 +153,11 @@ function atualizarSidebar(session){
     document.getElementById('navLogout').style.display='none'
   }
 }
-// Check on load
-try {
-  getSession().then(({data})=>atualizarSidebar(data?.session)).catch(()=>{})
-} catch(e) {}
-// Listen for auth changes (login/logout from other tabs or iframes)
-try {
-  if(_supabase)_supabase.auth.onAuthStateChange((event, session)=>{
-    if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')atualizarSidebar(session)
-    else if(event==='SIGNED_OUT')atualizarSidebar(null)
-  })
-} catch(e) {}
+// Check on load and on auth changes
+atualizarSidebar()
+try{if(_supabase)_supabase.auth.onAuthStateChange(()=>{setTimeout(atualizarSidebar,100)})}catch(e){}
+// Also check periodically (for cross-tab sync)
+setInterval(atualizarSidebar,5000)
 </script>
 </body>
 </html>

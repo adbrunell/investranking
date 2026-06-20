@@ -140,21 +140,31 @@ function mostrarToast(msg, isError){
   toastTimer=setTimeout(()=>el.classList.remove('show'),3000)
 }
 
+function obterSessao(){
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i)
+      if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
+        const d=JSON.parse(localStorage.getItem(k))
+        if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))
+          return d
+      }
+    }
+  }catch(e){}
+  return null
+}
+
 async function init(){
   try{
-    let sess=await getSession()
-    if(!sess?.data?.session){
-      try{
-        const p=window.parent.getSession ? await window.parent.getSession() : null
-        if(p?.data?.session)sess=p
-        else{window.top.location.href='/?p=login';return}
-      }catch(e){window.top.location.href='/?p=login';return}
-    }
+    const token=obterSessao()
+    if(!token){window.top.location.href='/?p=login';return}
+    const userEmail=token.user?.email||''
+
     document.getElementById('loginMsg').style.display='none'
     document.getElementById('profileForm').style.display='block'
     document.getElementById('saveBar').style.display='block'
 
-    document.getElementById('inputEmail').value=sess.data.session.user.email||''
+    document.getElementById('inputEmail').value=userEmail
 
     // Carregar estados
     const selEstado=document.getElementById('inputEstado')

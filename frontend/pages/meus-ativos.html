@@ -100,16 +100,24 @@ const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'
 
 let ativos=[],selectedTicker=null,searchCache={}
 
+function obterSessao(){
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i)
+      if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
+        const d=JSON.parse(localStorage.getItem(k))
+        if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))
+          return d
+      }
+    }
+  }catch(e){}
+  return null
+}
+
 async function carregar(){
   try{
-    let sess=await getSession()
-    if(!sess?.data?.session){
-      try{
-        const p=window.parent.getSession ? await window.parent.getSession() : null
-        if(p?.data?.session)sess=p
-        else{window.top.location.href='/?p=login';return}
-      }catch(e){window.top.location.href='/?p=login';return}
-    }
+    const token=obterSessao()
+    if(!token){window.top.location.href='/?p=login';return}
     ativos=await listarAtivos()
     renderTabela()
   }catch(e){
