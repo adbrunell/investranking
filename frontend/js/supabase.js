@@ -107,47 +107,39 @@ function getSession() {
 
 // ─── Setups CRUD (uses Supabase client, works with parent scope) ──
 async function salvarSetup(nome, filtros) {
-  _check();await _restaurarSessao()
-  const user = _getAuth()?.user
-  if (!user) throw new Error('Usuário não autenticado')
-  const { data, error } = await _supabase
-    .from('user_setup')
-    .insert({ user_id: user.id, nome, filtros })
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const uid=_userId()
+  if(!uid)throw new Error('Usuário não autenticado')
+  // Upsert: check if exists first
+  const exist=await _api('user_setup?select=id&user_id=eq.'+uid+'&limit=1')
+  const existing=exist.ok?(await exist.json()):[]
+  if(existing.length){
+    const r=await _api('user_setup?id=eq.'+existing[0].id,{method:'PATCH',body:JSON.stringify({nome,filtros,updated_at:new Date().toISOString()})})
+    if(!r.ok)throw new Error(await r.text())
+    return existing[0]
+  }else{
+    const r=await _api('user_setup',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify({user_id:uid,nome,filtros})})
+    if(!r.ok)throw new Error(await r.text())
+    const d=await r.json()
+    return Array.isArray(d)?d[0]:d
+  }
 }
 
 async function listarSetups() {
-  _check()
-  try{await _restaurarSessao()}catch(e){}
   try{
-    const { data, error } = await _supabase.from('user_setup').select('*').order('created_at', { ascending: false })
-    if(error)throw error
-    return data||[]
+    const r=await _api('user_setup?select=*&order=created_at.desc')
+    if(!r.ok)return []
+    return await r.json()
   }catch(e){return []}
 }
 
 async function atualizarSetup(id, updates) {
-  _check()
-  const { data, error } = await _supabase
-    .from('user_setup')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const r=await _api('user_setup?id=eq.'+id,{method:'PATCH',body:JSON.stringify({...updates,updated_at:new Date().toISOString()})})
+  if(!r.ok)throw new Error(await r.text())
 }
 
 async function deletarSetup(id) {
-  _check()
-  const { error } = await _supabase
-    .from('user_setup')
-    .delete()
-    .eq('id', id)
-  if (error) throw error
+  const r=await _api('user_setup?id=eq.'+id,{method:'DELETE'})
+  if(!r.ok)throw new Error(await r.text())
 }
 
 // ─── User Ativos CRUD ────────────────────────────
