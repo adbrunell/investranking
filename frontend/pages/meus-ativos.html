@@ -154,14 +154,36 @@ function selecionarTicker(ticker,classe){
 
 // Keyboard navigation for suggestions
 document.getElementById('searchTicker').addEventListener('keydown',function(e){
-  if(e.key==='Enter'&&selectedTicker){document.getElementById('addBtn').click();return}
   const sug=document.getElementById('suggestions')
-  if(!sug.classList.contains('show'))return
   const items=sug.querySelectorAll('div')
+  // Find currently hovered index
   let idx=-1
-  items.forEach((d,i)=>{if(d.classList.contains('hover')){d.classList.remove('hover');idx=i}})
-  if(e.key==='ArrowDown'){e.preventDefault();idx=Math.min(idx+1,items.length-1)}else if(e.key==='ArrowUp'){e.preventDefault();idx=Math.max(idx-1,0)}else if(e.key==='Enter'){e.preventDefault();if(idx>=0)items[idx].click();return}
-  if(idx>=0&&items[idx]){items[idx].classList.add('hover');items[idx].scrollIntoView({block:'nearest'})}
+  items.forEach((d,i)=>{if(d.classList.contains('hover')){idx=i}})
+  
+  // Auto-highlight first item when suggestions appear
+  if(items.length&&idx===-1&&(e.key==='ArrowDown'||e.key==='Tab'||e.key==='Enter'))idx=0
+
+  if(e.key==='ArrowDown'){
+    e.preventDefault()
+    items.forEach(d=>d.classList.remove('hover'))
+    idx=Math.min(idx+1,items.length-1)
+    items[idx].classList.add('hover')
+    items[idx].scrollIntoView({block:'nearest'})
+  }else if(e.key==='ArrowUp'){
+    e.preventDefault()
+    items.forEach(d=>d.classList.remove('hover'))
+    idx=Math.max(idx-1,0)
+    items[idx].classList.add('hover')
+    items[idx].scrollIntoView({block:'nearest'})
+  }else if(e.key==='Enter'||e.key==='Tab'){
+    if(idx>=0&&idx<items.length&&sug.classList.contains('show')){
+      e.preventDefault()
+      items[idx].click()
+    }else if(e.key==='Enter'&&selectedTicker){
+      e.preventDefault()
+      document.getElementById('addBtn').click()
+    }
+  }
 })
 
 document.addEventListener('click',function(e){
