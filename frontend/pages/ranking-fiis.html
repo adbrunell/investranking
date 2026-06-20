@@ -373,23 +373,33 @@ async function load(){
           const saved=localStorage.getItem('rankingSetup')
           if(saved){
             const f=JSON.parse(saved)
-            document.getElementById('liqMin').value=f.liqMin||''
-            document.getElementById('liqMax').value=f.liqMax||''
-            document.getElementById('wLiq').value=f.wLiq||'5'
-            document.getElementById('pvpMin').value=f.pvpMin||''
-            document.getElementById('pvpMax').value=f.pvpMax||''
-            document.getElementById('wPvp').value=f.wPvp||'5'
-            document.getElementById('dyMin').value=f.dyMin||''
-            document.getElementById('dyMax').value=f.dyMax||''
-            document.getElementById('wDy').value=f.wDy||'5'
-            document.getElementById('wAtr').value=f.wAtr||'5'
-            syncSliFromPanel()
+            const el=id=>document.getElementById(id)
+            el('liqMin')&&(el('liqMin').value=f.liqMin||'')
+            el('liqMax')&&(el('liqMax').value=f.liqMax||'')
+            el('wLiq')&&(el('wLiq').value=f.wLiq||'5')
+            el('pvpMin')&&(el('pvpMin').value=f.pvpMin||'')
+            el('pvpMax')&&(el('pvpMax').value=f.pvpMax||'')
+            el('wPvp')&&(el('wPvp').value=f.wPvp||'5')
+            el('dyMin')&&(el('dyMin').value=f.dyMin||'')
+            el('dyMax')&&(el('dyMax').value=f.dyMax||'')
+            el('wDy')&&(el('wDy').value=f.wDy||'5')
+            el('wAtr')&&(el('wAtr').value=f.wAtr||'5')
+            // Restore slider positions directly (more reliable)
+            ;['liq','pvp','dy'].forEach(m=>{
+              const minEl=document.querySelector('.ps-min[data-m="'+m+'"]')
+              const maxEl=document.querySelector('.ps-max[data-m="'+m+'"]')
+              if(minEl&&f['sli_'+m+'_min']!=null)minEl.value=f['sli_'+m+'_min']
+              if(maxEl&&f['sli_'+m+'_max']!=null)maxEl.value=f['sli_'+m+'_max']
+            })
+            updSliDisp()
           }else{
             aplicarFiltros({liqMin:'1.000.000',liqMax:'20.000.000',wLiq:'10',pvpMin:'0.5',pvpMax:'1.5',wPvp:'10',dyMin:'8',dyMax:'',wDy:'10',wAtr:'5'})
           }
-          // Force render to ensure UI reflects restored/default values
           if(!activeTipos['meus-ativos'])render()
-        }catch(e){}
+        }catch(e){
+          // Fallback: apply defaults on error
+          try{aplicarFiltros({liqMin:'1.000.000',liqMax:'20.000.000',wLiq:'10',pvpMin:'0.5',pvpMax:'1.5',wPvp:'10',dyMin:'8',dyMax:'',wDy:'10',wAtr:'5'})}catch(e2){}
+        }
         // Load user tickers for "Meus Ativos" filter (separate try/catch to not break flow)
         try{
           const ativos=await listarAtivos()
@@ -585,9 +595,19 @@ function render(){
     html+='</tr>'
   }
   document.getElementById('feed').innerHTML=html
-  // Auto-save filter values to localStorage
+  // Auto-save ALL filter values to localStorage (always, on every render)
   try{
-    const f={liqMin:document.getElementById('liqMin').value,liqMax:document.getElementById('liqMax').value,wLiq:document.getElementById('wLiq').value,pvpMin:document.getElementById('pvpMin').value,pvpMax:document.getElementById('pvpMax').value,wPvp:document.getElementById('wPvp').value,dyMin:document.getElementById('dyMin').value,dyMax:document.getElementById('dyMax').value,wDy:document.getElementById('wDy').value,wAtr:document.getElementById('wAtr').value}
+    const el=id=>document.getElementById(id)
+    const f={
+      liqMin:el('liqMin')?.value||'',liqMax:el('liqMax')?.value||'',wLiq:el('wLiq')?.value||'5',
+      pvpMin:el('pvpMin')?.value||'',pvpMax:el('pvpMax')?.value||'',wPvp:el('wPvp')?.value||'5',
+      dyMin:el('dyMin')?.value||'',dyMax:el('dyMax')?.value||'',wDy:el('wDy')?.value||'5',
+      wAtr:el('wAtr')?.value||'5'
+    }
+    // Also save slider positions for reliable restore
+    document.querySelectorAll('.ps-min,.ps-max').forEach(sl=>{
+      f['sli_'+sl.dataset.m+'_'+ (sl.classList.contains('ps-min')?'min':'max')]=sl.value
+    })
     localStorage.setItem('rankingSetup',JSON.stringify(f))
   }catch(e){}
 }
