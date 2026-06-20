@@ -85,64 +85,71 @@ async function deletarSetup(id) {
 
 // ─── User Ativos CRUD ────────────────────────────
 async function listarAtivos() {
-  await _garantirSessao()
-  const {data,error}=await _supabase.from('user_ativos').select('*').order('ticker',{ascending:true})
-  if(error)throw error
-  return data||[]
+  const uid=_token()?.user?.id
+  if(!uid)throw new Error('Usuário não autenticado')
+  const r=await _api('user_ativos?select=*&user_id=eq.'+uid+'&order=ticker.asc')
+  if(!r.ok)throw new Error(await r.text())
+  return await r.json()
 }
 
 async function adicionarAtivo(ticker, quantidade) {
-  const s=await _garantirSessao()
-  const {data,error}=await _supabase.from('user_ativos').insert({user_id:s.user.id,ticker,quantidade}).select().single()
-  if(error)throw error
-  return data
+  const uid=_token()?.user?.id
+  if(!uid)throw new Error('Usuário não autenticado')
+  const r=await _api('user_ativos',{method:'POST',body:JSON.stringify({user_id:uid,ticker,quantidade})})
+  if(!r.ok)throw new Error(await r.text())
+  return await r.json()
 }
 
 async function atualizarAtivo(id, quantidade) {
-  await _garantirSessao()
-  const {error}=await _supabase.from('user_ativos').update({quantidade,updated_at:new Date().toISOString()}).eq('id',id)
-  if(error)throw error
+  const r=await _api('user_ativos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({quantidade,updated_at:new Date().toISOString()})})
+  if(!r.ok)throw new Error(await r.text())
 }
 
 async function deletarAtivo(id) {
-  await _garantirSessao()
-  const {error}=await _supabase.from('user_ativos').delete().eq('id',id)
-  if(error)throw error
+  const r=await _api('user_ativos?id=eq.'+id,{method:'DELETE'})
+  if(!r.ok)throw new Error(await r.text())
 }
 
-async function _garantirSessao(){
-  if(!_supabase)throw new Error('SDK não carregado')
-  const j=await _supabase.auth.getSession()
-  if(j?.data?.session)return j.data.session
-  // Recover from localStorage
+function _token(){
   for(let i=0;i<localStorage.length;i++){
     const k=localStorage.key(i)
     if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
       try{
         const d=JSON.parse(localStorage.getItem(k))
-        if(d&&d.access_token){
-          await _supabase.auth.setSession({access_token:d.access_token,refresh_token:d.refresh_token})
-          const j2=await _supabase.auth.getSession()
-          if(j2?.data?.session)return j2.data.session
-        }
+        if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))return d
       }catch(e){}
     }
   }
-  throw new Error('Usuário não autenticado')
+  return null
+}
+
+function _api(path,opts){
+  const t=_token()
+  if(!t)return Promise.reject(new Error('Não autenticado'))
+  return fetch(SUPABASE_URL+'/rest/v1/'+path,{...opts,headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token,...opts?.headers}})
 }
 
 // ─── User Profile CRUD ──────────────────────────
 async function getProfile() {
-  await _garantirSessao()
-  const {data,error}=await _supabase.from('user_profiles').select('*').maybeSingle()
-  if(error)throw error
-  return data
+  const uid=_token()?.user?.id
+  if(!uid)throw new Error('Usuário não autenticado')
+  const r=await _api('user_profiles?user_id=eq.'+uid+'&limit=1')
+  if(!r.ok)throw new Error(await r.text())
+  const d=await r.json()
+  return d&&d.length?d[0]:null
 }
 
 async function upsertProfile(profile) {
-  const s=await _garantirSessao()
-  const {error}=await _supabase.from('user_profiles').upsert({user_id:s.user.id,...profile,updated_at:new Date().toISOString()},{onConflict:'user_id'})
-  if(error)throw error
+  const t=_token()
+  if(!t)throw new Error('Usuário não autenticado')
+  const uid=t.user?.id
+  if(!uid)throw new Error('Usuário não autenticado')
+  // Try update first
+  const up=await _api('user_profiles?user_id=eq.'+uid,{method:'PATCH',body:JSON.stringify({...profile,updated_at:new Date().toISOString()})})
+  if(up.ok)return
+  // If no row to update, insert
+  const r=await _api('user_profiles',{method:'POST',body:JSON.stringify({user_id:uid,...profile,updated_at:new Date().toISOString()})})
+  if(!r.ok)throw new Error(await r.text())
 }
 
 async function resetSenha(email) {
