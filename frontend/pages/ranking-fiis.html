@@ -75,6 +75,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .atr-bar{width:100%;height:20px;background:rgba(255,255,255,0.06);overflow:hidden}
 .atr-fill{height:100%;transition:width .6s;background:var(--text)}
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;max-width:380px;width:100%;padding:20px;max-height:90vh;overflow-y:auto}
+.modal-box h3{font-size:14px;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.modal-box p{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.modal-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px}
+.modal-table th,.modal-table td{padding:6px 8px;border:1px solid var(--border);text-align:center}
+.modal-table th{background:var(--card2);color:var(--accent);font-weight:600;font-size:10px}
+.modal-table td{color:var(--text)}
+.modal-table tr td:first-child{font-weight:600;color:var(--accent)}
+.modal-close{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 16px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;width:100%;margin-top:4px}
 .empty-state i{font-size:36px;opacity:.3;margin-bottom:10px}
 @keyframes rowIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 
@@ -92,7 +103,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:nth-child(7),
 .tbl-wrap tbody td:nth-child(8){font-size:13px;font-weight:400;color:var(--muted);min-width:38px}
 .tbl-wrap tbody td:nth-child(9){min-width:88px}
-.tbl-wrap tbody td:nth-child(10){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
+.tbl-wrap tbody td:nth-child(10){text-align:center;min-width:52px;font-size:11px}
+.tbl-wrap tbody td:nth-child(11){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
 .tbl-wrap tbody tr:first-child td:first-child{color:#ffd700;font-size:16px}
 .tbl-wrap tbody tr:nth-child(2) td:first-child{color:#c0c0c0;font-size:15px}
 .tbl-wrap tbody tr:nth-child(3) td:first-child{color:#cd7f32;font-size:14px}
@@ -129,7 +141,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td:nth-child(7),
 .tbl-wrap tbody td:nth-child(8){font-size:11px;min-width:34px}
 .tbl-wrap tbody td:nth-child(9){min-width:72px}
-.tbl-wrap tbody td:nth-child(10){font-size:10px;min-width:30px}
+.tbl-wrap tbody td:nth-child(10){min-width:44px;font-size:10px}
+.tbl-wrap tbody td:nth-child(11){font-size:10px;min-width:30px}
 }
 .pf-row{display:flex;gap:6px;margin-bottom:8px}
 .pf-cell{flex:1;display:flex;flex-direction:column;gap:2px}
@@ -235,6 +248,30 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 
 <div class="container">
   <div id="loading" class="loading"><div class="spinner"></div><span>Carregando...</span></div>
+  <div id="modalMaturidade" class="modal-overlay" onclick="if(event.target===this)fecharAjudaMaturidade()">
+    <div class="modal-box">
+      <h3><i class="fas fa-clipboard-list"></i> Maturidade LCI</h3>
+      <p>Cada fundo recebe uma nota A, B ou C em três critérios. O resultado é mostrado no formato <b>Liq|Cotistas|Idade</b>.</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="flex:1;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:700;color:#00c896">A</div><div style="font-size:9px;color:var(--muted);margin-top:2px">2 pts</div></div>
+        <div style="flex:1;background:rgba(255,222,89,0.1);border:1px solid rgba(255,222,89,0.3);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:700;color:#ffde59">B</div><div style="font-size:9px;color:var(--muted);margin-top:2px">1 pt</div></div>
+        <div style="flex:1;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:700;color:#ff4757">C</div><div style="font-size:9px;color:var(--muted);margin-top:2px">0 pts</div></div>
+      </div>
+      <table class="modal-table">
+        <tr><th style="text-align:left">Critério</th><th>A</th><th>B</th><th>C</th></tr>
+        <tr><td style="text-align:left">Liquidez</td><td>&gt; 1 MM</td><td>&gt; 200 mil</td><td>≤ 200 mil</td></tr>
+        <tr><td style="text-align:left">Cotistas</td><td>&gt; 100 mil</td><td>&gt; 20 mil</td><td>≤ 20 mil</td></tr>
+        <tr><td style="text-align:left">Idade</td><td>&gt; 5 anos</td><td>&gt; 2 anos</td><td>≤ 2 anos</td></tr>
+      </table>
+      <p>A barra abaixo da nota mostra a cor conforme a pontuação total:</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="flex:1;text-align:center;padding:6px;border-radius:6px;background:rgba(0,200,150,0.15);font-size:10px;font-weight:600;color:#00c896">5+ pts → Verde</div>
+        <div style="flex:1;text-align:center;padding:6px;border-radius:6px;background:rgba(255,222,89,0.15);font-size:10px;font-weight:600;color:#ffde59">3-4 pts → Amarelo</div>
+        <div style="flex:1;text-align:center;padding:6px;border-radius:6px;background:rgba(255,71,87,0.15);font-size:10px;font-weight:600;color:#ff4757">0-2 pts → Vermelho</div>
+      </div>
+      <button class="modal-close" onclick="fecharAjudaMaturidade()">Entendi</button>
+    </div>
+  </div>
   <div class="tbl-wrap" style="display:none" id="tblWrap">
     <table>
       <thead><tr>
@@ -247,6 +284,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
         <th style="text-align:right">P/VP</th>
         <th style="text-align:right">DY<br>12m</th>
         <th style="text-align:center">Dividendos<br>12m</th>
+        <th style="text-align:center">Maturidade<br>LCI <i class="fas fa-question-circle" onclick="event.stopPropagation();abrirAjudaMaturidade()" style="cursor:pointer;color:var(--accent);font-size:9px"></i></th>
         <th style="text-align:right">Nota</th>
       </tr></thead>
       <tbody id="feed"></tbody>
@@ -300,7 +338,7 @@ function togglePanel(){
 
 async function load(){
   try{
-    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes,historico_dividendos&limit=1000',{headers:H})
+    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes,historico_dividendos,maturidade_lci&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     allData=allData.filter(d=>d.dividend_yield_12m==null||d.dividend_yield_12m<=1)
@@ -452,6 +490,14 @@ function render(){
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
+    if(it.maturidade_lci){
+      let ps=it.maturidade_lci.split('|'),sc=0
+      for(let k=0;k<3;k++){if(ps[k]==='A')sc+=2;else if(ps[k]==='B')sc+=1}
+      let cor=sc>=5?'#00c896':sc>=3?'#ffde59':'#ff4757'
+      html+='<td><div style="font-size:11px;font-weight:600;letter-spacing:1px">'+it.maturidade_lci+'</div><div style="height:3px;width:100%;background:'+cor+';border-radius:2px;margin-top:3px"></div></td>'
+    }else{
+      html+='<td style="color:var(--muted);font-size:9px">—</td>'
+    }
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
     let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s):0
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
@@ -525,6 +571,9 @@ async function salvarSetupAtual() {
   } catch(e) { alert('Erro ao salvar: ' + e.message) }
 }
 
+// ─── Maturidade LCI Help ────────────────────
+function abrirAjudaMaturidade(){document.getElementById('modalMaturidade').classList.add('open')}
+function fecharAjudaMaturidade(){document.getElementById('modalMaturidade').classList.remove('open')}
 // ─── Panel Sliders ──────────────────────────
 let rangeData={}
 
