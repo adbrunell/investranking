@@ -109,7 +109,7 @@ async function salvarSetup(nome, filtros) {
   const user = _getAuth()?.user
   if (!user) throw new Error('Usuário não autenticado')
   const { data, error } = await _supabase
-    .from('setups')
+    .from('user_setup')
     .insert({ user_id: user.id, nome, filtros })
     .select()
     .single()
@@ -121,7 +121,7 @@ async function listarSetups() {
   _check()
   try{await _restaurarSessao()}catch(e){}
   try{
-    const { data, error } = await _supabase.from('setups').select('*').order('created_at', { ascending: false })
+    const { data, error } = await _supabase.from('user_setup').select('*').order('created_at', { ascending: false })
     if(error)throw error
     return data||[]
   }catch(e){return []}
@@ -130,7 +130,7 @@ async function listarSetups() {
 async function atualizarSetup(id, updates) {
   _check()
   const { data, error } = await _supabase
-    .from('setups')
+    .from('user_setup')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -142,7 +142,7 @@ async function atualizarSetup(id, updates) {
 async function deletarSetup(id) {
   _check()
   const { error } = await _supabase
-    .from('setups')
+    .from('user_setup')
     .delete()
     .eq('id', id)
   if (error) throw error
