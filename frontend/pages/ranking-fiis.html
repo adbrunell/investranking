@@ -300,6 +300,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
   </div>
 </div>
 
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
 <script>
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
@@ -404,12 +406,23 @@ function populateDatalist(){
 function toggleFiltro(el){
   let k=el.dataset.tipo
   if(k==='all'){
-    let allOn=Object.keys(activeTipos).every(t=>activeTipos[t])
+    let allOn=Object.keys(activeTipos).filter(t=>t!=='meus-ativos').every(t=>activeTipos[t])
     let newVal=!allOn
     document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
       if(e.dataset.tipo!=='all'&&e.dataset.tipo!=='meus-ativos'){e.classList.toggle('active',newVal);activeTipos[e.dataset.tipo]=newVal}
     })
     el.classList.toggle('active',newVal)
+  }else if(k==='meus-ativos'){
+    activeTipos['meus-ativos']=!activeTipos['meus-ativos']
+    el.classList.toggle('active')
+    // When activating meus-ativos, clear tipo filters
+    if(activeTipos['meus-ativos']){
+      document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
+        if(e.dataset.tipo!=='all'&&e.dataset.tipo!=='meus-ativos'){e.classList.remove('active');activeTipos[e.dataset.tipo]=false}
+      })
+      document.querySelector('.filter-chip[data-tipo="all"]').classList.remove('active')
+    }
+    document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active',Object.keys(activeTipos).filter(t=>t!=='meus-ativos').every(t=>activeTipos[t]))
   }else{
     activeTipos[k]=!activeTipos[k]
     el.classList.toggle('active')
@@ -678,7 +691,5 @@ function syncSliFromPanel(){
 
 load()
 </script>
-<script defer src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script defer src="../js/supabase.js"></script>
 </body>
 </html>
