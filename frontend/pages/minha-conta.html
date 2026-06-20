@@ -142,10 +142,13 @@ function mostrarToast(msg, isError){
 
 async function init(){
   try{
-    const sess=await getSession()
+    let sess=await getSession()
     if(!sess?.data?.session){
-      window.top.location.href='/?p=login'
-      return
+      try{
+        const p=window.parent.getSession ? await window.parent.getSession() : null
+        if(p?.data?.session)sess=p
+        else{window.top.location.href='/?p=login';return}
+      }catch(e){window.top.location.href='/?p=login';return}
     }
     document.getElementById('loginMsg').style.display='none'
     document.getElementById('profileForm').style.display='block'
