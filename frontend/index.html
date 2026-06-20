@@ -10,7 +10,7 @@
 :root{
   --bg:#111318;--surface:#1a1d24;--surface2:#1f232b;--border:#2a2e36;
   --text:#e2e5e9;--text-muted:#8a909a;--heading:#eef0f3;
-  --accent:#ffde59;--accent-rgb:255,222,89;--accent-bg:rgba(255,222,89,0.08);
+  --accent:#ffde59;--accent-rgb:255,222,89;--accent-bg:rgba(255,222,89,0.08);--red:#ff4757;
   --sidebar-w:260px;
   --font:'Segoe UI',system-ui,-apple-system,sans-serif;
   --shadow:0 1px 3px rgba(0,0,0,0.3);--radius:12px;
@@ -125,7 +125,7 @@ function atualizarSidebar(){
     document.getElementById('navMeusAtivos').style.display=''
     document.getElementById('navMinhaConta').style.display=''
     const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{try{await signOut()}catch(e){}window.top.location.href='/'}
-    document.getElementById('navUser').textContent=token.user?.email?.split('@')[0]||'Sair'
+    document.getElementById('navUser').textContent='Sair';document.getElementById('navUser').style.color='var(--red)'
   }else{
     document.querySelector('a[href="pages/login.html"]').style.display=''
     document.getElementById('navMeusAtivos').style.display='none'
