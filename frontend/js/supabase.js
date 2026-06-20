@@ -84,79 +84,55 @@ async function deletarSetup(id) {
 }
 
 // ─── User Ativos CRUD ────────────────────────────
+function _fetch(url,opts){
+  const t=_token();if(!t)return Promise.reject(new Error('Usuário não autenticado'))
+  return fetch(SUPABASE_URL+'/rest/v1/'+url,{...opts,headers:{...opts?.headers,apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token}})
+}
+
 async function listarAtivos() {
-  _check()
-  const user = (await _supabase.auth.getSession())?.data?.session?.user
-  if (!user) throw new Error('Usuário não autenticado')
-  const { data, error } = await _supabase
-    .from('user_ativos')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('ticker', { ascending: true })
-  if (error) throw error
-  return data || []
+  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
+  const r=await _fetch('user_ativos?select=*&user_id=eq.'+uid+'&order=ticker.asc')
+  if(!r.ok)throw new Error(r.status+'')
+  return await r.json()||[]
 }
 
 async function adicionarAtivo(ticker, quantidade) {
-  _check()
-  const user = (await _supabase.auth.getSession())?.data?.session?.user
-  if (!user) throw new Error('Usuário não autenticado')
-  const { data, error } = await _supabase
-    .from('user_ativos')
-    .insert({ user_id: user.id, ticker, quantidade })
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
+  const r=await _fetch('user_ativos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,ticker,quantidade})})
+  if(!r.ok)throw new Error(r.status+'')
+  return await r.json()
 }
 
 async function atualizarAtivo(id, quantidade) {
-  _check()
-  const { data, error } = await _supabase
-    .from('user_ativos')
-    .update({ quantidade, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const r=await _fetch('user_ativos?id=eq.'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade,updated_at:new Date().toISOString()})})
+  if(!r.ok)throw new Error(r.status+'')
+  return await r.json()
 }
 
 async function deletarAtivo(id) {
-  _check()
-  const { error } = await _supabase
-    .from('user_ativos')
-    .delete()
-    .eq('id', id)
-  if (error) throw error
+  const r=await _fetch('user_ativos?id=eq.'+id,{method:'DELETE'})
+  if(!r.ok)throw new Error(r.status+'')
 }
+
+function _token(){try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){const d=JSON.parse(localStorage.getItem(k));if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))return d}}}catch(e){}return null}
+function _userId(){try{const t=_token();if(!t)return null;const p=t.access_token.split('.')[1];const d=JSON.parse(atob(p.replace(/-/g,'+').replace(/_/g,'/')));return d.sub}catch(e){}return null}
 
 // ─── User Profile CRUD ──────────────────────────
 async function getProfile() {
-  _check()
-  const user = (await _supabase.auth.getSession())?.data?.session?.user
-  if (!user) throw new Error('Usuário não autenticado')
-  const { data, error } = await _supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle()
-  if (error) throw error
-  return data || null
+  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
+  const t=_token();if(!t)throw new Error('Usuário não autenticado')
+  const r=await fetch(SUPABASE_URL+'/rest/v1/user_profiles?user_id=eq.'+uid+'&limit=1',{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token}})
+  if(!r.ok)throw new Error(r.status+'')
+  const d=await r.json()
+  return d&&d.length?d[0]:null
 }
 
 async function upsertProfile(profile) {
-  _check()
-  const user = (await _supabase.auth.getSession())?.data?.session?.user
-  if (!user) throw new Error('Usuário não autenticado')
-  const payload = { user_id: user.id, ...profile, updated_at: new Date().toISOString() }
-  const { data, error } = await _supabase
-    .from('user_profiles')
-    .upsert(payload, { onConflict: 'user_id' })
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
+  const t=_token();if(!t)throw new Error('Usuário não autenticado')
+  const payload={user_id:uid,...profile,updated_at:new Date().toISOString()}
+  const r=await fetch(SUPABASE_URL+'/rest/v1/user_profiles?on_conflict=user_id',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token,Prefer:'resolution=merge-duplicates'},body:JSON.stringify(payload)})
+  if(!r.ok){const e=await r.text();throw new Error(e||r.status+'')}
 }
 
 async function updatePassword(currentPassword, newPassword) {
