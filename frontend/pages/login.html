@@ -44,8 +44,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 async function entrar(){
   const btn=document.getElementById('btn'),erro=document.getElementById('erro'),sucesso=document.getElementById('sucesso')
   btn.disabled=true;btn.textContent='Entrando...';erro.style.display='none';sucesso.style.display='none'
+  const email=document.getElementById('email').value.trim()
+  const password=document.getElementById('password').value
+  if(!email||!password){erro.textContent='Preencha e-mail e senha';erro.style.display='block';btn.disabled=false;btn.textContent='Entrar';return}
   try{
-    const {data}=await _supabase.auth.signInWithPassword({email:document.getElementById('email').value,password:document.getElementById('password').value})
+    const {data,error}=await _supabase.auth.signInWithPassword({email,password})
+    if(error)throw error
     if(data?.session){
       localStorage.setItem('ir_auth',JSON.stringify({
         access_token:data.session.access_token,
