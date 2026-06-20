@@ -109,16 +109,30 @@ document.addEventListener('DOMContentLoaded', initFromQuery)
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script>
+function atualizarSidebar(session){
+  if(session){
+    document.querySelector('a[href="pages/login.html"]').style.display='none'
+    document.getElementById('navMeusAtivos').style.display=''
+    document.getElementById('navMinhaConta').style.display=''
+    const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{await signOut();window.top.location.href='/'}
+    document.getElementById('navUser').textContent=session.user.email?.split('@')[0]||'Sair'
+  }else{
+    document.querySelector('a[href="pages/login.html"]').style.display=''
+    document.getElementById('navMeusAtivos').style.display='none'
+    document.getElementById('navMinhaConta').style.display='none'
+    document.getElementById('navLogout').style.display='none'
+  }
+}
+// Check on load
 try {
-  getSession().then(({data})=>{
-    if(data?.session){
-      document.querySelector('a[href="pages/login.html"]').style.display='none'
-      document.getElementById('navMeusAtivos').style.display=''
-      document.getElementById('navMinhaConta').style.display=''
-      const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{await signOut();location.reload()}
-      document.getElementById('navUser').textContent=data.session.user.email?.split('@')[0]||'Sair'
-    }
-  }).catch(()=>{})
+  getSession().then(({data})=>atualizarSidebar(data?.session)).catch(()=>{})
+} catch(e) {}
+// Listen for auth changes (login/logout from other tabs or iframes)
+try {
+  if(_supabase)_supabase.auth.onAuthStateChange((event, session)=>{
+    if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')atualizarSidebar(session)
+    else if(event==='SIGNED_OUT')atualizarSidebar(null)
+  })
 } catch(e) {}
 </script>
 </body>
