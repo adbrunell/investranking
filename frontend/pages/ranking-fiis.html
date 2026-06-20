@@ -368,6 +368,8 @@ async function load(){
       loggedIn = !!sess?.data?.session
       if (loggedIn) {
         try{const setups=await listarSetups();if(setups.length>0)aplicarFiltros(setups[0].filtros)}catch(e){}
+        // Also restore from localStorage (overrides DB if user changed filters after last save)
+        try{const saved=localStorage.getItem('rankingSetup');if(saved){const f=JSON.parse(saved);if(f&&f.liqMin!=null){document.getElementById('liqMin').value=f.liqMin||'';document.getElementById('liqMax').value=f.liqMax||'';document.getElementById('wLiq').value=f.wLiq||'5';document.getElementById('pvpMin').value=f.pvpMin||'';document.getElementById('pvpMax').value=f.pvpMax||'';document.getElementById('wPvp').value=f.wPvp||'5';document.getElementById('dyMin').value=f.dyMin||'';document.getElementById('dyMax').value=f.dyMax||'';document.getElementById('wDy').value=f.wDy||'5';document.getElementById('wAtr').value=f.wAtr||'5';syncSliFromPanel()}}}catch(e){}
         // Load user tickers for "Meus Ativos" filter (separate try/catch to not break flow)
         try{
           const ativos=await listarAtivos()
@@ -563,6 +565,11 @@ function render(){
     html+='</tr>'
   }
   document.getElementById('feed').innerHTML=html
+  // Auto-save filter values to localStorage
+  try{
+    const f={liqMin:document.getElementById('liqMin').value,liqMax:document.getElementById('liqMax').value,wLiq:document.getElementById('wLiq').value,pvpMin:document.getElementById('pvpMin').value,pvpMax:document.getElementById('pvpMax').value,wPvp:document.getElementById('wPvp').value,dyMin:document.getElementById('dyMin').value,dyMax:document.getElementById('dyMax').value,wDy:document.getElementById('wDy').value,wAtr:document.getElementById('wAtr').value}
+    localStorage.setItem('rankingSetup',JSON.stringify(f))
+  }catch(e){}
 }
 
 function aplicarFiltros(f) {
