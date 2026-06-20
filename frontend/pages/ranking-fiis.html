@@ -183,14 +183,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 
 <div class="filters-wrap">
   <div class="filters" id="filters">
-    <button class="filter-chip active" data-tipo="all" onclick="toggleFiltro(this)" id="chipTodos" style="display:none">Todos</button>
+    <button class="filter-chip" data-tipo="meus-ativos" onclick="toggleFiltro(this)" id="filterMeusAtivos"><i class="fas fa-briefcase"></i> <span>Meus Ativos</span></button>
     <button class="filter-chip active" data-tipo="Tijolo" onclick="toggleFiltro(this)">Tijolo</button>
     <button class="filter-chip active" data-tipo="Papel" onclick="toggleFiltro(this)">Papel</button>
     <button class="filter-chip active" data-tipo="FoF" onclick="toggleFiltro(this)">FoF</button>
     <button class="filter-chip active" data-tipo="Híbrido" onclick="toggleFiltro(this)">Híbrido</button>
     <button class="filter-chip active" data-tipo="Fiagro" onclick="toggleFiltro(this)">Fiagro</button>
     <button class="filter-chip active" data-tipo="FI-Infra" onclick="toggleFiltro(this)">FI-Infra</button>
-    <button class="filter-chip active" data-tipo="meus-ativos" onclick="toggleFiltro(this)" id="filterMeusAtivos" style="display:none"><i class="fas fa-briefcase"></i> <span>Meus Ativos</span></button>
   </div>
 </div>
 <div id="panelOverlay" class="panel-overlay" onclick="togglePanel()"></div>
@@ -278,6 +277,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <button class="modal-close" onclick="fecharAjudaMaturidade()">Entendi</button>
     </div>
   </div>
+  <div id="modalLoginMsg" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-box" style="text-align:center;padding:32px">
+      <i class="fas fa-lock" style="font-size:32px;opacity:.4;margin-bottom:12px;display:block"></i>
+      <h3 style="font-size:16px;color:var(--text);margin-bottom:8px">Ranking dos Meus Ativos</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Faça login e cadastre seus ativos em <b>Meus Ativos</b> para filtrar o ranking com os fundos da sua carteira.</p>
+      <a href="login.html" style="display:inline-block;background:var(--accent);color:#000;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px">Fazer Login</a>
+      <button class="modal-close" style="margin-top:12px" onclick="document.getElementById('modalLoginMsg').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
   <div class="tbl-wrap" style="display:none" id="tblWrap">
     <table>
       <thead><tr>
@@ -362,11 +370,10 @@ async function load(){
         const setups = await listarSetups()
         if (setups.length > 0) aplicarFiltros(setups[0].filtros)
         // Load user tickers for "Meus Ativos" filter
-        try{const ativos=await listarAtivos();userTickers=ativos.map(a=>a.ticker).filter(Boolean);document.getElementById('filterMeusAtivos').style.display='';document.getElementById('chipTodos').style.display='none'}catch(e){}
+        try{const ativos=await listarAtivos();userTickers=ativos.map(a=>a.ticker).filter(Boolean)}catch(e){}
       }
     } catch(e) {}
     if (!loggedIn) {
-      document.getElementById('chipTodos').style.display=''
       // Aplicar filtros default
       try {
         if (!localStorage.getItem('rankingSetup')) {
@@ -405,36 +412,30 @@ function populateDatalist(){
 
 function toggleFiltro(el){
   let k=el.dataset.tipo
-  if(k==='all'){
-    let allOn=Object.keys(activeTipos).filter(t=>t!=='meus-ativos').every(t=>activeTipos[t])
-    let newVal=!allOn
-    document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
-      if(e.dataset.tipo!=='all'&&e.dataset.tipo!=='meus-ativos'){e.classList.toggle('active',newVal);activeTipos[e.dataset.tipo]=newVal}
-    })
-    el.classList.toggle('active',newVal)
-  }else if(k==='meus-ativos'){
+  if(k==='meus-ativos'){
+    // Check if logged in
+    const auth=typeof _getAuth==='function'?_getAuth():null
+    if(!auth||!auth.access_token){
+      document.getElementById('modalLoginMsg').classList.add('open')
+      el.classList.remove('active')
+      return
+    }
     activeTipos['meus-ativos']=!activeTipos['meus-ativos']
     el.classList.toggle('active')
     if(activeTipos['meus-ativos']){
-      // Salva estado atual dos tipos e desativa todos
       document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
-        if(e.dataset.tipo!=='all'&&e.dataset.tipo!=='meus-ativos'){e.classList.remove('active');activeTipos[e.dataset.tipo]=false}
+        if(e.dataset.tipo!=='meus-ativos'){e.classList.remove('active');activeTipos[e.dataset.tipo]=false}
       })
-      document.querySelector('.filter-chip[data-tipo="all"]').classList.remove('active')
     }else{
-      // Restaura todos os tipos para ativo
       document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
-        if(e.dataset.tipo!=='all'&&e.dataset.tipo!=='meus-ativos'){e.classList.add('active');activeTipos[e.dataset.tipo]=true}
+        if(e.dataset.tipo!=='meus-ativos'){e.classList.add('active');activeTipos[e.dataset.tipo]=true}
       })
-      document.querySelector('.filter-chip[data-tipo="all"]').classList.add('active')
     }
   }else{
     activeTipos[k]=!activeTipos[k]
     el.classList.toggle('active')
     let anyOn=Object.keys(activeTipos).filter(t=>t!=='meus-ativos').some(t=>activeTipos[t])
     if(!anyOn){activeTipos[k]=true;el.classList.add('active')}
-    let allOn=Object.keys(activeTipos).filter(t=>t!=='meus-ativos').every(t=>activeTipos[t])
-    document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active',allOn)
   }
   render()
 }
@@ -449,8 +450,8 @@ function render(){
   if(activeTipos['meus-ativos']&&userTickers.length){
     items=items.filter(it=>userTickers.includes(it.ticker))
   }else{
-    let fk=Object.keys(activeTipos).filter(k=>activeTipos[k]&&k!=='meus-ativos')
-    if(fk.length<Object.keys(activeTipos).filter(k=>k!=='meus-ativos').length)items=items.filter(it=>fk.includes(it.tipo))
+    let fk=Object.keys(activeTipos).filter(k=>activeTipos[k])
+    if(fk.length<Object.keys(activeTipos).length)items=items.filter(it=>fk.includes(it.tipo))
     if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
     function fv(id,raw){let e=document.getElementById(id);if(!e||!e.value)return null;let v=raw?e.value:+e.value;return v||v===0?v:null}
     let flMin=fv('liqMin',1),flMax=fv('liqMax',1),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
