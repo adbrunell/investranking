@@ -84,55 +84,65 @@ async function deletarSetup(id) {
 }
 
 // ─── User Ativos CRUD ────────────────────────────
-function _fetch(url,opts){
-  const t=_token();if(!t)return Promise.reject(new Error('Usuário não autenticado'))
-  return fetch(SUPABASE_URL+'/rest/v1/'+url,{...opts,headers:{...opts?.headers,apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token}})
-}
-
 async function listarAtivos() {
-  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
-  const r=await _fetch('user_ativos?select=*&user_id=eq.'+uid+'&order=ticker.asc')
-  if(!r.ok)throw new Error(r.status+'')
-  return await r.json()||[]
+  await _garantirSessao()
+  const {data,error}=await _supabase.from('user_ativos').select('*').order('ticker',{ascending:true})
+  if(error)throw error
+  return data||[]
 }
 
 async function adicionarAtivo(ticker, quantidade) {
-  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
-  const r=await _fetch('user_ativos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,ticker,quantidade})})
-  if(!r.ok)throw new Error(r.status+'')
-  return await r.json()
+  const s=await _garantirSessao()
+  const {data,error}=await _supabase.from('user_ativos').insert({user_id:s.user.id,ticker,quantidade}).select().single()
+  if(error)throw error
+  return data
 }
 
 async function atualizarAtivo(id, quantidade) {
-  const r=await _fetch('user_ativos?id=eq.'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade,updated_at:new Date().toISOString()})})
-  if(!r.ok)throw new Error(r.status+'')
-  return await r.json()
+  await _garantirSessao()
+  const {error}=await _supabase.from('user_ativos').update({quantidade,updated_at:new Date().toISOString()}).eq('id',id)
+  if(error)throw error
 }
 
 async function deletarAtivo(id) {
-  const r=await _fetch('user_ativos?id=eq.'+id,{method:'DELETE'})
-  if(!r.ok)throw new Error(r.status+'')
+  await _garantirSessao()
+  const {error}=await _supabase.from('user_ativos').delete().eq('id',id)
+  if(error)throw error
 }
 
-function _token(){try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){const d=JSON.parse(localStorage.getItem(k));if(d&&d.access_token&&(!d.expires_at||d.expires_at*1000>Date.now()))return d}}}catch(e){}return null}
-function _userId(){try{const t=_token();if(!t)return null;const p=t.access_token.split('.')[1];const d=JSON.parse(atob(p.replace(/-/g,'+').replace(/_/g,'/')));return d.sub}catch(e){}return null}
+async function _garantirSessao(){
+  if(!_supabase)throw new Error('SDK não carregado')
+  const j=await _supabase.auth.getSession()
+  if(j?.data?.session)return j.data.session
+  // Recover from localStorage
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i)
+    if(k&&k.startsWith('sb-')&&k.endsWith('-auth-token')){
+      try{
+        const d=JSON.parse(localStorage.getItem(k))
+        if(d&&d.access_token){
+          await _supabase.auth.setSession({access_token:d.access_token,refresh_token:d.refresh_token})
+          const j2=await _supabase.auth.getSession()
+          if(j2?.data?.session)return j2.data.session
+        }
+      }catch(e){}
+    }
+  }
+  throw new Error('Usuário não autenticado')
+}
 
 // ─── User Profile CRUD ──────────────────────────
 async function getProfile() {
-  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
-  const t=_token();if(!t)throw new Error('Usuário não autenticado')
-  const r=await fetch(SUPABASE_URL+'/rest/v1/user_profiles?user_id=eq.'+uid+'&limit=1',{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token}})
-  if(!r.ok)throw new Error(r.status+'')
-  const d=await r.json()
-  return d&&d.length?d[0]:null
+  await _garantirSessao()
+  const {data,error}=await _supabase.from('user_profiles').select('*').maybeSingle()
+  if(error)throw error
+  return data
 }
 
 async function upsertProfile(profile) {
-  const uid=_userId();if(!uid)throw new Error('Usuário não autenticado')
-  const t=_token();if(!t)throw new Error('Usuário não autenticado')
-  const payload={user_id:uid,...profile,updated_at:new Date().toISOString()}
-  const r=await fetch(SUPABASE_URL+'/rest/v1/user_profiles?on_conflict=user_id',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+t.access_token,Prefer:'resolution=merge-duplicates'},body:JSON.stringify(payload)})
-  if(!r.ok){const e=await r.text();throw new Error(e||r.status+'')}
+  const s=await _garantirSessao()
+  const {error}=await _supabase.from('user_profiles').upsert({user_id:s.user.id,...profile,updated_at:new Date().toISOString()},{onConflict:'user_id'})
+  if(error)throw error
 }
 
 async function resetSenha(email) {
