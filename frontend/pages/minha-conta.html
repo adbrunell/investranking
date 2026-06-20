@@ -220,7 +220,8 @@ async function salvar(){
       mostrarToast('Senha alterada com sucesso!')
     }
   }catch(e){
-    mostrarToast(e.message,true)
+    mostrarToast('ERRO: '+e.message,true)
+    console.error('Erro ao salvar:',e)
   }
 
   btn.disabled=false;btn.textContent='Salvar'
