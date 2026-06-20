@@ -507,7 +507,7 @@ function render(){
     }
     if(divs&&divs.length>0){
       let ultVal=+divs[divs.length-1],ultDy=it.cotacao>0?ultVal/it.cotacao:0
-      html+='<td><span class="cot-val">'+(ultVal>0?'R$ '+fmtNum(ultVal):'—')+'</span><span class="cot-var">'+(ultDy>0?(ultDy*100).toFixed(2)+'%':'—')+'</span></td>'
+      html+='<td><div style="font-size:13px;font-weight:400;font-variant-numeric:tabular-nums;line-height:1.2;color:var(--text)">'+(ultVal>0?'R$ '+fmtNum(ultVal):'—')+'</div><span class="cot-var">'+(ultDy>0?(ultDy*100).toFixed(2)+'%':'—')+'</span></td>'
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
