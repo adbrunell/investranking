@@ -179,10 +179,10 @@ function renderTabela(){
         const map={};classes.forEach(c=>{if(c.Ticker)map[c.Ticker]=c.Classe||''})
         feed.innerHTML=ativos.map(a=>{
           const cls=map[a.ticker]||''
-          return '<tr><td style="color:var(--muted);font-size:12px">'+cls+'</td><td>'+a.ticker+'</td><td><div class="qtd-wrap"><input type="number" id="qtd-'+a.id+'" value="'+a.quantidade+'" min="0" step="1" oninput="mostrarSalvar('+a.id+')" onchange="salvarAtivo('+a.id+')"><button class="save-btn" id="save-'+a.id+'" onclick="salvarAtivo('+a.id+')"><i class="fas fa-check"></i></button></div></td><td><button class="del-btn" onclick="deletarAtivo('+a.id+')"><i class="fas fa-trash-alt"></i></button></td></tr>'
+          return '<tr><td style="color:var(--muted);font-size:12px">'+cls+'</td><td>'+a.ticker+'</td><td><div class="qtd-wrap"><input type="number" id="qtd-'+a.id+'" value="'+a.quantidade+'" min="0" step="1" oninput="mostrarSalvar('+a.id+')" onchange="salvarAtivo('+a.id+')"><button class="save-btn" id="save-'+a.id+'" onclick="salvarAtivo('+a.id+')"><i class="fas fa-check"></i></button></div></td><td><button class="del-btn" onclick="removerAtivo('+a.id+')"><i class="fas fa-trash-alt"></i></button></td></tr>'
         }).join('')
       }).catch(()=>{
-        feed.innerHTML=ativos.map(a=>'<tr><td style="color:var(--muted);font-size:12px">—</td><td>'+a.ticker+'</td><td><div class="qtd-wrap"><input type="number" id="qtd-'+a.id+'" value="'+a.quantidade+'" min="0" step="1" oninput="mostrarSalvar('+a.id+')" onchange="salvarAtivo('+a.id+')"><button class="save-btn" id="save-'+a.id+'" onclick="salvarAtivo('+a.id+')"><i class="fas fa-check"></i></button></div></td><td><button class="del-btn" onclick="deletarAtivo('+a.id+')"><i class="fas fa-trash-alt"></i></button></td></tr>').join('')
+        feed.innerHTML=ativos.map(a=>'<tr><td style="color:var(--muted);font-size:12px">—</td><td>'+a.ticker+'</td><td><div class="qtd-wrap"><input type="number" id="qtd-'+a.id+'" value="'+a.quantidade+'" min="0" step="1" oninput="mostrarSalvar('+a.id+')" onchange="salvarAtivo('+a.id+')"><button class="save-btn" id="save-'+a.id+'" onclick="salvarAtivo('+a.id+')"><i class="fas fa-check"></i></button></div></td><td><button class="del-btn" onclick="removerAtivo('+a.id+')"><i class="fas fa-trash-alt"></i></button></td></tr>').join('')
       })
   }else{
     feed.innerHTML=''
@@ -207,7 +207,7 @@ async function salvarAtivo(id){
   }
 }
 
-async function deletarAtivo(id){
+async function removerAtivo(id){
   if(!confirm('Remover este ativo?'))return
   try{
     await deletarAtivo(id)
