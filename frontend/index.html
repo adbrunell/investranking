@@ -94,6 +94,7 @@ function abrir(pagina, el){
   closeMenu()
   let cache='?v='+Date.now()
   // Protected pages: check auth before opening
+  // Protected pages redirect full page instead of iframe
   if(['minha-conta','meus-ativos'].includes(pagina)){
     let autenticado=false
     try{
@@ -107,6 +108,7 @@ function abrir(pagina, el){
       }
     }catch(e){}
     if(!autenticado){pagina='login';cache=''}
+    else{window.top.location.href='/pages/'+pagina+'.html';return}
   }
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
