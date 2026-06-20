@@ -70,10 +70,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-tipo{width:60px;flex-shrink:0}
 .h-seg{flex:1;min-width:80px}
 .h-ticker{width:60px;flex-shrink:0}
-.h-liq{width:60px;flex-shrink:0;justify-content:flex-end}
+.h-liq,.h-pvp,.h-dy{width:54px;flex-shrink:0;justify-content:flex-end}
 .h-cot{width:58px;flex-shrink:0;justify-content:flex-end}
-.h-pvp{width:46px;flex-shrink:0;justify-content:flex-end}
-.h-dy{width:46px;flex-shrink:0;justify-content:flex-end}
 
 .row-card{display:flex;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:3px;animation:rowIn .35s ease-out both;transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:default}
 .row-card:hover{border-color:rgba(255,255,255,0.12);background:var(--card2)}
@@ -96,7 +94,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tipo-FIP-IE{background:rgba(200,130,255,.15);color:#c882ff}
 .cell-seg{flex:1;min-width:80px;font-size:10px;color:var(--muted)}
 .cell-ticker{width:60px;flex-shrink:0;font-size:15px;font-weight:600;color:var(--accent)}
-.cell-liq{width:60px;flex-shrink:0;justify-content:flex-end;font-size:11px;color:var(--muted);font-weight:400}
+.cell-liq,.cell-pvp,.cell-dy{width:54px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--muted)}
 .cell-cot{width:58px;flex-shrink:0;flex-direction:column;align-items:flex-end;gap:1px}
 .cot-val{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
 .cot-var{font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
@@ -106,8 +104,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-atr{width:44px;flex-shrink:0;justify-content:center}
 .atr-bar{width:40px;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden}
 .atr-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
-.cell-pvp{width:46px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--muted)}
-.cell-dy{width:46px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--muted)}
+
 
 
 .cell-nota{width:40px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
@@ -131,14 +128,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-rank,.cell-rank{width:24px}
 .h-tipo,.cell-tipo{width:48px}
 .h-ticker,.cell-ticker{width:52px;font-size:13px}
-.h-liq,.cell-liq{width:52px;font-size:10px}
+.h-liq,.h-pvp,.h-dy,.cell-liq,.cell-pvp,.cell-dy{width:48px;font-size:10px}
 .h-cot,.cell-cot{width:52px}
 .cot-val{font-size:10px}
 .cot-var{font-size:8px}
 .h-graf,.cell-graf{width:54px}
 .h-atr,.cell-atr{width:38px}
-.h-pvp,.cell-pvp{width:40px;font-size:10px}
-.h-dy,.cell-dy{width:40px;font-size:10px}
 .h-nota,.cell-nota{width:36px;font-size:10px}
 .cell-seg{font-size:10px}
 .tipo-badge{font-size:7px;padding:1px 4px}
@@ -153,9 +148,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cot-var{font-size:8px}
 .h-graf,.cell-graf{display:none}
 .h-atr,.cell-atr{display:none}
-.h-liq,.cell-liq{width:48px;font-size:10px}
-.h-pvp,.cell-pvp{width:38px;font-size:10px}
-.h-dy,.cell-dy{width:38px;font-size:10px}
+.h-liq,.h-pvp,.h-dy,.cell-liq,.cell-pvp,.cell-dy{width:44px;font-size:10px}
 .h-nota,.cell-nota{width:34px;font-size:10px}
 .cell-seg{font-size:9px}
 }
