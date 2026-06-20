@@ -1,5 +1,7 @@
 const SUPABASE_URL = 'https://oaqmnaekrpukwmrxjtud.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'
+const SUPABASE_REST_URL = SUPABASE_URL + '/rest/v1'
+const SUPABASE_HEADERS = {apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY}
 const AUTH_KEY = 'ir_auth'
 
 let _supabase = null

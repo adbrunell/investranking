@@ -97,8 +97,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 <script>
-const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
-const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
+const REST=typeof SUPABASE_REST_URL!=='undefined'?SUPABASE_REST_URL:'https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
+const H=typeof SUPABASE_HEADERS!=='undefined'?SUPABASE_HEADERS:{apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
 let ativos=[],selectedTicker=null,searchCache={}
 
