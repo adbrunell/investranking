@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Meus Ativos</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;min-width:0}
+:root{--bg:#0c0e12;--card:#14171d;--card2:#1a1e26;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59;--green:#00c896;--red:#ff4757;--radius:10px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--accent);color:#000}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(12,14,18,0.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 48px;height:48px}
+.topbar h1{font-size:17px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:7px}
+
+.add-card{max-width:600px;margin:16px auto;padding:0 12px}
+.add-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.add-row .wrap{flex:1;min-width:160px;position:relative}
+.add-row input,.add-row button{font-family:inherit}
+.add-row input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;transition:border .2s}
+.add-row input:focus{border-color:var(--accent)}
+.add-row input::placeholder{color:var(--muted)}
+.add-row .qtd{width:100px;flex-shrink:0;text-align:center}
+.add-row .add-btn{background:var(--accent);border:none;color:#000;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.add-row .add-btn:hover{opacity:.85}
+.add-row .add-btn:disabled{opacity:.4;cursor:default}
+
+.suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card2);border:1px solid var(--border);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:50;display:none}
+.suggestions.show{display:block}
+.suggestions div{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+.suggestions div:hover{background:var(--bg)}
+.suggestions .s-ticker{color:var(--accent);font-weight:600}
+.suggestions .s-classe{color:var(--muted);font-size:11px}
+
+.container{max-width:600px;margin:0 auto;padding:0 12px 40px}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl-wrap table{width:100%;border-collapse:separate;border-spacing:0 2px;font-size:13px}
+.tbl-wrap thead th{padding:8px 10px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;text-align:left}
+.tbl-wrap thead th:last-child{text-align:center;width:50px}
+.tbl-wrap tbody tr{background:var(--card);transition:background .15s}
+.tbl-wrap tbody tr:hover{background:var(--card2)}
+.tbl-wrap tbody td{padding:8px 10px;white-space:nowrap;vertical-align:middle}
+.tbl-wrap tbody td:nth-child(2){font-weight:600;color:var(--accent)}
+.tbl-wrap tbody td:nth-child(3){text-align:right}
+.tbl-wrap tbody td:last-child{text-align:center}
+.tbl-wrap tbody td input{border:none;background:transparent;color:var(--text);font-size:13px;width:70px;text-align:right;outline:none;font-family:inherit;padding:4px 6px;border-radius:4px;transition:background .2s}
+.tbl-wrap tbody td input:focus{background:var(--bg);border:1px solid var(--accent)}
+.qtd-wrap{display:flex;align-items:center;justify-content:flex-end;gap:4px}
+.qtd-wrap .save-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:4px;border-radius:4px;display:none}
+.qtd-wrap .save-btn.show{display:inline}
+.qtd-wrap .save-btn:hover{color:var(--accent)}
+.qtd-wrap .del-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:4px;border-radius:4px}
+.qtd-wrap .del-btn:hover{color:var(--red)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state i{font-size:32px;opacity:.3;margin-bottom:8px}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><i class="fas fa-briefcase"></i> Meus Ativos</h1>
+</div>
+
+<div class="add-card">
+  <div class="add-row">
+    <div class="wrap">
+      <input type="text" id="searchTicker" placeholder="Buscar ticker..." autocomplete="off" oninput="buscarTicker(this.value)">
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+    <input type="number" id="qtdInput" class="qtd" placeholder="Qtd" min="0" step="1" value="1">
+    <button class="add-btn" id="addBtn" onclick="adicionar()" disabled><i class="fas fa-plus"></i> Adicionar</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Classe</th>
+        <th>Ticker</th>
+        <th style="text-align:right">Quantidade</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="feed"></tbody>
+    </table>
+  </div>
+  <div id="emptyMsg" class="empty-state"><i class="fas fa-inbox"></i><br>Nenhum ativo cadastrado.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
+const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
+
+let ativos=[],selectedTicker=null,searchCache={}
+
+async function carregar(){
+  try{
+    const sess=await getSession()
+    if(!sess?.data?.session){
+      document.getElementById('feed').innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)"><i class="fas fa-lock" style="font-size:24px;opacity:.4;margin-bottom:8px;display:block"></i>Faça login para gerenciar seus ativos.</td></tr>'
+      document.getElementById('emptyMsg').style.display='none'
+      return
+    }
+    ativos=await listarAtivos()
+    renderTabela()
+  }catch(e){
+    mostrarToast('Erro ao carregar: '+e.message)
+  }
+}
+
+function buscarTicker(q){
+  const sug=document.getElementById('suggestions')
+  if(!q||q.length<2){sug.classList.remove('show');selectedTicker=null;document.getElementById('addBtn').disabled=true;return}
+  if(searchCache[q]){mostrarSugestoes(searchCache[q]);return}
+  fetch(REST+'/00_Master?select=Ticker,Classe&Ticker=like.*'+encodeURIComponent(q)+'*&limit=10',{headers:H})
+    .then(r=>r.json()).then(d=>{searchCache[q]=d;mostrarSugestoes(d)}).catch(()=>{})
+}
+
+function mostrarSugestoes(lista){
+  const sug=document.getElementById('suggestions')
+  if(!lista||!lista.length){sug.classList.remove('show');return}
+  const existentes=new Set(ativos.map(a=>a.ticker))
+  sug.innerHTML=lista.filter(t=>!existentes.has(t.Ticker)).map(t=>
+    '<div onclick="selecionarTicker(\''+t.Ticker+'\',\''+(t.Classe||'')+'\')"><span><span class="s-ticker">'+t.Ticker+'</span> <span class="s-classe">'+(t.Classe||'')+'</span></span></div>'
+  ).join('')
+  sug.classList.add('show')
+}
+
+function selecionarTicker(ticker,classe){
+  document.getElementById('searchTicker').value=ticker+' ('+classe+')'
+  document.getElementById('suggestions').classList.remove('show')
+  selectedTicker=ticker
+  document.getElementById('addBtn').disabled=false
+}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.wrap'))document.getElementById('suggestions').classList.remove('show')
+})
+
+async function adicionar(){
+  if(!selectedTicker)return
+  const qtd=parseFloat(document.getElementById('qtdInput').value)||0
+  const btn=document.getElementById('addBtn')
+  btn.disabled=true
+  try{
+    const ativo=await adicionarAtivo(selectedTicker,qtd)
+    ativos.push(ativo)
+    renderTabela()
+    document.getElementById('searchTicker').value=''
+    document.getElementById('qtdInput').value=1
+    selectedTicker=null
+    mostrarToast(ativo.ticker+' adicionado!')
+  }catch(e){
+    mostrarToast('Erro: '+e.message)
+  }
+  btn.disabled=false
+}
+
+function renderTabela(){
+  const feed=document.getElementById('feed')
+  const empty=document.getElementById('emptyMsg')
+  if(!ativos.length){feed.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none'
+  // Buscar classes dos tickers
+  const tickers=ativos.map(a=>a.ticker).filter(Boolean)
+  if(tickers.length){
+    fetch(REST+'/00_Master?select=Ticker,Classe&Ticker=in.('+tickers.map(t=>'"'+t+'"').join(',')+')&limit=1000',{headers:H})
+      .then(r=>r.json()).then(classes=>{
+        const map={};classes.forEach(c=>{if(c.Ticker)map[c.Ticker]=c.Classe||''})
+        feed.innerHTML=ativos.map(a=>{
+          const cls=map[a.ticker]||''
+          return '<tr><td style="color:var(--muted);font-size:12px">'+cls+'</td><td>'+a.ticker+'</td><td><div class="qtd-wrap"><input type="number" id="qtd-'+a.id+'" value="'+a.quantidade+'" min="0" step="1" oninput="mostrarSalvar('+a.id+')" onchange="salvarAtivo('+a.id+')"><button class="save-btn" id="save-'+a.id+'" onclick="salvarAtivo('+a.id+')"><i class="fas fa-check"></i></button></div></td><td><button class="del-btn" onclick="deletarAtivo('+a.id+')"><i class="fas fa-trash-alt"></i></button></td></tr>'
+        }).join('')
+      }).catch(()=>{
+        feed.innerHTML=ativos.map(a=>'<tr><td style="color:var(--muted);font-size:12px">—</td><td>'+a.ticker+'</td><td><div class="qtd-wrap"><input type="number" id="qtd-'+a.id+'" value="'+a.quantidade+'" min="0" step="1" oninput="mostrarSalvar('+a.id+')" onchange="salvarAtivo('+a.id+')"><button class="save-btn" id="save-'+a.id+'" onclick="salvarAtivo('+a.id+')"><i class="fas fa-check"></i></button></div></td><td><button class="del-btn" onclick="deletarAtivo('+a.id+')"><i class="fas fa-trash-alt"></i></button></td></tr>').join('')
+      })
+  }else{
+    feed.innerHTML=''
+  }
+}
+
+function mostrarSalvar(id){
+  document.getElementById('save-'+id).classList.add('show')
+}
+
+async function salvarAtivo(id){
+  const input=document.getElementById('qtd-'+id)
+  const qtd=parseFloat(input.value)||0
+  try{
+    await atualizarAtivo(id,qtd)
+    const a=ativos.find(a=>a.id===id)
+    if(a)a.quantidade=qtd
+    document.getElementById('save-'+id).classList.remove('show')
+    mostrarToast('Quantidade atualizada!')
+  }catch(e){
+    mostrarToast('Erro ao salvar: '+e.message)
+  }
+}
+
+async function deletarAtivo(id){
+  if(!confirm('Remover este ativo?'))return
+  try{
+    await deletarAtivo(id)
+    ativos=ativos.filter(a=>a.id!==id)
+    renderTabela()
+    mostrarToast('Ativo removido.')
+  }catch(e){
+    mostrarToast('Erro: '+e.message)
+  }
+}
+
+let toastTimer
+function mostrarToast(msg){
+  const el=document.getElementById('toast')
+  el.textContent=msg;el.classList.add('show')
+  clearTimeout(toastTimer)
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2500)
+}
+
+carregar()
+</script>
+<script defer src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script defer src="../js/supabase.js"></script>
+</body>
+</html>

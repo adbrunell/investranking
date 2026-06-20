@@ -82,3 +82,51 @@ async function deletarSetup(id) {
     .eq('id', id)
   if (error) throw error
 }
+
+// ─── User Ativos CRUD ────────────────────────────
+async function listarAtivos() {
+  _check()
+  const user = (await _supabase.auth.getSession())?.data?.session?.user
+  if (!user) throw new Error('Usuário não autenticado')
+  const { data, error } = await _supabase
+    .from('user_ativos')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('ticker', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+async function adicionarAtivo(ticker, quantidade) {
+  _check()
+  const user = (await _supabase.auth.getSession())?.data?.session?.user
+  if (!user) throw new Error('Usuário não autenticado')
+  const { data, error } = await _supabase
+    .from('user_ativos')
+    .insert({ user_id: user.id, ticker, quantidade })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+async function atualizarAtivo(id, quantidade) {
+  _check()
+  const { data, error } = await _supabase
+    .from('user_ativos')
+    .update({ quantidade, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+async function deletarAtivo(id) {
+  _check()
+  const { error } = await _supabase
+    .from('user_ativos')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+}

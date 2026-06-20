@@ -56,6 +56,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="scroll">
     <div class="nav-label">Conta</div>
     <a class="nav-item" href="pages/login.html" onclick="abrir('login',this);return false"><i class="fas fa-sign-in-alt icon"></i><span class="txt">Entrar</span></a>
+    <a class="nav-item" id="navMeusAtivos" href="pages/meus-ativos.html" onclick="abrir('meus-ativos',this);return false" style="display:none"><i class="fas fa-briefcase icon"></i><span class="txt">Meus Ativos</span></a>
     <a class="nav-item" id="navLogout" href="#" onclick="return false" style="display:none"><i class="fas fa-sign-out-alt icon"></i><span class="txt" id="navUser">Sair</span></a>
     <div class="nav-divider"></div>
     <div class="nav-label">Ferramentas</div>
@@ -111,6 +112,7 @@ try {
   getSession().then(({data})=>{
     if(data?.session){
       document.querySelector('a[href="pages/login.html"]').style.display='none'
+      document.getElementById('navMeusAtivos').style.display=''
       const lo=document.getElementById('navLogout');lo.style.display='';lo.onclick=async()=>{await signOut();location.reload()}
       document.getElementById('navUser').textContent=data.session.user.email?.split('@')[0]||'Sair'
     }
