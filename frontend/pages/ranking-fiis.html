@@ -71,13 +71,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-seg{flex:1;min-width:80px}
 .h-ticker{width:80px;flex-shrink:0}
 .h-liq{width:90px;flex-shrink:0;justify-content:flex-end}
-.h-cot{width:65px;flex-shrink:0;justify-content:flex-end}
-.h-var{width:70px;flex-shrink:0;justify-content:flex-end}
+.h-cot{width:72px;flex-shrink:0;justify-content:flex-end}
 .h-pvp{width:70px;flex-shrink:0;justify-content:flex-end}
 .h-dy{width:65px;flex-shrink:0;justify-content:flex-end}
-.h-nota-liq{width:55px;flex-shrink:0;justify-content:flex-end}
-.cell-nota-liq{width:55px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 
 .row-card{display:flex;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:3px;animation:rowIn .35s ease-out both;transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:default}
 .row-card:hover{border-color:rgba(255,255,255,0.12);background:var(--card2)}
@@ -101,10 +97,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-seg{flex:1;min-width:80px;font-size:10px;color:var(--muted)}
 .cell-ticker{width:80px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--accent)}
 .cell-liq{width:90px;flex-shrink:0;justify-content:flex-end;font-size:10px;color:var(--text);font-weight:500}
-.cell-cot{width:65px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.cell-var{width:70px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
-.cell-var .var-up{color:var(--green)}
-.cell-var .var-down{color:var(--red)}
+.cell-cot{width:72px;flex-shrink:0;flex-direction:column;align-items:flex-end;gap:1px}
+.cot-val{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.cot-var{font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.cot-var.up{color:var(--green)}
+.cot-var.down{color:var(--red)}
 .cell-graf{width:74px;flex-shrink:0;justify-content:center}
 .cell-atr{width:60px;flex-shrink:0;justify-content:center}
 .atr-bar{width:40px;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden}
@@ -112,9 +109,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .cell-pvp{width:70px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 .cell-pvp .val{color:var(--text)}
 .cell-dy{width:65px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.cell-nota-pvp,.cell-nota-dy{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.cell-nota-atr{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
-.h-nota-atr{width:50px;flex-shrink:0;justify-content:flex-end}
+
+
 .cell-nota{width:50px;flex-shrink:0;justify-content:flex-end;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
@@ -137,14 +133,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-tipo,.cell-tipo{width:48px}
 .h-ticker,.cell-ticker{width:65px;font-size:12px}
 .h-liq,.cell-liq{width:70px;font-size:10px}
-.h-cot,.cell-cot{width:55px;font-size:10px}
-.h-var,.cell-var{width:58px;font-size:10px}
+.h-cot,.cell-cot{width:62px}
+.cot-val{font-size:10px}
+.cot-var{font-size:8px}
 .h-graf,.cell-graf{width:60px}
 .h-atr,.cell-atr{width:50px}
 .h-pvp,.cell-pvp{width:50px;font-size:10px}
 .h-dy,.cell-dy{width:55px;font-size:10px}
-.h-nota-liq,.cell-nota-liq{width:55px;font-size:10px}
-.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy,.h-nota-atr,.cell-nota-atr{width:45px;font-size:10px}
 .h-nota,.cell-nota{width:42px;font-size:10px}
 .cell-seg{font-size:10px}
 .tipo-badge{font-size:7px;padding:1px 4px}
@@ -154,15 +149,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-rank,.cell-rank{display:none}
 .h-tipo,.cell-tipo{width:40px}
 .h-ticker,.cell-ticker{width:55px;font-size:11px}
-.h-cot,.cell-cot{width:50px;font-size:10px}
-.h-var,.cell-var{width:52px;font-size:10px}
+.h-cot,.cell-cot{width:54px}
+.cot-val{font-size:10px}
+.cot-var{font-size:8px}
 .h-graf,.cell-graf{display:none}
 .h-atr,.cell-atr{display:none}
 .h-liq,.cell-liq{width:60px;font-size:9px}
 .h-pvp,.cell-pvp{width:45px;font-size:10px}
 .h-dy,.cell-dy{width:45px;font-size:10px}
-.h-nota-liq,.cell-nota-liq{width:45px;font-size:10px}
-.h-nota-pvp,.cell-nota-pvp,.h-nota-dy,.cell-nota-dy,.h-nota-atr,.cell-nota-atr{width:40px;font-size:10px}
 .h-nota,.cell-nota{width:38px;font-size:10px}
 .cell-seg{font-size:9px}
 }
@@ -265,17 +259,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <div class="h h-ticker">Ticker</div>
     <div class="h h-tipo" style="display:none">Tipo</div>
     <div class="h h-seg" style="display:none">Segmento</div>
-    <div class="h h-cot">Cotação</div>
-    <div class="h h-var">Variação</div>
+    <div class="h h-cot" style="justify-content:flex-end">Cot./Var.</div>
     <div class="h h-graf" style="justify-content:center;width:74px">Gráfico</div>
     <div class="h h-atr" style="width:60px;justify-content:center">Atrat.</div>
-    <div class="h h-liq">Liq</div>
-    <div class="h h-nota-liq">N.Liq</div>
-    <div class="h h-pvp">P/VP</div>
-    <div class="h h-nota-pvp">N.PVP</div>
-    <div class="h h-dy">DY</div>
-    <div class="h h-nota-dy">N.DY</div>
-    <div class="h h-nota-atr" style="width:50px;justify-content:flex-end">N.Atr</div>
+    <div class="h h-liq" style="justify-content:flex-end">Liq</div>
+    <div class="h h-pvp" style="justify-content:flex-end">P/VP</div>
+    <div class="h h-dy" style="justify-content:flex-end">DY</div>
     <div class="h h-nota sorted" style="width:50px;justify-content:flex-end">Nota <span class="arrow">▼</span></div>
   </div>
   <div id="feed"></div>
@@ -448,8 +437,7 @@ function render(){
     html+='<div class="cell cell-ticker">'+(it.ticker||'')+'</div>'
     html+='<div class="cell cell-tipo" style="display:none"><span class="tipo-badge tipo-'+(it.tipo||'').replace(/ /g,'')+'">'+((it.tipo||'')==='FI-Infra'?'FI':it.tipo||'')+'</span></div>'
     html+='<div class="cell cell-seg" style="display:none">'+(it.segmento||'')+'</div>'
-    html+='<div class="cell cell-cot">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</div>'
-    html+='<div class="cell cell-var"><span class="'+(it.variacao>=0?'var-up':'var-down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></div>'
+    html+='<div class="cell cell-cot"><span class="cot-val">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</span><span class="cot-var '+(it.variacao>=0?'up':'down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></div>'
     let vals=it.historico_cotacoes;if(typeof vals==='string')try{vals=JSON.parse(vals)}catch(e){vals=null};if(!Array.isArray(vals))vals=null
     let min52=it.min_52s!=null?+it.min_52s:null
     let max52=it.max_52s!=null?+it.max_52s:null
@@ -469,16 +457,11 @@ function render(){
     }
     html+='<div class="cell cell-atr"><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:'+(atratividade!=null?(atratividade>0.5?'var(--green)':'var(--red)'):'var(--muted)')+'"></div></div></div>'
     html+='<div class="cell cell-liq">'+fmtLiq(it.liquidez_media_30d)+'</div>'
-    let liqv=+it.liquidez_media_30d,nota_liq=liqv>0?((liqv-mnLiq)/rgLiq)*wl:0
-    html+='<div class="cell cell-nota-liq">'+nota_liq.toFixed(3)+'</div>'
     html+='<div class="cell cell-pvp"><span class="val">'+fmtNum(it.p_vp)+'</span></div>'
     let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
-    html+='<div class="cell cell-nota-pvp">'+(sp*wp).toFixed(3)+'</div>'
     html+='<div class="cell cell-dy"><span class="val">'+fmtPct(it.dividend_yield_12m)+'</span></div>'
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
-    html+='<div class="cell cell-nota-dy">'+(sd*wd).toFixed(3)+'</div>'
     let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s):0
-    html+='<div class="cell cell-nota-atr">'+(sa*wa).toFixed(3)+'</div>'
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
     let nota=sl*wl+sp*wp+sd*wd+sa*wa
     html+='<div class="cell cell-nota">'+nota.toFixed(3)+'</div>'
