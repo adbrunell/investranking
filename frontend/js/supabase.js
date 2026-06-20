@@ -130,3 +130,45 @@ async function deletarAtivo(id) {
     .eq('id', id)
   if (error) throw error
 }
+
+// ─── User Profile CRUD ──────────────────────────
+async function getProfile() {
+  _check()
+  const user = (await _supabase.auth.getSession())?.data?.session?.user
+  if (!user) throw new Error('Usuário não autenticado')
+  const { data, error } = await _supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (error) throw error
+  return data || null
+}
+
+async function upsertProfile(profile) {
+  _check()
+  const user = (await _supabase.auth.getSession())?.data?.session?.user
+  if (!user) throw new Error('Usuário não autenticado')
+  const payload = { user_id: user.id, ...profile, updated_at: new Date().toISOString() }
+  const { data, error } = await _supabase
+    .from('user_profiles')
+    .upsert(payload, { onConflict: 'user_id' })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+async function updatePassword(currentPassword, newPassword) {
+  _check()
+  const user = (await _supabase.auth.getSession())?.data?.session?.user
+  if (!user) throw new Error('Usuário não autenticado')
+  // Re-authenticate to verify current password
+  const { error: signInError } = await _supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword
+  })
+  if (signInError) throw new Error('Senha atual incorreta')
+  const { error } = await _supabase.auth.updateUser({ password: newPassword })
+  if (error) throw error
+}
