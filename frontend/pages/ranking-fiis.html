@@ -15,10 +15,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .topbar{position:sticky;top:0;z-index:100;background:rgba(12,14,18,0.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 48px;height:48px;gap:10px}
 .topbar h1{font-size:17px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:7px;white-space:nowrap}
 .topbar .top-right{display:flex;align-items:center;gap:8px}
-.topbar-btn{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s;line-height:1}
-.topbar-btn:hover{color:var(--accent);background:rgba(255,222,89,0.1)}
-.topbar-btn.active{color:var(--accent)}
-
 .search-box{position:relative;width:160px}
 .search-box input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 28px;color:var(--text);font-size:12px;outline:none;font-family:inherit;transition:border .25s}
 .search-box input:focus{border-color:var(--accent)}
@@ -181,20 +177,20 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <input id="search" placeholder="Buscar ticker..." oninput="onSearch()" autocomplete="off" list="tickerList">
       <datalist id="tickerList"></datalist>
     </div>
-    <button id="filterMeusAtivos" onclick="toggleFiltro(this)" data-tipo="meus-ativos" style="display:none" title="Filtrar meus ativos" class="topbar-btn"><i class="fas fa-briefcase"></i></button>
     <button id="gearBtn" onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px" title="Filtros"><i class="fas fa-cog"></i></button>
   </div>
 </div>
 
 <div class="filters-wrap">
   <div class="filters" id="filters">
-    <button class="filter-chip active" data-tipo="all" onclick="toggleFiltro(this)">Todos</button>
+    <button class="filter-chip active" data-tipo="all" onclick="toggleFiltro(this)" id="chipTodos" style="display:none">Todos</button>
     <button class="filter-chip active" data-tipo="Tijolo" onclick="toggleFiltro(this)">Tijolo</button>
     <button class="filter-chip active" data-tipo="Papel" onclick="toggleFiltro(this)">Papel</button>
     <button class="filter-chip active" data-tipo="FoF" onclick="toggleFiltro(this)">FoF</button>
     <button class="filter-chip active" data-tipo="Híbrido" onclick="toggleFiltro(this)">Híbrido</button>
     <button class="filter-chip active" data-tipo="Fiagro" onclick="toggleFiltro(this)">Fiagro</button>
     <button class="filter-chip active" data-tipo="FI-Infra" onclick="toggleFiltro(this)">FI-Infra</button>
+    <button class="filter-chip active" data-tipo="meus-ativos" onclick="toggleFiltro(this)" id="filterMeusAtivos" style="display:none"><i class="fas fa-briefcase"></i> <span>Meus Ativos</span></button>
   </div>
 </div>
 <div id="panelOverlay" class="panel-overlay" onclick="togglePanel()"></div>
@@ -366,10 +362,11 @@ async function load(){
         const setups = await listarSetups()
         if (setups.length > 0) aplicarFiltros(setups[0].filtros)
         // Load user tickers for "Meus Ativos" filter
-        try{const ativos=await listarAtivos();userTickers=ativos.map(a=>a.ticker).filter(Boolean);document.getElementById('filterMeusAtivos').style.display=''}catch(e){}
+        try{const ativos=await listarAtivos();userTickers=ativos.map(a=>a.ticker).filter(Boolean);document.getElementById('filterMeusAtivos').style.display='';document.getElementById('chipTodos').style.display='none'}catch(e){}
       }
     } catch(e) {}
     if (!loggedIn) {
+      document.getElementById('chipTodos').style.display=''
       // Aplicar filtros default
       try {
         if (!localStorage.getItem('rankingSetup')) {
