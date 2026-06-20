@@ -135,6 +135,14 @@ async function upsertProfile(profile) {
   if(!r.ok){const e=await r.text();throw new Error(e||r.status+'')}
 }
 
+async function resetSenha(email) {
+  _check()
+  const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/pages/recuperar-senha.html'
+  })
+  if (error) throw error
+}
+
 async function updatePassword(currentPassword, newPassword) {
   _check()
   const user = (await _supabase.auth.getSession())?.data?.session?.user

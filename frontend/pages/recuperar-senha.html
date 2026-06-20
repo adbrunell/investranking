@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Recuperar Senha</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0e12;--card:#14171d;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:380px}
+.auth h1{font-size:20px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.auth p{font-size:13px;color:var(--muted);margin-bottom:20px}
+.auth label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.auth input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;font-family:inherit;margin-bottom:14px;transition:border .2s}
+.auth input:focus{border-color:var(--accent)}
+.auth .btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.auth .btn:hover{opacity:.85}
+.auth .btn:disabled{opacity:.4;cursor:not-allowed}
+.auth .erro{background:rgba(255,71,87,.12);color:#ff4757;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:none}
+.auth .sucesso{background:rgba(0,200,150,.12);color:#00c896;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:none}
+</style>
+</head>
+<body>
+<div class="auth" id="app">
+  <div id="step1">
+    <h1>Nova Senha</h1>
+    <p>Digite sua nova senha para recuperar o acesso.</p>
+    <div class="erro" id="erro"></div>
+    <div class="sucesso" id="sucesso"></div>
+    <label>Nova Senha</label>
+    <input type="password" id="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    <button class="btn" id="btn" onclick="alterar()">Alterar Senha</button>
+  </div>
+</div>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+async function init(){
+  // Extract access_token from URL hash
+  const hash=new URLSearchParams(window.location.hash.replace('#',''))
+  const accessToken=hash.get('access_token')
+  const refreshToken=hash.get('refresh_token')
+  const type=hash.get('type')
+  if(accessToken&&type==='recovery'&&_supabase){
+    try{
+      await _supabase.auth.setSession({access_token:accessToken,refresh_token:refreshToken})
+    }catch(e){
+      document.getElementById('erro').textContent='Link inválido ou expirado. Solicite um novo.';document.getElementById('erro').style.display='block'
+    }
+  }else{
+    document.getElementById('erro').textContent='Link de recuperação inválido.';document.getElementById('erro').style.display='block'
+  }
+}
+
+async function alterar(){
+  const pwd=document.getElementById('password').value
+  if(pwd.length<6){document.getElementById('erro').textContent='Mínimo 6 caracteres';document.getElementById('erro').style.display='block';return}
+  const btn=document.getElementById('btn'),erro=document.getElementById('erro'),sucesso=document.getElementById('sucesso')
+  btn.disabled=true;btn.textContent='Alterando...';erro.style.display='none';sucesso.style.display='none'
+  try{
+    await _supabase.auth.updateUser({password:pwd})
+    sucesso.textContent='Senha alterada! Redirecionando...';sucesso.style.display='block'
+    setTimeout(()=>{window.top.location.href='/?p=login'},2000)
+  }catch(e){erro.textContent=e.message;erro.style.display='block';btn.disabled=false;btn.textContent='Alterar Senha'}
+}
+
+init()
+</script>
+</body>
+</html>

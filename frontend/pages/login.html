@@ -35,6 +35,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   <label>Senha</label>
   <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
   <button class="btn" id="btn" onclick="entrar()">Entrar</button>
+  <div class="link"><a href="#" onclick="event.preventDefault();recuperar()" style="font-weight:400">Esqueci minha senha</a></div>
   <div class="link">Não tem conta? <a href="signup.html">Cadastre-se</a></div>
 </div>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -47,6 +48,18 @@ async function entrar(){
     await signIn(document.getElementById('email').value,document.getElementById('password').value)
     sucesso.textContent='Login realizado! Redirecionando...';sucesso.style.display='block'
     setTimeout(()=>{window.top.location.href='/?p=ranking-fiis'},800)
+  }catch(e){erro.textContent=e.message;erro.style.display='block';btn.disabled=false;btn.textContent='Entrar'}
+}
+
+async function recuperar(){
+  const email=document.getElementById('email').value.trim()
+  if(!email){document.getElementById('erro').textContent='Digite seu e-mail primeiro';document.getElementById('erro').style.display='block';return}
+  const btn=document.getElementById('btn'),erro=document.getElementById('erro'),sucesso=document.getElementById('sucesso')
+  btn.disabled=true;btn.textContent='Enviando...';erro.style.display='none';sucesso.style.display='none'
+  try{
+    await resetSenha(email)
+    sucesso.textContent='E-mail de recuperação enviado! Verifique sua caixa de entrada.';sucesso.style.display='block'
+    btn.textContent='Feito';btn.disabled=false
   }catch(e){erro.textContent=e.message;erro.style.display='block';btn.disabled=false;btn.textContent='Entrar'}
 }
 // Se ja estiver logado, redireciona
