@@ -13,6 +13,17 @@ try {
 
 function _check() { if (!_supabase) throw new Error('Supabase SDK nao carregado') }
 
+// Restore Supabase client session from our custom storage
+async function _restaurarSessao(){
+  const a=_getAuth()
+  if(!a||!_supabase)return
+  try{
+    const j=await _supabase.auth.getSession()
+    if(!j?.data?.session)
+      await _supabase.auth.setSession({access_token:a.access_token,refresh_token:a.refresh_token})
+  }catch(e){}
+}
+
 // ─── Custom Auth Storage (bypass Supabase internal storage) ──
 function _salvarAuth(data){
   try{
@@ -94,7 +105,7 @@ function getSession() {
 
 // ─── Setups CRUD (uses Supabase client, works with parent scope) ──
 async function salvarSetup(nome, filtros) {
-  _check()
+  _check();await _restaurarSessao()
   const user = _getAuth()?.user
   if (!user) throw new Error('Usuário não autenticado')
   const { data, error } = await _supabase
@@ -107,7 +118,7 @@ async function salvarSetup(nome, filtros) {
 }
 
 async function listarSetups() {
-  _check()
+  _check();await _restaurarSessao()
   const { data, error } = await _supabase
     .from('setups')
     .select('*')
