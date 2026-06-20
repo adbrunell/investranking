@@ -166,40 +166,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .h-nota,.cell-nota{width:38px;font-size:10px}
 .cell-seg{font-size:9px}
 }
-.range-bar{background:var(--card2);border-bottom:1px solid var(--border);padding:4px 12px;position:sticky;top:48px;z-index:55;display:none}
-.range-row{display:flex;align-items:center;gap:6px;height:26px}
-.rr-label{font-size:8px;color:var(--muted);font-weight:700;width:30px;flex-shrink:0;text-transform:uppercase;letter-spacing:.3px}
-.rr-track-wrap{flex:1;min-width:0;position:relative;height:20px;display:flex;align-items:center}
-.rr-track{position:relative;width:100%;height:3px;background:var(--border);border-radius:2px}
-.rr-fill{position:absolute;top:0;height:3px;background:var(--accent);border-radius:2px;pointer-events:none}
-.rr-min,.rr-max{position:absolute;top:-8px;width:100%;height:20px;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;margin:0;padding:0}
-.rr-min{z-index:3}
-.rr-max{z-index:2}
-.rr-min::-webkit-slider-thumb,.rr-max::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--card2);cursor:pointer;pointer-events:auto;box-shadow:0 1px 4px rgba(0,0,0,0.5)}
-.rr-min::-moz-range-thumb,.rr-max::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--card2);cursor:pointer;pointer-events:auto}
-.rr-vals{width:82px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;gap:2px;font-size:9px;font-weight:600;font-variant-numeric:tabular-nums}
-.rr-vals .rr-sep{color:var(--muted);font-weight:400;font-size:7px}
-.rr-vals span{color:var(--text)}
-.rr-vals span:last-child{color:var(--accent)}
-.header-row{top:178px}
-@media(max-width:768px){
-  .range-bar{padding:2px 8px}
-  .range-row{height:20px;gap:4px}
-  .rr-label{width:24px;font-size:7px}
-  .rr-vals{width:64px;font-size:8px}
-  .rr-min::-webkit-slider-thumb,.rr-max::-webkit-slider-thumb{width:14px;height:14px}
-  .rr-min::-moz-range-thumb,.rr-max::-moz-range-thumb{width:14px;height:14px}
-  .header-row{top:162px}
-}
-@media(max-width:480px){
-  .range-bar{padding:2px 6px}
-  .range-row{height:18px;gap:3px}
-  .rr-label{width:22px;font-size:7px}
-  .rr-vals{width:52px;font-size:7px}
-  .rr-min::-webkit-slider-thumb,.rr-max::-webkit-slider-thumb{width:12px;height:12px}
-  .rr-min::-moz-range-thumb,.rr-max::-moz-range-thumb{width:12px;height:12px}
-  .header-row{top:150px}
-}
+.ps-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ps-legend{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.ps-legend .ps-minv{color:var(--text)}
+.ps-legend .ps-maxv{color:var(--accent)}
+.ps-legend .ps-sep{color:var(--muted)}
+.ps-track-wrap{flex:1;position:relative;height:24px;display:flex;align-items:center}
+.ps-track{position:relative;width:100%;height:4px;background:var(--border);border-radius:2px}
+.ps-fill{position:absolute;top:0;height:4px;background:var(--accent);border-radius:2px;pointer-events:none}
+.ps-min,.ps-max{position:absolute;top:-10px;width:100%;height:24px;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;margin:0;padding:0}
+.ps-min{z-index:3}
+.ps-max{z-index:2}
+.ps-min::-webkit-slider-thumb,.ps-max::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);border:2px solid var(--card);cursor:pointer;pointer-events:auto;box-shadow:0 1px 4px rgba(0,0,0,0.5)}
+.ps-min::-moz-range-thumb,.ps-max::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:2px solid var(--card);cursor:pointer;pointer-events:auto}
+.header-row{top:94px}
+@media(max-width:768px){.header-row{top:86px}}
+@media(max-width:480px){.header-row{top:86px}}
 </style>
 </head>
 <body>
@@ -232,61 +214,52 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
   <div class="panel-header">Filtros <button onclick="togglePanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;margin-left:auto"><i class="fas fa-times"></i></button></div>
   <div class="panel-body">
     <div class="pgroup"><div class="pgroup-title">Liquidez</div>
-      <div class="prow"><label>Mín</label><input type="text" id="liqMin" inputmode="numeric" placeholder="0" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
-      <div class="prow"><label>Máx</label><input type="text" id="liqMax" inputmode="numeric" placeholder="—" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
+      <div class="ps-row">
+        <div class="ps-legend"><span class="ps-minv" id="ps-liq-min-lbl">0</span><span class="ps-sep">→</span><span class="ps-maxv" id="ps-liq-max-lbl">0</span></div>
+        <div class="ps-track-wrap">
+          <div class="ps-track">
+            <div class="ps-fill" id="ps-fill-liq"></div>
+            <input type="range" class="ps-min" data-m="liq" min="0" max="100" value="0">
+            <input type="range" class="ps-max" data-m="liq" min="0" max="100" value="100">
+          </div>
+        </div>
+      </div>
       <div class="prow"><label>Peso</label><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wLiqLabel">0.5</span></span></div>
     </div>
     <div class="pgroup"><div class="pgroup-title">P/VP</div>
-      <div class="prow"><label>Mín</label><input type="number" id="pvpMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.01"></div>
-      <div class="prow"><label>Máx</label><input type="number" id="pvpMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.01"></div>
+      <div class="ps-row">
+        <div class="ps-legend"><span class="ps-minv" id="ps-pvp-min-lbl">0</span><span class="ps-sep">→</span><span class="ps-maxv" id="ps-pvp-max-lbl">0</span></div>
+        <div class="ps-track-wrap">
+          <div class="ps-track">
+            <div class="ps-fill" id="ps-fill-pvp"></div>
+            <input type="range" class="ps-min" data-m="pvp" min="0" max="100" value="0">
+            <input type="range" class="ps-max" data-m="pvp" min="0" max="100" value="100">
+          </div>
+        </div>
+      </div>
       <div class="prow"><label>Peso</label><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wPvpLabel">0.5</span></span></div>
     </div>
     <div class="pgroup"><div class="pgroup-title">DY</div>
-      <div class="prow"><label>Mín %</label><input type="number" id="dyMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.1"></div>
-      <div class="prow"><label>Máx %</label><input type="number" id="dyMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.1"></div>
+      <div class="ps-row">
+        <div class="ps-legend"><span class="ps-minv" id="ps-dy-min-lbl">0</span><span class="ps-sep">→</span><span class="ps-maxv" id="ps-dy-max-lbl">0</span></div>
+        <div class="ps-track-wrap">
+          <div class="ps-track">
+            <div class="ps-fill" id="ps-fill-dy"></div>
+            <input type="range" class="ps-min" data-m="dy" min="0" max="100" value="0">
+            <input type="range" class="ps-max" data-m="dy" min="0" max="100" value="100">
+          </div>
+        </div>
+      </div>
       <div class="prow"><label>Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
     </div>
     <div class="pgroup"><div class="pgroup-title">Atratividade</div>
       <div class="prow"><label>Peso</label><select id="wAtr" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wAtrLabel">0.5</span></span></div>
     </div>
+    <input type="hidden" id="liqMin"><input type="hidden" id="liqMax">
+    <input type="hidden" id="pvpMin"><input type="hidden" id="pvpMax">
+    <input type="hidden" id="dyMin"><input type="hidden" id="dyMax">
   </div>
   <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5',wAtr:'5'})" style="font-size:10px">Limpar</button><span id="panelSaveArea" style="margin-left:auto;font-size:10px;color:var(--muted)">⋯</span></div>
-</div>
-
-<div id="rangeBar" class="range-bar">
-  <div class="range-row">
-    <div class="rr-label">Liq</div>
-    <div class="rr-track-wrap">
-      <div class="rr-track">
-        <div class="rr-fill" id="rr-fill-liq"></div>
-        <input type="range" class="rr-min" data-m="liq" min="0" max="100" value="0">
-        <input type="range" class="rr-max" data-m="liq" min="0" max="100" value="100">
-      </div>
-    </div>
-    <div class="rr-vals" id="rr-vals-liq"><span>0</span><span class="rr-sep">–</span><span>0</span></div>
-  </div>
-  <div class="range-row">
-    <div class="rr-label">P/VP</div>
-    <div class="rr-track-wrap">
-      <div class="rr-track">
-        <div class="rr-fill" id="rr-fill-pvp"></div>
-        <input type="range" class="rr-min" data-m="pvp" min="0" max="100" value="0">
-        <input type="range" class="rr-max" data-m="pvp" min="0" max="100" value="100">
-      </div>
-    </div>
-    <div class="rr-vals" id="rr-vals-pvp"><span>0</span><span class="rr-sep">–</span><span>0</span></div>
-  </div>
-  <div class="range-row">
-    <div class="rr-label">DY</div>
-    <div class="rr-track-wrap">
-      <div class="rr-track">
-        <div class="rr-fill" id="rr-fill-dy"></div>
-        <input type="range" class="rr-min" data-m="dy" min="0" max="100" value="0">
-        <input type="range" class="rr-max" data-m="dy" min="0" max="100" value="100">
-      </div>
-    </div>
-    <div class="rr-vals" id="rr-vals-dy"><span>0</span><span class="rr-sep">–</span><span>0</span></div>
-  </div>
 </div>
 
 <div class="container">
@@ -362,6 +335,7 @@ async function load(){
     let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
+    allData=allData.filter(d=>d.dividend_yield_12m==null||d.dividend_yield_12m<=1)
     populateDatalist()
     initSliders()
     // Auth check + setup
@@ -584,7 +558,7 @@ async function salvarSetupAtual() {
   } catch(e) { alert('Erro ao salvar: ' + e.message) }
 }
 
-// ─── Range Sliders ──────────────────────────
+// ─── Panel Sliders ──────────────────────────
 let rangeData={}
 
 function initSliders(){
@@ -597,20 +571,18 @@ function initSliders(){
     let dv=d.dividend_yield_12m
     if(dv!=null&&dv>0){if(dv<r.dy.min)r.dy.min=dv;if(dv>r.dy.max)r.dy.max=dv}
   }
-  let keys=['liq','pvp','dy']
-  for(let i=0;i<3;i++){let m=keys[i];if(r[m].min===Infinity){r[m].min=0;r[m].max=1}}
+  let kk=['liq','pvp','dy']
+  for(let i=0;i<3;i++){let m=kk[i];if(r[m].min===Infinity){r[m].min=0;r[m].max=1}}
   rangeData=r
-  document.getElementById('rangeBar').style.display='block'
-  if(allData.length<1)document.getElementById('rangeBar').style.display='none'
-  let els=document.querySelectorAll('.rr-min,.rr-max')
+  let els=document.querySelectorAll('.ps-min,.ps-max')
   for(let i=0;i<els.length;i++)els[i].addEventListener('input',onSlide)
   syncSliFromPanel()
   updSliDisp()
 }
 
 function onSlide(e){
-  let el=e.target,m=el.dataset.m,isMin=el.classList.contains('rr-min'),v=+el.value
-  let o=document.querySelector((isMin?'.rr-max':'.rr-min')+'[data-m="'+m+'"]'),ov=+o.value
+  let el=e.target,m=el.dataset.m,isMin=el.classList.contains('ps-min'),v=+el.value
+  let o=document.querySelector((isMin?'.ps-max':'.ps-min')+'[data-m="'+m+'"]'),ov=+o.value
   if(isMin&&v>=ov){el.value=Math.max(0,ov-1);updSliDisp();return}
   if(!isMin&&v<=ov){el.value=Math.min(100,+ov+1);updSliDisp();return}
   updSliDisp()
@@ -622,14 +594,14 @@ function updSliDisp(){
   let ms=['liq','pvp','dy']
   for(let i=0;i<3;i++){
     let m=ms[i],r=rangeData[m]
-    let minPct=+document.querySelector('.rr-min[data-m="'+m+'"]').value
-    let maxPct=+document.querySelector('.rr-max[data-m="'+m+'"]').value
+    let minPct=+document.querySelector('.ps-min[data-m="'+m+'"]').value
+    let maxPct=+document.querySelector('.ps-max[data-m="'+m+'"]').value
     let actMin=r.min+(minPct/100)*(r.max-r.min),actMax=r.min+(maxPct/100)*(r.max-r.min)
-    let fl=document.getElementById('rr-fill-'+m)
-    fl.style.left=minPct+'%';fl.style.width=(maxPct-minPct)+'%'
-    let valEl=document.getElementById('rr-vals-'+m)
+    let fl=document.getElementById('ps-fill-'+m)
+    if(fl){fl.style.left=minPct+'%';fl.style.width=(maxPct-minPct)+'%'}
     let f=m==='liq'?fmtSli:m==='dy'?fmtSPct:fmtNum
-    valEl.innerHTML='<span>'+f(actMin)+'</span><span class="rr-sep">–</span><span>'+f(actMax)+'</span>'
+    let a=document.getElementById('ps-'+m+'-min-lbl'),b=document.getElementById('ps-'+m+'-max-lbl')
+    if(a)a.textContent=f(actMin);if(b)b.textContent=f(actMax)
   }
 }
 
@@ -646,8 +618,8 @@ function syncPanFromSli(){
   let ms=['liq','pvp','dy']
   for(let i=0;i<3;i++){
     let m=ms[i],r=rangeData[m]
-    let minPct=+document.querySelector('.rr-min[data-m="'+m+'"]').value
-    let maxPct=+document.querySelector('.rr-max[data-m="'+m+'"]').value
+    let minPct=+document.querySelector('.ps-min[data-m="'+m+'"]').value
+    let maxPct=+document.querySelector('.ps-max[data-m="'+m+'"]').value
     let actMin=r.min+(minPct/100)*(r.max-r.min),actMax=r.min+(maxPct/100)*(r.max-r.min)
     let mn=document.getElementById(m==='liq'?'liqMin':m+'Min'),mx=document.getElementById(m==='liq'?'liqMax':m+'Max')
     if(!mn)continue
@@ -679,7 +651,7 @@ function syncSliFromPanel(){
     }
     let minPct=minV!=null?Math.round(((minV-r.min)/(r.max-r.min))*100):0
     let maxPct=maxV!=null?Math.round(((maxV-r.min)/(r.max-r.min))*100):100
-    let e1=document.querySelector('.rr-min[data-m="'+m+'"]'),e2=document.querySelector('.rr-max[data-m="'+m+'"]')
+    let e1=document.querySelector('.ps-min[data-m="'+m+'"]'),e2=document.querySelector('.ps-max[data-m="'+m+'"]')
     if(e1)e1.value=Math.max(0,Math.min(100,minPct))
     if(e2)e2.value=Math.max(0,Math.min(100,Math.max(maxPct,+(e1?e1.value:0)+1)))
   }
