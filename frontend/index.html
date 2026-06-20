@@ -79,7 +79,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="overlay" onclick="closeMenu()"></div>
 
 <main id="main">
-  <iframe id="contentFrame" src="pages/mosaico.html?v=2"></iframe>
+  <iframe id="contentFrame" src="pages/landing.html"></iframe>
 </main>
 
 <script>
@@ -105,14 +105,14 @@ function abrir(pagina, el){
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
   // Update page title dynamically
-  var titles={mosaico:'',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
+  var titles={landing:'',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
   document.title='Invest Ranking'+(titles[pagina]?' — '+titles[pagina]:'')
 }
 
 // --- Page restoration from query string ---
 function initFromQuery(){
   let params = new URLSearchParams(location.search)
-  let pagina = params.get('p') || 'mosaico'
+  let pagina = params.get('p') || 'landing'
   let el = document.querySelector(`.nav-item[href="pages/${pagina}.html"]`)
   abrir(pagina, el)
 }
