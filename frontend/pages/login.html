@@ -46,11 +46,11 @@ async function entrar(){
   try{
     await signIn(document.getElementById('email').value,document.getElementById('password').value)
     sucesso.textContent='Login realizado! Redirecionando...';sucesso.style.display='block'
-    setTimeout(()=>{window.location.href='ranking-fiis.html'},800)
+    setTimeout(()=>{window.top.location.href='/?p=ranking-fiis'},800)
   }catch(e){erro.textContent=e.message;erro.style.display='block';btn.disabled=false;btn.textContent='Entrar'}
 }
 // Se ja estiver logado, redireciona
-getSession().then(({data})=>{if(data?.session)window.location.href='ranking-fiis.html'})
+getSession().then(({data})=>{if(data?.session)window.top.location.href='/?p=ranking-fiis'})
 </script>
 </body>
 </html>

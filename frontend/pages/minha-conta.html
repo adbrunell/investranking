@@ -144,7 +144,7 @@ async function init(){
   try{
     const sess=await getSession()
     if(!sess?.data?.session){
-      window.location.href='login.html'
+      window.top.location.href='/?p=login'
       return
     }
     document.getElementById('loginMsg').style.display='none'

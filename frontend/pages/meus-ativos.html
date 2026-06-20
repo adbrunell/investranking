@@ -104,7 +104,7 @@ async function carregar(){
   try{
     const sess=await getSession()
     if(!sess?.data?.session){
-      window.location.href='login.html'
+      window.top.location.href='/?p=login'
       return
     }
     ativos=await listarAtivos()
