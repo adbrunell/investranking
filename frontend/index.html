@@ -105,7 +105,7 @@ function abrir(pagina, el){
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
   // Update page title dynamically
-  var titles={mosaico:'Home',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
+  var titles={mosaico:'',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
   document.title='Invest Ranking'+(titles[pagina]?' — '+titles[pagina]:'')
 }
 
