@@ -104,13 +104,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tbl-wrap tbody td{padding:8px 10px;white-space:nowrap;text-align:center;vertical-align:middle}
 .tbl-wrap tbody td:first-child{font-size:13px;font-weight:700;color:var(--text);min-width:30px}
 .tbl-wrap tbody td:nth-child(2){font-size:15px;font-weight:600;color:var(--accent);min-width:36px}
-.tbl-wrap tbody td:nth-child(4){min-width:80px;padding:8px 4px}
-.tbl-wrap tbody td:nth-child(5){min-width:44px;padding:8px 4px}
-.tbl-wrap tbody td:nth-child(6),
-.tbl-wrap tbody td:nth-child(7),
-.tbl-wrap tbody td:nth-child(8){font-size:13px;font-weight:400;color:var(--muted);min-width:38px}
-.tbl-wrap tbody td:nth-child(9){min-width:88px}
-.tbl-wrap tbody td:nth-child(10){text-align:center;min-width:52px;font-size:11px}
+.tbl-wrap tbody td:nth-child(3){min-width:52px;font-size:11px}
+.tbl-wrap tbody td:nth-child(4),
+.tbl-wrap tbody td:nth-child(5),
+.tbl-wrap tbody td:nth-child(6){font-size:13px;font-weight:400;color:var(--muted);min-width:38px}
+.tbl-wrap tbody td:nth-child(7){min-width:80px;padding:8px 4px}
+.tbl-wrap tbody td:nth-child(8){min-width:44px;padding:8px 4px}
+.tbl-wrap tbody td:nth-child(10){text-align:center;min-width:88px}
 .tbl-wrap tbody td:nth-child(11){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
 .tbl-wrap tbody tr:first-child td:first-child{color:#ffd700;font-size:16px}
 .tbl-wrap tbody tr:nth-child(2) td:first-child{color:#c0c0c0;font-size:15px}
@@ -137,16 +137,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tipo-badge{font-size:7px;padding:1px 4px}
 }
 @media(max-width:480px){
-.tbl-wrap thead th:nth-child(4),
-.tbl-wrap tbody td:nth-child(4),
-.tbl-wrap thead th:nth-child(5),
-.tbl-wrap tbody td:nth-child(5){display:none}
-.tbl-wrap tbody td:nth-child(2){font-size:13px;min-width:36px}
-.tbl-wrap tbody td:nth-child(6),
+.tbl-wrap thead th:nth-child(7),
 .tbl-wrap tbody td:nth-child(7),
-.tbl-wrap tbody td:nth-child(8){font-size:11px;min-width:34px}
-.tbl-wrap tbody td:nth-child(9){min-width:72px}
-.tbl-wrap tbody td:nth-child(10){min-width:44px;font-size:10px}
+.tbl-wrap thead th:nth-child(8),
+.tbl-wrap tbody td:nth-child(8){display:none}
+.tbl-wrap tbody td:nth-child(2){font-size:13px;min-width:36px}
+.tbl-wrap tbody td:nth-child(4),
+.tbl-wrap tbody td:nth-child(5),
+.tbl-wrap tbody td:nth-child(6){font-size:11px;min-width:34px}
+.tbl-wrap tbody td:nth-child(9){min-width:44px}
+.tbl-wrap tbody td:nth-child(10){min-width:72px}
 .tbl-wrap tbody td:nth-child(11){font-size:10px;min-width:30px}
 }
 .pf-row{display:flex;gap:6px;margin-bottom:8px}
@@ -281,16 +281,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <table>
       <thead><tr>
         <th>#</th>
-        <th style="text-align:left">Fundo</th>
-        <th style="text-align:right">Cotação</th>
-        <th style="text-align:center">Histórico<br>1A</th>
-        <th style="text-align:center">Atratividade</th>
-        <th style="text-align:right">Liquidez<br>Diária</th>
-        <th style="text-align:right">P/VP</th>
-        <th style="text-align:right">DY<br>12m</th>
-        <th style="text-align:center">Dividendos<br>12m</th>
-        <th style="text-align:center">Maturidade<br>LCI <i class="fas fa-question-circle" onclick="event.stopPropagation();abrirAjudaMaturidade()" style="cursor:pointer;color:var(--accent);font-size:9px"></i></th>
-        <th style="text-align:right">Nota</th>
+        <th>Fundo</th>
+        <th>Maturidade<br>LCI <i class="fas fa-question-circle" onclick="event.stopPropagation();abrirAjudaMaturidade()" style="cursor:pointer;color:var(--accent);font-size:9px"></i></th>
+        <th>Liquidez<br>Diária</th>
+        <th>P/VP</th>
+        <th>DY<br>12m</th>
+        <th>Histórico<br>1A</th>
+        <th>Atratividade</th>
+        <th>Cotação</th>
+        <th>Dividendos<br>12m</th>
+        <th>Nota</th>
       </tr></thead>
       <tbody id="feed"></tbody>
     </table>
@@ -460,7 +460,18 @@ function render(){
     html+='<tr style="animation-delay:'+(i*0.012)+'s">'
     html+='<td>'+pos+'</td>'
     html+='<td>'+(it.ticker||'')+'</td>'
-    html+='<td><span class="cot-val">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</span><span class="cot-var '+(it.variacao>=0?'up':'down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></td>'
+    if(it.maturidade_lci){
+      let ps=it.maturidade_lci.split('|'),sc=0
+      for(let k=0;k<3;k++){if(ps[k]==='A')sc+=2;else if(ps[k]==='B')sc+=1}
+      let cor=sc>=5?'#00c896':sc>=3?'#ffde59':'#ff4757'
+      html+='<td><div style="font-size:11px;font-weight:600;letter-spacing:1px">'+it.maturidade_lci+'</div><div style="height:3px;width:100%;background:'+cor+';border-radius:2px;margin-top:3px"></div></td>'
+    }else{
+      html+='<td style="color:var(--muted);font-size:9px">—</td>'
+    }
+    html+='<td>'+fmtLiq(it.liquidez_media_30d)+'</td>'
+    html+='<td>'+fmtNum(it.p_vp)+'</td>'
+    let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
+    html+='<td>'+fmtPct(it.dividend_yield_12m)+'</td>'
     let vals=it.historico_cotacoes;if(typeof vals==='string')try{vals=JSON.parse(vals)}catch(e){vals=null};if(!Array.isArray(vals))vals=null
     let min52=it.min_52s!=null?+it.min_52s:null
     let max52=it.max_52s!=null?+it.max_52s:null
@@ -478,10 +489,7 @@ function render(){
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
     html+='<td><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:var(--text)"></div></div></td>'
-    html+='<td>'+fmtLiq(it.liquidez_media_30d)+'</td>'
-    html+='<td>'+fmtNum(it.p_vp)+'</td>'
-    let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
-    html+='<td>'+fmtPct(it.dividend_yield_12m)+'</td>'
+    html+='<td><span class="cot-val">'+(it.cotacao!=null?fmtNum(it.cotacao):'—')+'</span><span class="cot-var '+(it.variacao>=0?'up':'down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></td>'
     let divs=it.historico_dividendos;if(typeof divs==='string')try{divs=JSON.parse(divs)}catch(e){divs=null};if(!Array.isArray(divs))divs=null
     if(divs&&divs.length>1){
       let n=divs.length,h=24,w=80,bw=Math.max(2,Math.floor((w-4)/n)),mx=divs[0]
@@ -492,14 +500,6 @@ function render(){
         bars+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+Math.max(1,bw-1)+'" height="'+bh.toFixed(1)+'" fill="#ffffff" rx="1"/>'
       }
       html+='<td><svg width="100%" height="24" viewBox="0 0 80 24" preserveAspectRatio="none"><rect width="80" height="24" fill="var(--card)" rx="2"/>'+bars+'</svg></td>'
-    }else{
-      html+='<td style="color:var(--muted);font-size:9px">—</td>'
-    }
-    if(it.maturidade_lci){
-      let ps=it.maturidade_lci.split('|'),sc=0
-      for(let k=0;k<3;k++){if(ps[k]==='A')sc+=2;else if(ps[k]==='B')sc+=1}
-      let cor=sc>=5?'#00c896':sc>=3?'#ffde59':'#ff4757'
-      html+='<td><div style="font-size:11px;font-weight:600;letter-spacing:1px">'+it.maturidade_lci+'</div><div style="height:3px;width:100%;background:'+cor+';border-radius:2px;margin-top:3px"></div></td>'
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
