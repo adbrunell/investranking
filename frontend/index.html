@@ -36,11 +36,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #sidebar.collapsed .nav-item{justify-content:center;padding:11px 0;margin:0 4px;border-left:3px solid transparent}
 #sidebar.collapsed .nav-item .icon{width:auto;font-size:18px;margin:0}
 #sidebar.collapsed .nav-item.active{border-left-color:var(--accent)}
-#sidebar.collapsed .nav-divider{margin:8px 12px}
 #sidebar .collapse-btn{background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:8px 16px;text-align:left;transition:all .15s;font-family:inherit}
 #sidebar .collapse-btn:hover{color:var(--text)}
-#sidebar.collapsed .collapse-btn{text-align:center;padding:8px 0}
-#sidebar.collapsed .collapse-btn .txt{display:none}
 #sidebar .brand{padding:14px 16px;display:flex;align-items:center;gap:10px;min-height:44px;border-bottom:1px solid var(--border);cursor:pointer}
 #sidebar .brand:hover{background:rgba(255,255,255,0.02)}
 #sidebar .brand .logo{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
@@ -129,27 +126,30 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 <script>
 function toggleMenu(){
-  let s=document.getElementById('sidebar'),o=document.getElementById('overlay')
-  if(window.innerWidth>=768){toggleSidebar();return}
-  let open=s.classList.toggle('open')
-  o.classList.toggle('show',open)
+  toggleSidebar()
 }
 
 function toggleSidebar(){
   let s=document.getElementById('sidebar')
-  s.classList.toggle('collapsed')
-  let btn=document.getElementById('collapseBtn')
-  if(s.classList.contains('collapsed')){
-    btn.innerHTML='<i class="fas fa-chevron-right icon"></i><span class="txt"> Expandir</span>'
-    if(window.innerWidth<768)s.classList.remove('open')
+  if(window.innerWidth>=768){
+    s.classList.toggle('open')
+    let btn=document.getElementById('collapseBtn')
+    if(s.classList.contains('open')){
+      btn.innerHTML='<i class="fas fa-chevron-left icon"></i><span class="txt"> Recolher</span>'
+    }else{
+      btn.innerHTML='<i class="fas fa-chevron-right icon"></i><span class="txt"> Expandir</span>'
+    }
   }else{
-    btn.innerHTML='<i class="fas fa-chevron-left icon"></i><span class="txt"> Recolher</span>'
+    s.classList.toggle('open')
+    document.getElementById('overlay').classList.toggle('show',s.classList.contains('open'))
   }
 }
 
 function closeMenu(){
-  document.getElementById('sidebar').classList.remove('open')
-  document.getElementById('overlay').classList.remove('show')
+  if(window.innerWidth<768){
+    document.getElementById('sidebar').classList.remove('open')
+    document.getElementById('overlay').classList.remove('show')
+  }
 }
 
 function abrir(pagina, el){
