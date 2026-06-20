@@ -22,9 +22,6 @@
   --shadow:0 1px 3px rgba(0,0,0,0.3);--radius:12px;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
-#topbar{position:fixed;top:0;left:0;right:0;height:44px;z-index:1001;display:flex;align-items:center;gap:6px;padding:0;pointer-events:none}
-#menuBtn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--accent);font-size:18px;cursor:pointer;border-radius:0;transition:all .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0;pointer-events:auto;line-height:1}
-#menuBtn:hover{background:rgba(255,255,255,0.06)}
 #sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);z-index:2000;transform:translateX(-100%);transition:transform .2s ease,width .2s ease;display:flex;flex-direction:column}
 #sidebar.open{transform:translateX(0)}
 #sidebar.collapsed{width:var(--sidebar-w-collapsed)}
@@ -69,8 +66,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #sidebar .collapse-btn{text-align:center;padding:8px 0}
 #sidebar .collapse-btn .txt{display:none}
 #main{margin-left:var(--sidebar-w-collapsed)}
-#topbar{left:var(--sidebar-w-collapsed)}
 #sidebar.open{width:var(--sidebar-w)}
+#sidebar.open ~ #main{margin-left:var(--sidebar-w)}
 #sidebar.open .txt,#sidebar.open .nav-label,#sidebar.open .brand .logo span,#sidebar.open .close{display:block}
 #sidebar.open .brand{padding:14px 16px;justify-content:flex-start}
 #sidebar.open .brand .logo{font-size:15px;display:inline}
@@ -86,10 +83,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 </style>
 </head>
 <body>
-
-<div id="topbar">
-  <button id="menuBtn" onclick="toggleMenu()" title="Menu"><i class="fas fa-bars"></i></button>
-</div>
 
 <nav id="sidebar">
   <div class="brand" onclick="toggleSidebar()">
