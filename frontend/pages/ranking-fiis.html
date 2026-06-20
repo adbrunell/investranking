@@ -376,10 +376,11 @@ async function load(){
           if(userTickers.length&&!activeTipos['meus-ativos']){
             activeTipos['meus-ativos']=true
             document.getElementById('filterMeusAtivos').classList.add('active')
-            // Desliga os chips de tipo
             document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
               if(e.dataset.tipo!=='meus-ativos'){e.classList.remove('active');activeTipos[e.dataset.tipo]=false}
             })
+            document.getElementById('search').disabled=true
+            document.getElementById('search').style.opacity='.4'
           }
         }catch(e){}
       }
@@ -437,12 +438,18 @@ function toggleFiltro(el){
       document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
         if(e.dataset.tipo!=='meus-ativos'){e.classList.remove('active');activeTipos[e.dataset.tipo]=false}
       })
+      document.getElementById('search').disabled=true
+      document.getElementById('search').style.opacity='.4'
     }else{
       document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
         if(e.dataset.tipo!=='meus-ativos'){e.classList.add('active');activeTipos[e.dataset.tipo]=true}
       })
+      document.getElementById('search').disabled=false
+      document.getElementById('search').style.opacity='1'
     }
   }else{
+    // If "Meus Ativos" is active, ignore tipo chip clicks
+    if(activeTipos['meus-ativos'])return
     activeTipos[k]=!activeTipos[k]
     el.classList.toggle('active')
     let anyOn=Object.keys(activeTipos).filter(t=>t!=='meus-ativos').some(t=>activeTipos[t])
