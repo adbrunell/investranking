@@ -2,116 +2,286 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Invest Ranking — Análise de Fundos Imobiliários</title>
-<meta name="description" content="Ranking interativo de FIIs com Dividend Yield, P/VP, Liquidez, Maturidade LCI, minigráficos de histórico e dividendos. Compare fundos Tijolo, Papel, FoF, Híbrido e Fiagro.">
-<meta property="og:title" content="Invest Ranking — Análise de FIIs">
-<meta property="og:description" content="Ranking interativo de Fundos Imobiliários com DY, P/VP, liquidez e minigráficos.">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Invest Ranking — Compare, Escolha e Invista Melhor</title>
+<meta name="description" content="Rankings gratuitos de corretoras, ferramentas matemáticas de aportes e análises de FIIs e ações. Descubra os melhores investimentos com dados reais.">
+<meta property="og:title" content="Invest Ranking — Compare, Escolha e Invista Melhor">
+<meta property="og:description" content="Ferramentas gratuitas, rankings de corretoras e análises diretas ao ponto para você rentabilizar seu patrimônio.">
 <meta property="og:url" content="https://www.investranking.com.br">
 <meta property="og:type" content="website">
 <link rel="canonical" href="https://www.investranking.com.br">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;min-width:0}
-:root{--bg:#0c0e12;--card:#14171d;--card2:#1a1e26;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59;--yellow:#ffde59;--green:#00c896;--radius:12px}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080b0e;--surface:#0f1318;--card:#161c24;--card2:#1c2430;--border:#232e3a;--text:#e8edf2;--muted:#8895a7;--accent:#00c896;--accent-dim:rgba(0,200,150,0.1);--radius:16px;--font:'Inter',system-ui,-apple-system,sans-serif}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.6}
+img{max-width:100%;height:auto}
 a{color:var(--accent);text-decoration:none}
 
-.hero{text-align:center;padding:48px 20px 32px;max-width:640px;margin:0 auto}
-.hero h1{font-size:28px;font-weight:700;color:var(--text);margin-bottom:8px}
+/* ─── Hero ─── */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 24px 80px;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 50%,rgba(0,200,150,0.06) 0%,transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(0,200,150,0.04) 0%,transparent 60%);pointer-events:none}
+.hero-content{position:relative;z-index:1;max-width:800px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid rgba(0,200,150,0.2);color:var(--accent);padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;margin-bottom:24px}
+.hero h1{font-size:clamp(32px,6vw,56px);font-weight:800;line-height:1.1;margin-bottom:20px;letter-spacing:-0.02em}
 .hero h1 span{color:var(--accent)}
-.hero p{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:6px}
-.hero .tagline{font-size:13px;color:var(--muted);margin-top:8px}
-.hero .tagline i{color:var(--accent);margin:0 4px}
+.hero p{font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:600px;margin:0 auto 32px;line-height:1.7}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--font);border:none}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#00d9a8;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,200,150,0.3)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border);transform:translateY(-2px)}
+.hero-mockup{margin-top:48px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.mock-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;min-width:160px;text-align:center;transition:all .3s}
+.mock-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.mock-card .rank{font-size:24px;font-weight:800;color:var(--accent)}
+.mock-card .name{font-size:12px;color:var(--muted);margin:4px 0 2px}
+.mock-card .value{font-size:14px;font-weight:600}
+.mock-card .change{font-size:12px;font-weight:600}
+.mock-card .change.up{color:var(--accent)}
+.mock-card .change.down{color:#ff4757}
 
-.grid{max-width:720px;margin:0 auto;padding:0 16px 48px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 20px;cursor:pointer;transition:all .2s;text-align:center}
-.card:hover{border-color:var(--accent);transform:translateY(-2px);background:var(--card2)}
-.card .icon{font-size:28px;margin-bottom:10px;display:block}
-.card h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
-.card p{font-size:12px;color:var(--muted);line-height:1.5}
-.card.full{grid-column:1/-1}
+/* ─── Sections ─── */
+section{padding:80px 24px}
+.section-header{text-align:center;max-width:640px;margin:0 auto 48px}
+.section-header h2{font-size:clamp(24px,4vw,36px);font-weight:700;margin-bottom:12px;letter-spacing:-0.01em}
+.section-header p{color:var(--muted);font-size:15px}
 
-.features{max-width:640px;margin:0 auto;padding:0 16px 48px}
-.features h2{font-size:16px;font-weight:600;color:var(--accent);text-align:center;margin-bottom:16px}
-.feature{display:flex;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;align-items:flex-start}
-.feature .num{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.feature h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
-.feature p{font-size:12px;color:var(--muted);line-height:1.5}
+/* ─── Pilares ─── */
+.pilares{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:1100px;margin:0 auto}
+.pilar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;transition:all .3s}
+.pilar:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.3)}
+.pilar .icon{width:44px;height:44px;background:var(--accent-dim);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent);margin-bottom:16px}
+.pilar h3{font-size:17px;font-weight:600;margin-bottom:6px}
+.pilar p{font-size:13px;color:var(--muted);line-height:1.6}
 
-.footer{text-align:center;padding:0 16px 32px;font-size:11px;color:var(--muted)}
-.footer a{color:var(--muted);text-decoration:underline}
+/* ─── Ranking Interativo ─── */
+.ranking-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:800px;margin:0 auto;overflow:hidden}
+.ranking-preview .rp-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--muted)}
+.ranking-preview .rp-header span{color:var(--accent)}
+.ranking-preview .rp-row{display:grid;grid-template-columns:40px 1fr 100px 80px;gap:8px;padding:12px 20px;align-items:center;transition:background .15s;cursor:default;border-bottom:1px solid rgba(35,46,58,0.5)}
+.ranking-preview .rp-row:last-child{border-bottom:none}
+.ranking-preview .rp-row:hover{background:var(--card2)}
+.ranking-preview .rp-row .pos{font-size:13px;font-weight:700;color:var(--muted)}
+.ranking-preview .rp-row .pos.gold{color:#ffd700}
+.ranking-preview .rp-row .pos.silver{color:#c0c0c0}
+.ranking-preview .rp-row .pos.bronze{color:#cd7f32}
+.ranking-preview .rp-row .name{font-size:14px;font-weight:600}
+.ranking-preview .rp-row .score{font-size:13px;font-weight:600;color:var(--accent);text-align:right}
+.ranking-preview .rp-row .bar{height:6px;background:var(--accent-dim);border-radius:3px;overflow:hidden}
+.ranking-preview .rp-row .bar div{height:100%;background:var(--accent);border-radius:3px;transition:width .6s}
 
+/* ─── YouTube ─── */
+.youtube-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:900px;margin:0 auto}
+.yt-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .3s}
+.yt-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.yt-card .thumb{height:160px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--muted);position:relative}
+.yt-card .thumb i{position:absolute;font-size:48px;color:rgba(255,255,255,0.15)}
+.yt-card .info{padding:16px}
+.yt-card .info h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.yt-card .info p{font-size:12px;color:var(--muted)}
+
+/* ─── FAQ ─── */
+.faq{max-width:640px;margin:0 auto}
+.faq-item{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;transition:border-color .2s}
+.faq-item.open{border-color:var(--accent)}
+.faq-q{width:100%;background:var(--card);border:none;padding:16px 20px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font);transition:background .15s;text-align:left}
+.faq-q:hover{background:var(--card2)}
+.faq-q i{transition:transform .3s;font-size:12px;color:var(--muted)}
+.faq-item.open .faq-q i{transform:rotate(180deg)}
+.faq-a{padding:0 20px;max-height:0;overflow:hidden;transition:all .3s}
+.faq-item.open .faq-a{padding:0 20px 16px;max-height:300px}
+.faq-a p{font-size:13px;color:var(--muted);line-height:1.7}
+
+/* ─── Footer ─── */
+footer{background:var(--surface);border-top:1px solid var(--border);padding:48px 24px 24px}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px}
+.footer-col h4{font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.footer-col a{display:block;font-size:13px;color:var(--muted);padding:4px 0;transition:color .15s}
+.footer-col a:hover{color:var(--text)}
+.footer-social{display:flex;gap:12px;margin-top:8px}
+.footer-social a{width:36px;height:36px;background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--muted);transition:all .2s}
+.footer-social a:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.footer-disclaimer{border-top:1px solid var(--border);margin-top:32px;padding-top:20px;text-align:center}
+.footer-disclaimer p{font-size:11px;color:var(--muted);max-width:600px;margin:0 auto;line-height:1.6}
+.footer-copy{text-align:center;font-size:12px;color:var(--muted);margin-top:16px}
+
+/* ─── Responsive ─── */
+@media(max-width:768px){
+section{padding:60px 16px}
+.hero{padding:80px 16px 60px;min-height:auto}
+.hero-actions{flex-direction:column;align-items:center}
+.hero-actions .btn{width:100%;justify-content:center}
+.ranking-preview .rp-row{grid-template-columns:30px 1fr 60px 60px;font-size:12px;padding:10px 14px}
+.ranking-preview .rp-row .score{font-size:12px}
+}
 @media(max-width:480px){
-.hero h1{font-size:24px}
-.grid{grid-template-columns:1fr}
+.hero h1{font-size:28px}
 }
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <h1>Invest <span>Ranking</span></h1>
-  <p>Ranking inteligente de Fundos Imobiliários com indicadores em tempo real, minigráficos, histórico de dividendos e classificação por maturidade.</p>
-  <div class="tagline"><i class="fas fa-chart-line"></i> Dados de B3, CVM, FNET e StatusInvest <i class="fas fa-database"></i></div>
-</div>
+<header class="hero" role="banner">
+  <div class="hero-content">
+    <div class="hero-badge"><i class="fas fa-check-circle"></i> Dados reais — Semanalmente atualizado</div>
+    <h1>Compare, Escolha e <span>Invista Melhor</span></h1>
+    <p>Ferramentas matemáticas gratuitas, rankings atualizados de fundos imobiliários e análises diretas ao ponto para você rentabilizar seu patrimônio sem complicação.</p>
+    <div class="hero-actions">
+      <a href="?p=ranking-fiis" class="btn btn-primary"><i class="fas fa-trophy"></i> Ver Ranking Gratuito</a>
+      <a href="https://www.youtube.com/@Invest_Ranking" target="_blank" rel="noopener" class="btn btn-secondary"><i class="fab fa-youtube"></i> Assistir Tutoriais</a>
+    </div>
+    <div class="hero-mockup">
+      <div class="mock-card"><div class="rank">1</div><div class="name">HGLG11</div><div class="value">R$ 172,50</div><div class="change up">+1,23%</div></div>
+      <div class="mock-card"><div class="rank" style="color:#c0c0c0">2</div><div class="name">KNRI11</div><div class="value">R$ 141,80</div><div class="change up">+0,87%</div></div>
+      <div class="mock-card"><div class="rank" style="color:#cd7f32">3</div><div class="name">XPLG11</div><div class="value">R$ 98,40</div><div class="change down">-0,32%</div></div>
+    </div>
+  </div>
+</header>
 
-<div class="grid">
-  <div class="card" onclick="window.top.location.href='/?p=ranking-fiis'">
-    <i class="fas fa-trophy icon" style="color:var(--accent)"></i>
-    <h3>Ranking FIIs</h3>
-    <p>Tabela completa com DY, P/VP, Liquidez, Maturidade LCI, minigráficos de cotações e dividendos. Filtre por tipo, peso e ativos da sua carteira.</p>
-  </div>
-  <div class="card" onclick="window.top.location.href='/?p=radar-mais'">
-    <i class="fas fa-bullseye icon" style="color:var(--green)"></i>
-    <h3>Anúncios</h3>
-    <p>Fatos relevantes, informes mensais e comunicados de FIIs organizados por fundo. Radar completo de documentos FNET.</p>
-  </div>
-  <div class="card" onclick="window.top.location.href='/?p=analise-fii'">
-    <i class="fas fa-search icon" style="color:#5b7fff"></i>
-    <h3>Scanner</h3>
-    <p>Análise individual de cada FII com gráfico de preços, histórico de dividendos, indicadores financeiros e documentos.</p>
-  </div>
-  <div class="card" onclick="window.top.location.href='/?p=ranking'">
-    <i class="fas fa-chart-simple icon" style="color:var(--accent)"></i>
-    <h3>Cotações</h3>
-    <p>Acompanhe as cotações em tempo real de todos os fundos do mercado com variação e indicadores atualizados.</p>
-  </div>
-  <div class="card full" onclick="window.top.location.href='/?p=status'">
-    <i class="fas fa-sync-alt icon" style="color:var(--muted)"></i>
-    <h3>Status da Base</h3>
-    <p>Veja o status da última atualização de cada fonte de dados: B3, CVM, FNET e mais.</p>
-  </div>
-</div>
+<main>
+  <section aria-labelledby="pilares-title">
+    <div class="section-header">
+      <h2 id="pilares-title">Por que o Invest Ranking?</h2>
+      <p>Dados reais, análises matemáticas e ferramentas gratuitas para o investidor que quer decidir com clareza.</p>
+    </div>
+    <div class="pilares">
+      <article class="pilar">
+        <div class="icon"><i class="fas fa-calculator"></i></div>
+        <h3>Matemática Provada</h3>
+        <p>Ferramentas e dados que mostram a melhor estratégia de aportes baseada em números, não em opinião.</p>
+      </article>
+      <article class="pilar">
+        <div class="icon"><i class="fas fa-ranking-star"></i></div>
+        <h3>Ranking de FIIs</h3>
+        <p>Fundos imobiliários comparados lado a lado com Dividend Yield, P/VP, liquidez e minigráficos.</p>
+      </article>
+      <article class="pilar">
+        <div class="icon"><i class="fas fa-chart-line"></i></div>
+        <h3>Scanner de Ativos</h3>
+        <p>Análise individual com gráfico de preços, histórico de dividendos e indicadores financeiros completos.</p>
+      </article>
+      <article class="pilar">
+        <div class="icon"><i class="fab fa-youtube"></i></div>
+        <h3>Conteúdo em Vídeo</h3>
+        <p>Guias visuais no YouTube explicando cada ferramenta e ensinando a interpretar os rankings.</p>
+      </article>
+    </div>
+  </section>
 
-<div class="features">
-  <h2>O que você encontra aqui</h2>
-  <div class="feature">
-    <div class="num">1</div>
-    <div><h4>Ranking com Nota</h4><p>Cada fundo recebe uma nota baseada em Liquidez, P/VP, DY e Atratividade. Você define os pesos de cada indicador.</p></div>
-  </div>
-  <div class="feature">
-    <div class="num">2</div>
-    <div><h4>Maturidade LCI</h4><p>Classificação A/B/C para Liquidez, Número de Cotistas e Idade do fundo. Ideal para critérios de elegibilidade em carteiras LCI.</p></div>
-  </div>
-  <div class="feature">
-    <div class="num">3</div>
-    <div><h4>Minigráficos</h4><p>Sparkline de 52 semanas de preço e barras dos últimos 12 dividendos. Visualização rápida sem precisar abrir página.</p></div>
-  </div>
-  <div class="feature">
-    <div class="num">4</div>
-    <div><h4>Filtros inteligentes</h4><p>Filtre por tipo de fundo (Tijolo, Papel, FoF), por Liquidez, P/VP, DY, ou ative o filtro Meus Ativos para ver só sua carteira.</p></div>
-  </div>
-  <div class="feature">
-    <div class="num">5</div>
-    <div><h4>Sua carteira</h4><p>Cadastre seus ativos e acompanhe o ranking filtrado pelos fundos que você tem. Quantidade editável e persistente.</p></div>
-  </div>
-</div>
+  <section aria-labelledby="ranking-title" style="background:var(--surface)">
+    <div class="section-header">
+      <h2 id="ranking-title">Ranking de FIIs da Semana</h2>
+      <p>Os fundos mais bem classificados pelo nosso algoritmo baseado em Liquidez, P/VP, Dividend Yield e Atratividade.</p>
+    </div>
+    <div class="ranking-preview" id="rankingPreview">
+      <div class="rp-header"><span><i class="fas fa-trophy"></i> Top FIIs</span> <span>Atualizado semanalmente</span></div>
+      <div id="rpBody"></div>
+    </div>
+    <div style="text-align:center;margin-top:20px">
+      <a href="?p=ranking-fiis" class="btn btn-primary"><i class="fas fa-arrow-right"></i> Ver Ranking Completo</a>
+    </div>
+  </section>
 
-<div class="footer">
-  <p>Dados atualizados diariamente de fontes oficiais: B3, CVM, FNET, StatusInvest.</p>
-  <p style="margin-top:4px"><a href="https://www.investranking.com.br">Invest Ranking</a> &mdash; ferramenta gratuita de análise de Fundos Imobiliários</p>
-</div>
+  <section aria-labelledby="youtube-title">
+    <div class="section-header">
+      <h2 id="youtube-title">Aprenda na prática com quem analisa os números</h2>
+      <p>Acompanhe o <a href="https://www.youtube.com/@Invest_Ranking" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">@Invest_Ranking</a> no YouTube e aprenda a usar cada ferramenta.</p>
+    </div>
+    <div class="youtube-grid">
+      <div class="yt-card">
+        <div class="thumb"><i class="fab fa-youtube"></i></div>
+        <div class="info"><h4>Melhores FIIs para 2026</h4><p>Ranking completo com os fundos mais promissores do ano.</p></div>
+      </div>
+      <div class="yt-card">
+        <div class="thumb"><i class="fab fa-youtube"></i></div>
+        <div class="info"><h4>Como Usar o Ranking</h4><p>Passo a passo de como interpretar cada indicador.</p></div>
+      </div>
+      <div class="yt-card">
+        <div class="thumb"><i class="fab fa-youtube"></i></div>
+        <div class="info"><h4>Scanner de Fundos</h4><p>Análise detalhada de cada ativo com gráficos e dividendos.</p></div>
+      </div>
+    </div>
+  </section>
 
+  <section aria-labelledby="faq-title" style="background:var(--surface)">
+    <div class="section-header">
+      <h2 id="faq-title">Perguntas Frequentes</h2>
+    </div>
+    <div class="faq" itemscope itemtype="https://schema.org/FAQPage">
+      <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <button class="faq-q" onclick="toggleFaq(this)">O que é o Invest Ranking? <i class="fas fa-chevron-down"></i></button>
+        <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>É uma plataforma gratuita que organiza dados de Fundos Imobiliários (FIIs) em rankings comparáveis com indicadores como Dividend Yield, P/VP, Liquidez, Maturidade LCI e minigráficos de histórico. Também oferece scanner individual de ativos e ferramentas de análise.</p></div>
+      </div>
+      <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <button class="faq-q" onclick="toggleFaq(this)">Como funciona o ranking de FIIs? <i class="fas fa-chevron-down"></i></button>
+        <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>O ranking calcula uma nota para cada fundo baseada em Liquidez Diária, P/VP, Dividend Yield (últimos 12 meses) e Atratividade (posição na faixa de 52 semanas). Você pode ajustar os pesos de cada indicador e filtrar por tipo de fundo (Tijolo, Papel, FoF, Híbrido, Fiagro).</p></div>
+      </div>
+      <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <button class="faq-q" onclick="toggleFaq(this)">As ferramentas são gratuitas? <i class="fas fa-chevron-down"></i></button>
+        <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>Sim! Todas as ferramentas de ranking, scanner e indicadores são 100% gratuitas. Você pode criar uma conta para salvar seus filtros personalizados e cadastrar sua carteira de ativos.</p></div>
+      </div>
+      <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <button class="faq-q" onclick="toggleFaq(this)">O site recomenda investimentos? <i class="fas fa-chevron-down"></i></button>
+        <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>Não. O Invest Ranking é uma ferramenta educacional e analítica. Os rankings e indicadores são baseados em dados públicos (B3, CVM, FNET) e servem como referência para suas próprias decisões. Consulte sempre um profissional certificado antes de investir.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer role="contentinfo">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Ferramentas</h4>
+      <a href="?p=ranking-fiis">Ranking FIIs</a>
+      <a href="?p=analise-fii">Scanner</a>
+      <a href="?p=radar-mais">Anúncios</a>
+      <a href="?p=ranking">Cotações</a>
+    </div>
+    <div class="footer-col">
+      <h4>Conta</h4>
+      <a href="?p=meus-ativos">Meus Ativos</a>
+      <a href="?p=minha-conta">Minha Conta</a>
+      <a href="?p=login">Entrar</a>
+    </div>
+    <div class="footer-col">
+      <h4>YouTube</h4>
+      <a href="https://www.youtube.com/@Invest_Ranking" target="_blank" rel="noopener">@Invest_Ranking</a>
+      <div class="footer-social">
+        <a href="https://www.youtube.com/@Invest_Ranking" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-disclaimer">
+    <p><strong>Disclaimer:</strong> As informações deste site têm caráter exclusivamente educacional e analítico. Não constituem recomendação de investimento, oferta ou solicitação de compra ou venda de ativos financeiros. Consulte um profissional certificado antes de tomar decisões de investimento. Dados provenientes de fontes públicas (B3, CVM, FNET, StatusInvest) podem apresentar atrasos ou inconsistências.</p>
+  </div>
+  <div class="footer-copy">&copy; 2026 Invest Ranking. Todos os direitos reservados.</div>
+</footer>
+
+<script>
+function toggleFaq(btn){
+  const item=btn.parentElement
+  const isOpen=item.classList.contains('open')
+  document.querySelectorAll('.faq-item.open').forEach(el=>el.classList.remove('open'))
+  if(!isOpen)item.classList.add('open')
+}
+
+// Mini ranking preview
+const topData=[
+  {pos:1, ticker:'HGLG11', nota:'0.852', pct:85, cls:'gold'},
+  {pos:2, ticker:'KNRI11', nota:'0.794', pct:79, cls:'silver'},
+  {pos:3, ticker:'XPLG11', nota:'0.731', pct:73, cls:'bronze'},
+  {pos:4, ticker:'GARE11', nota:'0.698', pct:70},
+  {pos:5, ticker:'LVBI11', nota:'0.645', pct:65}
+]
+document.getElementById('rpBody').innerHTML=topData.map(d=>
+  '<div class="rp-row"><div class="pos'+(d.cls?' '+d.cls:'')+'">'+(d.pos<4?['🥇','🥈','🥉'][d.pos-1]:d.pos)+'</div><div class="name">'+d.ticker+'</div><div class="score">'+d.nota+'</div><div class="bar"><div style="width:'+d.pct+'%"></div></div></div>'
+).join('')
+</script>
 </body>
 </html>
