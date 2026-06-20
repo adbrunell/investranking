@@ -144,9 +144,7 @@ async function init(){
   try{
     const sess=await getSession()
     if(!sess?.data?.session){
-      document.getElementById('loginMsg').style.display='block'
-      document.getElementById('profileForm').style.display='none'
-      document.getElementById('saveBar').style.display='none'
+      window.location.href='login.html'
       return
     }
     document.getElementById('loginMsg').style.display='none'

@@ -104,8 +104,7 @@ async function carregar(){
   try{
     const sess=await getSession()
     if(!sess?.data?.session){
-      document.getElementById('feed').innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)"><i class="fas fa-lock" style="font-size:24px;opacity:.4;margin-bottom:8px;display:block"></i>Faça login para gerenciar seus ativos.</td></tr>'
-      document.getElementById('emptyMsg').style.display='none'
+      window.location.href='login.html'
       return
     }
     ativos=await listarAtivos()
