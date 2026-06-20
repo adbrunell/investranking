@@ -191,6 +191,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
     <button class="filter-chip active" data-tipo="Híbrido" onclick="toggleFiltro(this)">Híbrido</button>
     <button class="filter-chip active" data-tipo="Fiagro" onclick="toggleFiltro(this)">Fiagro</button>
     <button class="filter-chip active" data-tipo="FI-Infra" onclick="toggleFiltro(this)">FI-Infra</button>
+    <button class="filter-chip" data-tipo="meus-ativos" onclick="toggleFiltro(this)" id="filterMeusAtivos" style="display:none"><i class="fas fa-briefcase"></i> Meus Ativos</button>
   </div>
 </div>
 <div id="panelOverlay" class="panel-overlay" onclick="togglePanel()"></div>
@@ -303,7 +304,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allData=[],searchTerm=''
+let allData=[],searchTerm='',userTickers=[]
 let activeTipos={}
 document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=true})
 
@@ -359,6 +360,8 @@ async function load(){
       if (loggedIn) {
         const setups = await listarSetups()
         if (setups.length > 0) aplicarFiltros(setups[0].filtros)
+        // Load user tickers for "Meus Ativos" filter
+        try{const ativos=await listarAtivos();userTickers=ativos.map(a=>a.ticker).filter(Boolean);document.getElementById('filterMeusAtivos').style.display=''}catch(e){}
       }
     } catch(e) {}
     if (!loggedIn) {
@@ -404,15 +407,15 @@ function toggleFiltro(el){
     let allOn=Object.keys(activeTipos).every(t=>activeTipos[t])
     let newVal=!allOn
     document.querySelectorAll('.filter-chip[data-tipo]').forEach(e=>{
-      if(e.dataset.tipo!=='all'){e.classList.toggle('active',newVal);activeTipos[e.dataset.tipo]=newVal}
+      if(e.dataset.tipo!=='all'&&e.dataset.tipo!=='meus-ativos'){e.classList.toggle('active',newVal);activeTipos[e.dataset.tipo]=newVal}
     })
     el.classList.toggle('active',newVal)
   }else{
     activeTipos[k]=!activeTipos[k]
     el.classList.toggle('active')
-    let anyOn=Object.values(activeTipos).some(v=>v)
+    let anyOn=Object.keys(activeTipos).filter(t=>t!=='meus-ativos').some(t=>activeTipos[t])
     if(!anyOn){activeTipos[k]=true;el.classList.add('active')}
-    let allOn=Object.keys(activeTipos).every(t=>activeTipos[t])
+    let allOn=Object.keys(activeTipos).filter(t=>t!=='meus-ativos').every(t=>activeTipos[t])
     document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active',allOn)
   }
   render()
@@ -428,6 +431,7 @@ function render(){
   let fk=Object.keys(activeTipos).filter(k=>activeTipos[k])
   if(fk.length<Object.keys(activeTipos).length)items=items.filter(it=>fk.includes(it.tipo))
   if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
+  if(activeTipos['meus-ativos']&&userTickers.length)items=items.filter(it=>userTickers.includes(it.ticker))
   function fv(id,raw){let e=document.getElementById(id);if(!e||!e.value)return null;let v=raw?e.value:+e.value;return v||v===0?v:null}
   let flMin=fv('liqMin',1),flMax=fv('liqMax',1),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
   if(flMin!=null||flMax!=null)items=items.filter(it=>{let v=+it.liquidez_media_30d;let mn=parseLiqVal(flMin),mx=parseLiqVal(flMax);return(mn==null||v>=mn)&&(mx==null||v<=mx)})
