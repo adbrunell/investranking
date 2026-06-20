@@ -559,7 +559,7 @@ function aplicarFiltros(f) {
     }
   }
   document.querySelectorAll('.filter-chip[data-tipo]').forEach(el => {
-    if (el.dataset.tipo === 'all') return
+    if (el.dataset.tipo === 'meus-ativos') return
     const ativo = f.tipos && f.tipos[el.dataset.tipo]
     el.classList.toggle('active', ativo !== false)
     if (f.tipos) activeTipos[el.dataset.tipo] = ativo !== false
