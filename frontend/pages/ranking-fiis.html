@@ -446,15 +446,18 @@ function onSearch(){
 
 function render(){
   let items=[...allData]
-  let fk=Object.keys(activeTipos).filter(k=>activeTipos[k])
-  if(fk.length<Object.keys(activeTipos).length)items=items.filter(it=>fk.includes(it.tipo))
-  if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
-  if(activeTipos['meus-ativos']&&userTickers.length)items=items.filter(it=>userTickers.includes(it.ticker))
-  function fv(id,raw){let e=document.getElementById(id);if(!e||!e.value)return null;let v=raw?e.value:+e.value;return v||v===0?v:null}
-  let flMin=fv('liqMin',1),flMax=fv('liqMax',1),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
-  if(flMin!=null||flMax!=null)items=items.filter(it=>{let v=+it.liquidez_media_30d;let mn=parseLiqVal(flMin),mx=parseLiqVal(flMax);return(mn==null||v>=mn)&&(mx==null||v<=mx)})
-  if(fpMin!=null||fpMax!=null)items=items.filter(it=>{let v=it.p_vp;return v!=null&&(fpMin==null||v>=fpMin)&&(fpMax==null||v<=fpMax)})
-  if(fdMin!=null||fdMax!=null)items=items.filter(it=>{let v=it.dividend_yield_12m;return v!=null&&(fdMin==null||v>=fdMin/100)&&(fdMax==null||v<=fdMax/100)})
+  if(activeTipos['meus-ativos']&&userTickers.length){
+    items=items.filter(it=>userTickers.includes(it.ticker))
+  }else{
+    let fk=Object.keys(activeTipos).filter(k=>activeTipos[k]&&k!=='meus-ativos')
+    if(fk.length<Object.keys(activeTipos).filter(k=>k!=='meus-ativos').length)items=items.filter(it=>fk.includes(it.tipo))
+    if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
+    function fv(id,raw){let e=document.getElementById(id);if(!e||!e.value)return null;let v=raw?e.value:+e.value;return v||v===0?v:null}
+    let flMin=fv('liqMin',1),flMax=fv('liqMax',1),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
+    if(flMin!=null||flMax!=null)items=items.filter(it=>{let v=+it.liquidez_media_30d;let mn=parseLiqVal(flMin),mx=parseLiqVal(flMax);return(mn==null||v>=mn)&&(mx==null||v<=mx)})
+    if(fpMin!=null||fpMax!=null)items=items.filter(it=>{let v=it.p_vp;return v!=null&&(fpMin==null||v>=fpMin)&&(fpMax==null||v<=fpMax)})
+    if(fdMin!=null||fdMax!=null)items=items.filter(it=>{let v=it.dividend_yield_12m;return v!=null&&(fdMin==null||v>=fdMin/100)&&(fdMax==null||v<=fdMax/100)})
+  }
 
   let mnLiq=Infinity,mxLiq=-Infinity,mnPvp=Infinity,mxPvp=-Infinity,mnDy=Infinity,mxDy=-Infinity
   for(let z=0;z<items.length;z++){
