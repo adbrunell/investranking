@@ -42,7 +42,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .prow input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;outline:none;font-family:inherit}
 .prow input:focus{border-color:var(--accent)}
 .prow .wsel{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-size:12px;padding:6px 8px;outline:none;cursor:pointer;font-weight:600}
-.pweight{font-size:11px;color:var(--muted);min-width:30px;text-align:right}
+
 .panel-footer{display:flex;padding:12px 16px;border-top:1px solid var(--border);gap:8px}
 .filter-range-wrap{overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border)}
 .filter-range-wrap::-webkit-scrollbar{display:none}
@@ -80,7 +80,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 
 .tbl-wrap table{width:100%;border-collapse:separate;border-spacing:0 2px;font-size:11px}
 .tbl-wrap thead{position:sticky;top:48px;z-index:50}
-.tbl-wrap thead th{padding:8px 10px 6px;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;text-align:center;line-height:1.3}
+.tbl-wrap thead th{padding:8px 10px 6px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;text-align:center;line-height:1.3}
 .tbl-wrap tbody tr{background:var(--card);animation:rowIn .35s ease-out both;transition:background .15s}
 .tbl-wrap tbody tr:hover{background:var(--card2)}
 .tbl-wrap tbody td{padding:8px 10px;white-space:nowrap;text-align:center;vertical-align:middle}
@@ -137,7 +137,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .pf-cell input,.pf-cell select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 6px;color:var(--text);font-size:11px;outline:none;font-family:inherit}
 .pf-cell input:focus,.pf-cell select:focus{border-color:var(--accent)}
 .pf-cell select{color:var(--accent);font-weight:600;cursor:pointer}
-.pf-cell .pweight{font-size:10px;color:var(--muted);text-align:center}
+
 .ps-row{display:flex;align-items:center;gap:8px;margin:6px 0}
 .ps-track-wrap{flex:1;position:relative;height:24px;display:flex;align-items:center}
 .ps-track{position:relative;width:100%;height:4px;background:var(--border);border-radius:2px}
@@ -191,7 +191,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <div class="pf-row">
         <div class="pf-cell"><label class="pf-label">Mín</label><input type="text" id="liqMin" inputmode="numeric" placeholder="0" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
         <div class="pf-cell"><label class="pf-label">Máx</label><input type="text" id="liqMax" inputmode="numeric" placeholder="—" oninput="fmtLiqInput(this);syncSliFromPanel();render()"></div>
-        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wLiqLabel">0.5</span></span></div>
+        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wLiq" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
       </div>
     </div>
     <div class="pgroup"><div class="pgroup-title">P/VP</div>
@@ -207,7 +207,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <div class="pf-row">
         <div class="pf-cell"><label class="pf-label">Mín</label><input type="number" id="pvpMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.01"></div>
         <div class="pf-cell"><label class="pf-label">Máx</label><input type="number" id="pvpMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.01"></div>
-        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wPvpLabel">0.5</span></span></div>
+        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wPvp" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
       </div>
     </div>
     <div class="pgroup"><div class="pgroup-title">DY</div>
@@ -223,11 +223,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <div class="pf-row">
         <div class="pf-cell"><label class="pf-label">Mín %</label><input type="number" id="dyMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.1"></div>
         <div class="pf-cell"><label class="pf-label">Máx %</label><input type="number" id="dyMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.1"></div>
-        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wDyLabel">0.5</span></span></div>
+        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
       </div>
     </div>
     <div class="pgroup"><div class="pgroup-title">Atratividade</div>
-      <div class="prow"><label>Peso</label><select id="wAtr" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select><span class="pweight">× <span id="wAtrLabel">0.5</span></span></div>
+      <div class="prow"><label>Peso</label><select id="wAtr" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
     </div>
   </div>
   <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5',wAtr:'5'})" style="font-size:10px">Limpar</button><span id="panelSaveArea" style="margin-left:auto;font-size:10px;color:var(--muted)">⋯</span></div>
@@ -295,8 +295,7 @@ function togglePanel(){
   document.getElementById('panelOverlay').classList.toggle('open')
 }
 ['wLiq','wPvp','wDy','wAtr'].forEach(id=>{
-  let el=document.getElementById(id)
-  el.onchange=function(){document.getElementById(id+'Label').textContent=(+this.value/10).toFixed(1);render()}
+  document.getElementById(id).onchange=function(){render()}
 })
 
 async function load(){
@@ -485,11 +484,7 @@ function aplicarFiltros(f) {
   s('liqMin', f.liqMin); s('liqMax', f.liqMax); s('wLiq', f.wLiq)
   s('pvpMin', f.pvpMin); s('pvpMax', f.pvpMax); s('wPvp', f.wPvp)
   s('dyMin', f.dyMin); s('dyMax', f.dyMax); s('wDy', f.wDy); s('wAtr', f.wAtr)
-  ;['wLiq','wPvp','wDy','wAtr'].forEach(id => {
-    const el = document.getElementById(id)
-    const lbl = document.getElementById(id + 'Label')
-    if (el && lbl) lbl.textContent = (+el.value / 10).toFixed(1)
-  })
+
   syncSliFromPanel()
   render()
 }
