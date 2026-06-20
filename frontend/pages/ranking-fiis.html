@@ -233,7 +233,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
         <th style="text-align:right">Liquidez<br>Diária</th>
         <th style="text-align:right">P/VP</th>
         <th style="text-align:right">DY<br>12m</th>
-        <th style="text-align:center">Dividendos<br>12m</th>
+        <th style="text-align:center">Dividendos<br>24m</th>
         <th style="text-align:right">Nota</th>
       </tr></thead>
       <tbody id="feed"></tbody>
@@ -429,12 +429,12 @@ function render(){
     html+='<td>'+fmtPct(it.dividend_yield_12m)+'</td>'
     let divs=it.historico_dividendos;if(typeof divs==='string')try{divs=JSON.parse(divs)}catch(e){divs=null};if(!Array.isArray(divs))divs=null
     if(divs&&divs.length>1){
-      let n=divs.length,h=24,w=80,bw=Math.max(3,Math.floor((w-4)/n)-1),mx=divs[0]
+      let n=divs.length,h=24,w=80,bw=Math.max(2,Math.floor((w-4)/n)),mx=divs[0]
       for(let j=1;j<n;j++){let v=+divs[j];if(v>mx)mx=v}
       let rg=mx||1,bars=''
       for(let j=0;j<n;j++){
-        let bh=((+divs[j])/rg)*(h-4),x=2+j*(bw+1),y=h-2-bh
-        bars+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+bw+'" height="'+bh.toFixed(1)+'" fill="#ffffff" rx="1"/>'
+        let bh=((+divs[j])/rg)*(h-4),x=2+j*bw,y=h-2-bh
+        bars+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+Math.max(1,bw-1)+'" height="'+bh.toFixed(1)+'" fill="#ffffff" rx="1"/>'
       }
       html+='<td><svg width="100%" height="24" viewBox="0 0 80 24" preserveAspectRatio="none"><rect width="80" height="24" fill="var(--card)" rx="2"/>'+bars+'</svg></td>'
     }else{
