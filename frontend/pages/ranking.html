@@ -416,38 +416,19 @@ function renderTreemap(items, topN){
   if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
   var w=el.clientWidth||800,h=Math.max(400,Math.min(600,window.innerHeight*0.6))
   el.style.height=h+'px'
-  // Build hierarchical data
-  var rootData={name:'root',children:[]}
-  var groups={}
-  data.forEach(function(d){
-    var cat=ASSET_MAP[d.tipo]||'fii'
-    if(!groups[cat]){groups[cat]={name:cat,children:[]};rootData.children.push(groups[cat])}
-    groups[cat].children.push({name:d.ticker,value:Math.max(d.volume||1,1),item:d})
-  })
-  // D3 treemap
+  // Flat hierarchy
+  var rootData={name:'root',children:data.map(function(d){return {name:d.ticker,value:Math.max(d.volume||1,1),item:d}})}
   var root=d3.hierarchy(rootData).sum(function(d){return d.value})
-  d3.treemap().size([w,h]).paddingOuter(3).paddingTop(16).paddingInner(1).round(true)(root)
-  // Color scale
+  d3.treemap().size([w,h]).paddingOuter(4).paddingInner(2).round(true)(root)
   var colorScale=d3.scaleLinear().domain([-5,0,5]).range(['#ff4757','#232830','#00c896']).clamp(true)
-  // Draw
   var svg=d3.select(el).selectAll('svg').data([null]).join('svg').attr('width',w).attr('height',h)
-  var leaf=svg.selectAll('g').data(root.leaves()).join('g').attr('class','tm-tile').attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'}).on('click',function(ev,d){window.top.location.href='?p=analise-fii'})
+  var leaf=svg.selectAll('g').data(root.leaves()).join('g').attr('class','tm-tile').attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'}).on('click',function(){window.top.location.href='?p=analise-fii'})
   leaf.append('rect').attr('width',function(d){return d.x1-d.x0}).attr('height',function(d){return d.y1-d.y0}).attr('fill',function(d){return colorScale(d.data.item?d.data.item.variacao:0)}).attr('rx',3).attr('ry',3)
-  // Labels
-  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2-4}).attr('text-anchor','middle').attr('fill','#fff').attr('font-size',function(d){return Math.min((d.x1-d.x0)/6,16)}).attr('font-weight','700').style('text-shadow','0 1px 3px rgba(0,0,0,0.5)').text(function(d){return(d.x1-d.x0)>40&&(d.y1-d.y0)>28?d.data.name:''}).style('pointer-events','none')
-  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2+8}).attr('text-anchor','middle').attr('fill','rgba(255,255,255,0.8)').attr('font-size',function(d){return Math.min((d.x1-d.x0)/8,11)}).text(function(d){
+  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2-3}).attr('text-anchor','middle').attr('fill','#fff').attr('font-size',function(d){return Math.min((d.x1-d.x0)/6,16)}).attr('font-weight','700').style('text-shadow','0 1px 3px rgba(0,0,0,0.5)').text(function(d){return(d.x1-d.x0)>36&&(d.y1-d.y0)>24?d.data.name:''}).style('pointer-events','none')
+  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2+9}).attr('text-anchor','middle').attr('fill','rgba(255,255,255,0.8)').attr('font-size',function(d){return Math.min((d.x1-d.x0)/8,11)}).text(function(d){
     if((d.x1-d.x0)<45||(d.y1-d.y0)<32)return ''
     var it=d.data.item;return it?'R$ '+fmtShort(it.preco):''
   }).style('pointer-events','none')
-  // Category labels
-  var seen={}
-  root.leaves().forEach(function(d){
-    var cat=d.parent.data.name
-    if(!seen[cat]&&d.y1-d.y0>18){
-      seen[cat]=true
-      svg.append('text').attr('x',d.x0+4).attr('y',d.y0+12).attr('fill','rgba(255,255,255,0.5)').attr('font-size','10px').attr('font-weight','600').text(cat.toUpperCase()).style('pointer-events','none')
-    }
-  })
 }
 
 // Patch render for treemap mode
