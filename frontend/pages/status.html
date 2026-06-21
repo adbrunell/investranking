@@ -131,7 +131,7 @@ async function carregar(){
   document.querySelector('.btn').classList.add('spinning')
   const tw=document.getElementById('tableWrap'),em=document.getElementById('emptyState')
   try{
-    let r=await fetch(REST+'/00.log_atualizacao?select=*&order=id.desc&limit=30',{headers:H})
+    let r=await fetch(REST+'/%2200.log_atualizacao%22?select=*&order=id.desc&limit=30',{headers:H})
     if(!r.ok)throw new Error(r.status)
     let rows=await r.json()
     em.style.display=rows.length?'none':'block'
