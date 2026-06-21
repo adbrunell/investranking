@@ -7,6 +7,7 @@
 <title>Cotações de FIIs — Invest Ranking</title>
 <meta name="description" content="Cotações em tempo real de Fundos Imobiliários com variação, preço atual e indicadores. Acompanhe o mercado de FIIs.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;min-width:0}
 :root{--bg:#0c0e12;--card:#14171d;--card2:#1a1e26;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59;--green:#00c896;--red:#ff4757;--blue:#5b7fff;--orange:#ff9f43;--radius:14px}
@@ -94,11 +95,10 @@ body.mode-treemap .rank-card{display:none}
 body.mode-treemap .rank-variacao{display:none}
 body.mode-treemap .rank-volume{display:none}
 body.mode-treemap #treemap{display:block}
-.tm-cell{position:absolute;overflow:hidden;border-radius:4px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:1px solid rgba(0,0,0,0.2)}
-.tm-cell:hover{transform:scale(1.02);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
-.tm-cell .tm-ticker{font-size:clamp(10px,1.2vw,14px);font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);line-height:1.2;text-align:center;pointer-events:none}
-.tm-cell .tm-price{font-size:clamp(8px,0.9vw,11px);color:rgba(255,255,255,0.8);margin-top:2px;text-shadow:0 1px 3px rgba(0,0,0,0.4);pointer-events:none}
-.tm-cell .tm-var{font-size:clamp(8px,0.8vw,10px);font-weight:600;margin-top:1px;pointer-events:none}
+#treemap svg{display:block;width:100%;height:100%}
+.tm-tile{cursor:pointer}
+.tm-tile:hover rect{stroke:rgba(255,255,255,0.3);stroke-width:1.5}
+.tm-tile text{pointer-events:none;user-select:none;font-weight:500;font-family:'Segoe UI',system-ui,sans-serif}
 .tm-empty{display:flex;align-items:center;justify-content:center;min-height:400px;color:var(--muted);font-size:14px;flex-direction:column;gap:8px}
 
 @media(max-width:768px){
@@ -409,56 +409,45 @@ function render(isRefresh){
   }
 }
 
-// ─── Treemap ───
-var TM_COLORS={acao:'#3b82f6',fii:'#10b981',fiagro:'#f59e0b',fiinfra:'#8b5cf6'}
-var TM_COLORS_BG={acao:'rgba(59,130,246,0.15)',fii:'rgba(16,185,129,0.15)',fiagro:'rgba(245,158,11,0.15)',fiinfra:'rgba(139,92,246,0.15)'}
-
+// ─── Treemap (D3.js) ───
 function renderTreemap(items, topN){
   var el=document.getElementById('treemap')
   var data=items.slice(0,topN||80)
   if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
-  // Group by category
+  var w=el.clientWidth||800,h=Math.max(400,Math.min(600,window.innerHeight*0.6))
+  el.style.height=h+'px'
+  // Build hierarchical data
+  var rootData={name:'root',children:[]}
   var groups={}
   data.forEach(function(d){
     var cat=ASSET_MAP[d.tipo]||'fii'
-    if(!groups[cat])groups[cat]={items:[],total:0}
-    groups[cat].items.push(d)
-    groups[cat].total+=Math.max(d.volume||1,1)
+    if(!groups[cat]){groups[cat]={name:cat,children:[]};rootData.children.push(groups[cat])}
+    groups[cat].children.push({name:d.ticker,value:Math.max(d.volume||1,1),item:d})
   })
-  var total=0;Object.keys(groups).forEach(function(k){total+=groups[k].total})
-  var w=el.parentElement.clientWidth||800,h=Math.max(400,Math.min(600,window.innerHeight*0.6))
-  el.style.height=h+'px'
-  // Layout groups as horizontal strips
-  var cells=[],y=0
-  Object.keys(groups).forEach(function(cat){
-    var group=groups[cat],gh=h*(group.total/total),x=0
-    var items=group.items.sort(function(a,b){return (b.volume||1)-(a.volume||1)})
-    var gTotal=group.total
-    items.forEach(function(it){
-      var cw=w*(Math.max(it.volume||1,1)/gTotal)
-      cells.push({x:x,y:y,w:cw,h:gh,item:it,cat:cat})
-      x+=cw
-    })
-    y+=gh
-  })
-  // Render
-  var html=''
-  cells.forEach(function(c){
-    var it=c.item,isUp=it.variacao>=0
-    var bg=TM_COLORS_BG[c.cat]||'rgba(16,185,129,0.1)'
-    var borderColor=TM_COLORS[c.cat]||'#10b981'
-    var minDim=Math.min(c.w,c.h)
-    var showText=c.w>45&&c.h>32
-    var fs=Math.min(minDim/5.5,15)
-    html+='<div class="tm-cell" style="left:'+(c.x/w*100)+'%;top:'+(c.y/h*100)+'%;width:'+(c.w/w*100)+'%;height:'+(c.h/h*100)+'%;background:'+bg+';border-left:3px solid '+borderColor+'" onclick="window.top.location.href=\'?p=analise-fii\'" title="'+it.ticker+' - R$ '+fmtShort(it.preco)+' - '+fmtNum(it.variacao)+'%">'
-    if(showText){
-      html+='<div class="tm-ticker" style="font-size:'+Math.min(fs,15)+'px">'+it.ticker+'</div>'
-      html+='<div class="tm-price" style="font-size:'+Math.min(fs*0.75,11)+'px">R$ '+fmtShort(it.preco)+'</div>'
-      html+='<div class="tm-var" style="font-size:'+Math.min(fs*0.65,10)+'px;color:'+(isUp?'var(--green)':'var(--red)')+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</div>'
+  // D3 treemap
+  var root=d3.hierarchy(rootData).sum(function(d){return d.value})
+  d3.treemap().size([w,h]).paddingOuter(3).paddingTop(16).paddingInner(1).round(true)(root)
+  // Color scale
+  var colorScale=d3.scaleLinear().domain([-5,0,5]).range(['#ff4757','#232830','#00c896']).clamp(true)
+  // Draw
+  var svg=d3.select(el).selectAll('svg').data([null]).join('svg').attr('width',w).attr('height',h)
+  var leaf=svg.selectAll('g').data(root.leaves()).join('g').attr('class','tm-tile').attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'}).on('click',function(ev,d){window.top.location.href='?p=analise-fii'})
+  leaf.append('rect').attr('width',function(d){return d.x1-d.x0}).attr('height',function(d){return d.y1-d.y0}).attr('fill',function(d){return colorScale(d.data.item?d.data.item.variacao:0)}).attr('rx',3).attr('ry',3)
+  // Labels
+  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2-4}).attr('text-anchor','middle').attr('fill','#fff').attr('font-size',function(d){return Math.min((d.x1-d.x0)/6,16)}).attr('font-weight','700').style('text-shadow','0 1px 3px rgba(0,0,0,0.5)').text(function(d){return(d.x1-d.x0)>40&&(d.y1-d.y0)>28?d.data.name:''}).style('pointer-events','none')
+  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2+8}).attr('text-anchor','middle').attr('fill','rgba(255,255,255,0.8)').attr('font-size',function(d){return Math.min((d.x1-d.x0)/8,11)}).text(function(d){
+    if((d.x1-d.x0)<45||(d.y1-d.y0)<32)return ''
+    var it=d.data.item;return it?'R$ '+fmtShort(it.preco):''
+  }).style('pointer-events','none')
+  // Category labels
+  var seen={}
+  root.leaves().forEach(function(d){
+    var cat=d.parent.data.name
+    if(!seen[cat]&&d.y1-d.y0>18){
+      seen[cat]=true
+      svg.append('text').attr('x',d.x0+4).attr('y',d.y0+12).attr('fill','rgba(255,255,255,0.5)').attr('font-size','10px').attr('font-weight','600').text(cat.toUpperCase()).style('pointer-events','none')
     }
-    html+='</div>'
   })
-  el.innerHTML=html
 }
 
 // Patch render for treemap mode
