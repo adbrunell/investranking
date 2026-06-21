@@ -61,80 +61,70 @@ def _parse_float(val) -> float | None:
         return None
 
 
-def _scrape_todas_paginas(client: httpx.Client, fund: dict) -> list[dict]:
-    """Pagina por todas as paginas do FNET para o fundo, retorna todos os docs."""
+def _scrape_primeira_pagina(client: httpx.Client, fund: dict) -> list[dict]:
+    """Pega somente a primeira pagina do FNET para o fundo (mais rapido, base ja completa)."""
     cnpj_raw = _cnpj_digits(fund["cnpj"])
     CAT_KEEP = {
         "Aviso aos Cotistas - Estruturado": {"Rendimentos e Amortizações"},
         "Relatórios": {"Relatório Gerencial"},
         "Fato Relevante": set(),
     }
-    LIMIT = 100
-    todos_docs = []
-    offset = 0
+    params = {
+        "d": "1", "s": "0", "l": "100",
+        "cnpjFundo": cnpj_raw,
+        "o[0][dataReferencia]": "desc",
+        "_": str(int(time.time() * 1000)),
+    }
+    try:
+        resp = client.get(FNET_AJAX, params=params, headers=_HEADERS, timeout=TIMO * 2)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        return []
 
-    while True:
-        params = {
-            "d": "1", "s": str(offset), "l": str(LIMIT),
-            "cnpjFundo": cnpj_raw,
-            "o[0][dataReferencia]": "desc",
-            "_": str(int(time.time() * 1000)),
-        }
-        try:
-            resp = client.get(FNET_AJAX, params=params, headers=_HEADERS, timeout=TIMO * 2)
-            resp.raise_for_status()
-            data = resp.json()
-        except Exception:
-            break
+    if not data or not data.get("data"):
+        return []
 
-        if not data or not data.get("data"):
-            break
-
-        rows = data["data"]
-        for row in rows:
-            fid = str(row.get("id", ""))
-            if not fid:
-                continue
-            cat = (row.get("categoriaDocumento") or "").strip()
-            tdoc = (row.get("tipoDocumento") or "").strip()
-            tipos_esperados = CAT_KEEP.get(cat)
-            if tipos_esperados is None:
-                continue
-            if tipos_esperados and tdoc not in tipos_esperados:
-                continue
-            todos_docs.append({
-                "fnet_documento_id": fid,
-                "codigo_fundo": fund.get("codigo_fundo", ""),
-                "cnpj": fund.get("cnpj", ""),
-                "codigo_isin": fund.get("codigo_isin", ""),
-                "nome_oficial": fund.get("nome_oficial", ""),
-                "nome_pregao": row.get("nomePregao") or "",
-                "nome_fundo": row.get("descricaoFundo", ""),
-                "categoria_documento": row.get("categoriaDocumento") or "",
-                "tipo_documento": row.get("tipoDocumento") or "",
-                "especie_documento": row.get("especieDocumento") or "",
-                "data_referencia": _parse_date(row.get("dataReferencia", "")),
-                "data_entrega": _parse_date(row.get("dataEntrega", "")),
-                "status": row.get("status", ""),
-                "descricao_status": row.get("descricaoStatus") or "",
-                "versao": int(row.get("versao", 0)) if row.get("versao") else 0,
-                "modalidade": row.get("modalidade") or "",
-                "descricao_modalidade": row.get("descricaoModalidade") or "",
-                "link_documento": f"https://fnet.bmfbovespa.com.br/fnet/publico/downloadDocumento?id={fid}",
-                "link_visualizar": f"https://fnet.bmfbovespa.com.br/fnet/publico/exibirDocumento?id={fid}&cvm=true",
-                "situacao_documento": row.get("situacaoDocumento") or "",
-                "analisado": row.get("analisado") == "S",
-                "fundo_ou_classe": row.get("fundoOuClasse") or "",
-                "informacoes_adicionais": row.get("informacoesAdicionais") or "",
-                "arquivo_estruturado": row.get("arquivoEstruturado") or "",
-                "nome_fundo_documento": row.get("nomeFundoDocumento") or "",
-            })
-
-        if len(rows) < LIMIT:
-            break
-        offset += LIMIT
-
-    return todos_docs
+    docs = []
+    for row in data["data"]:
+        fid = str(row.get("id", ""))
+        if not fid:
+            continue
+        cat = (row.get("categoriaDocumento") or "").strip()
+        tdoc = (row.get("tipoDocumento") or "").strip()
+        tipos_esperados = CAT_KEEP.get(cat)
+        if tipos_esperados is None:
+            continue
+        if tipos_esperados and tdoc not in tipos_esperados:
+            continue
+        docs.append({
+            "fnet_documento_id": fid,
+            "codigo_fundo": fund.get("codigo_fundo", ""),
+            "cnpj": fund.get("cnpj", ""),
+            "codigo_isin": fund.get("codigo_isin", ""),
+            "nome_oficial": fund.get("nome_oficial", ""),
+            "nome_pregao": row.get("nomePregao") or "",
+            "nome_fundo": row.get("descricaoFundo", ""),
+            "categoria_documento": row.get("categoriaDocumento") or "",
+            "tipo_documento": row.get("tipoDocumento") or "",
+            "especie_documento": row.get("especieDocumento") or "",
+            "data_referencia": _parse_date(row.get("dataReferencia", "")),
+            "data_entrega": _parse_date(row.get("dataEntrega", "")),
+            "status": row.get("status", ""),
+            "descricao_status": row.get("descricaoStatus") or "",
+            "versao": int(row.get("versao", 0)) if row.get("versao") else 0,
+            "modalidade": row.get("modalidade") or "",
+            "descricao_modalidade": row.get("descricaoModalidade") or "",
+            "link_documento": f"https://fnet.bmfbovespa.com.br/fnet/publico/downloadDocumento?id={fid}",
+            "link_visualizar": f"https://fnet.bmfbovespa.com.br/fnet/publico/exibirDocumento?id={fid}&cvm=true",
+            "situacao_documento": row.get("situacaoDocumento") or "",
+            "analisado": row.get("analisado") == "S",
+            "fundo_ou_classe": row.get("fundoOuClasse") or "",
+            "informacoes_adicionais": row.get("informacoesAdicionais") or "",
+            "arquivo_estruturado": row.get("arquivoEstruturass") or "",
+            "nome_fundo_documento": row.get("nomeFundoDocumento") or "",
+        })
+    return docs
 
 
 def extract(max_funds: int | None = None) -> list[dict]:
@@ -190,7 +180,7 @@ def extract(max_funds: int | None = None) -> list[dict]:
 
     with httpx.Client(verify=False, cookies=cookies) as client:
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as exec:
-            fut_map = {exec.submit(_scrape_todas_paginas, client, f): f for f in fundos}
+            fut_map = {exec.submit(_scrape_primeira_pagina, client, f): f for f in fundos}
             done = 0
             for fut in as_completed(fut_map):
                 docs = fut.result()
