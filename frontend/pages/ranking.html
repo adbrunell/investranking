@@ -417,11 +417,17 @@ function renderTreemap(items, topN){
   // Flat hierarchy
   var rootData={name:'root',children:data.map(function(d){return {name:d.ticker,value:Math.max(d.volume||1,1),item:d}})}
   var root=d3.hierarchy(rootData).sum(function(d){return d.value})
-  d3.treemap().size([w,h]).paddingOuter(4).paddingInner(2).round(true)(root)
+  d3.treemap().size([w-2,h-2]).paddingOuter(5).paddingInner(3).round(true)(root)
+  // Expand leaves to fill gaps
+  root.leaves().forEach(function(d){
+    // Ensure minimum 2px gap by shrinking slightly
+    d.x0=Math.round(d.x0);d.y0=Math.round(d.y0)
+    d.x1=Math.round(d.x1);d.y1=Math.round(d.y1)
+  })
   var colorScale=d3.scaleLinear().domain([-5,0,5]).range(['#ff4757','#232830','#00c896']).clamp(true)
   var svg=d3.select(el).selectAll('svg').data([null]).join('svg').attr('width',w).attr('height',h)
   var leaf=svg.selectAll('g').data(root.leaves()).join('g').attr('class','tm-tile').attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'}).on('click',function(){window.top.location.href='?p=analise-fii'})
-  leaf.append('rect').attr('width',function(d){return d.x1-d.x0}).attr('height',function(d){return d.y1-d.y0}).attr('fill',function(d){return colorScale(d.data.item?d.data.item.variacao:0)}).attr('rx',3).attr('ry',3)
+  leaf.append('rect').attr('width',function(d){return Math.max(0,d.x1-d.x0-1)}).attr('height',function(d){return Math.max(0,d.y1-d.y0-1)}).attr('fill',function(d){return colorScale(d.data.item?d.data.item.variacao:0)}).attr('rx',3).attr('ry',3)
   leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2-5}).attr('text-anchor','middle').attr('fill','#fff').attr('font-size',function(d){return Math.min((d.x1-d.x0)/6,16)}).attr('font-weight','700').style('text-shadow','0 1px 3px rgba(0,0,0,0.5)').text(function(d){return(d.x1-d.x0)>32&&(d.y1-d.y0)>22?d.data.name:''}).style('pointer-events','none')
   leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2+8}).attr('text-anchor','middle').attr('fill',function(d){var it=d.data.item;return it&&it.variacao>=0?'#00c896':'#ff4757'}).attr('font-size',function(d){return Math.min((d.x1-d.x0)/7,12)}).attr('font-weight','600').text(function(d){
     if((d.x1-d.x0)<36||(d.y1-d.y0)<26)return ''
@@ -439,8 +445,11 @@ render=function(isRefresh){
       var cat=ASSET_MAP[it.tipo]
       return cat?assetFilter[cat]:false
     })
+    if(mode==='altas')items=items.filter(function(it){return it.variacao>0})
+    else if(mode==='baixas')items=items.filter(function(it){return it.variacao<0})
     if(searchTerm)items=items.filter(function(it){return it.ticker.includes(searchTerm)})
-    items.sort(function(a,b){return b.volume-a.volume})
+    if(mode==='altas'||mode==='baixas')items.sort(function(a,b){return Math.abs(b.variacao)-Math.abs(a.variacao)})
+    else items.sort(function(a,b){return b.volume-a.volume})
     renderTreemap(items)
   }
 }
