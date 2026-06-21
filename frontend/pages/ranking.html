@@ -7,7 +7,7 @@
 <title>Cotações de FIIs — Invest Ranking</title>
 <meta name="description" content="Cotações em tempo real de Fundos Imobiliários com variação, preço atual e indicadores. Acompanhe o mercado de FIIs.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;min-width:0}
 :root{--bg:#0c0e12;--card:#14171d;--card2:#1a1e26;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59;--green:#00c896;--red:#ff4757;--blue:#5b7fff;--orange:#ff9f43;--radius:14px}
@@ -93,10 +93,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 #treemap{display:none;width:100%;min-height:400px;position:relative}
 body.mode-treemap #feed{display:none}
 body.mode-treemap #treemap{display:block}
+#treemap div{background:transparent!important}
 #treemap svg{display:block;width:100%;height:100%}
-.tm-tile{cursor:pointer}
-.tm-tile:hover rect{stroke:rgba(255,255,255,0.3);stroke-width:1.5}
-.tm-tile text{pointer-events:none;user-select:none;font-weight:500;font-family:'Segoe UI',system-ui,sans-serif}
 .tm-empty{display:flex;align-items:center;justify-content:center;min-height:400px;color:var(--muted);font-size:14px;flex-direction:column;gap:8px}
 
 @media(max-width:768px){
@@ -407,39 +405,49 @@ function render(isRefresh){
   }
 }
 
-// ─── Treemap (D3.js - Original Mosaico style) ───
-var tmData=[],tmSvg=null
+// ─── Treemap (Google Charts) ───
+var tmData=[],tmChart=null,tmReady=false
+google.charts.load('current',{packages:['treemap']})
+google.charts.setOnLoadCallback(function(){tmReady=true;if(tmData.length)renderTreemap(tmData)})
+
 function renderTreemap(items){
   var el=document.getElementById('treemap')
-  tmData=items.slice(0,80)
-  if(!tmData.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
-  var W=el.clientWidth||800,H=Math.max(400,Math.min(600,window.innerHeight*0.6))
+  var data=items.slice(0,80)
+  if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
+  var W=el.clientWidth||800,H=Math.max(400,Math.min(600,window.innerHeight*0.7))
   el.style.height=H+'px'
-  if(!tmSvg){tmSvg=d3.select(el).append('svg').attr('width',W).attr('height',H)}else{tmSvg.attr('width',W).attr('height',H)}
-  var rootData={name:'root',children:tmData.map(function(d){return {name:d.ticker,change:d.variacao,price:d.preco,volume:Math.max(d.volume||1,1),prevClose:d.fechamento}})}
-  var root=d3.hierarchy(rootData).sum(function(d){return d.data.volume})
-  d3.treemap().size([W,H]).paddingOuter(4).paddingInner(3).round(true)(root)
-  var leaves=root.leaves()
-  var cell=tmSvg.selectAll('g.tm-tile').data(leaves,function(d){return d.data.name})
-  cell.exit().transition().duration(300).attr('transform','scale(0,0)').remove()
-  var enter=cell.enter().append('g').attr('class','tm-tile').attr('transform','translate('+W/2+','+H/2+')scale(0,0)').on('click',function(){window.top.location.href='?p=analise-fii'})
-  enter.append('rect').attr('rx',3).attr('ry',3)
-  enter.append('text').attr('text-anchor','middle').attr('fill','#fff').attr('font-weight','bold').attr('font-family','"Segoe UI",sans-serif').style('pointer-events','none')
-  enter.append('text').attr('text-anchor','middle').attr('fill','#fff').attr('font-family','"Segoe UI",sans-serif').style('pointer-events','none')
-  cell=enter.merge(cell)
-  cell.transition().duration(400).ease(d3.easeCubicOut).attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'})
-  cell.select('rect').transition().duration(400).ease(d3.easeCubicOut).attr('width',function(d){return Math.max(0,d.x1-d.x0)}).attr('height',function(d){return Math.max(0,d.y1-d.y0)}).attr('fill',function(d){
-    var ch=d.data.change,a=Math.abs(ch),b=Math.min(1,a/10)
-    if(ch>0)return 'rgba(46,125,50,'+(0.2+b*0.5)+')'
-    if(ch<0)return 'rgba(180,50,50,'+(0.2+b*0.5)+')'
-    return 'rgba(255,255,255,0.04)'
+  if(!tmReady)return
+  // Build data table: [ID, Parent, Volume, Variação]
+  var dt=new google.visualization.DataTable()
+  dt.addColumn('string','ID');dt.addColumn('string','Parent')
+  dt.addColumn('number','Volume');dt.addColumn('number','Variação')
+  dt.addRows([['root',null,0,0]])
+  data.forEach(function(d){
+    var vol=Math.max(d.volume||1,1)
+    dt.addRows([[d.ticker,'root',vol,d.variacao]])
   })
-  cell.each(function(d){
-    var w=d.x1-d.x0,h=d.y1-d.y0,fs=Math.min(13,Math.max(8,w/7.5,h/5)),showText=h>fs*2.5&&w>fs*1.5
-    d3.select(this).select('text:first-of-type').attr('font-size',showText?fs+'px':'0px').attr('x',w/2).attr('y',h/2-fs*0.3).text(showText?d.data.name:'')
-    var s=d.data.change>0?'+':''
-    d3.select(this).select('text:last-of-type').attr('font-size',showText?fs*0.85+'px':'0px').attr('x',w/2).attr('y',h/2+fs*0.8).text(showText?s+d.data.change.toFixed(2)+'%':'')
-  })
+  var options={
+    minColor:'#b03232',
+    midColor:'#1a1e26',
+    maxColor:'#2e7d32',
+    headerHeight:0,
+    fontColor:'#fff',
+    fontSize:11,
+    showScale:false,
+    showTooltips:true,
+    tooltip:function(row,size,value){
+      var r=data[row-1]
+      if(!r)return''
+      var s=r.variacao>0?'+':''
+      return'<div style="padding:4px;font-size:12px"><b>'+r.ticker+'</b><br>R$ '+fmtShort(r.preco)+'<br><span style="color:'+(r.variacao>=0?'#4caf50':'#ef5350')+'">'+s+r.variacao.toFixed(2)+'%</span></div>'
+    },
+    enableHighlight:true,
+    maxDepth:1,
+    maxPostDepth:0,
+    useWeightedAverageForAggregation:true
+  }
+  if(!tmChart){tmChart=new google.visualization.TreeMap(el)}
+  tmChart.draw(dt,options)
 }
 
 // Patch render for treemap mode
@@ -457,12 +465,12 @@ render=function(isRefresh){
     if(searchTerm)items=items.filter(function(it){return it.ticker.includes(searchTerm)})
     if(mode==='altas'||mode==='baixas')items.sort(function(a,b){return Math.abs(b.variacao)-Math.abs(a.variacao)})
     else items.sort(function(a,b){return b.volume-a.volume})
-    renderTreemap(items)
+    tmData=items;renderTreemap(items)
   }
 }
 
 // Handle resize for treemap
-window.addEventListener('resize',function(){if(mode==='treemap'&&tmData.length)renderTreemap(tmData)})
+window.addEventListener('resize',function(){if(mode==='treemap'&&tmData.length&&tmReady)renderTreemap(tmData)})
 
 window.onload=load
 </script>
