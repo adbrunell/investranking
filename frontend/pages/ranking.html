@@ -407,32 +407,39 @@ function render(isRefresh){
   }
 }
 
-// ─── Treemap (D3.js) ───
-function renderTreemap(items, topN){
+// ─── Treemap (D3.js - Original Mosaico style) ───
+var tmData=[],tmSvg=null
+function renderTreemap(items){
   var el=document.getElementById('treemap')
-  var data=items.slice(0,topN||80)
-  if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
-  var w=el.clientWidth||800,h=Math.max(400,Math.min(600,window.innerHeight*0.6))
-  el.style.height=h+'px'
-  // Flat hierarchy
-  var rootData={name:'root',children:data.map(function(d){return {name:d.ticker,value:Math.max(d.volume||1,1),item:d}})}
-  var root=d3.hierarchy(rootData).sum(function(d){return d.value})
-  d3.treemap().size([w-2,h-2]).paddingOuter(5).paddingInner(3).round(true)(root)
-  // Expand leaves to fill gaps
-  root.leaves().forEach(function(d){
-    // Ensure minimum 2px gap by shrinking slightly
-    d.x0=Math.round(d.x0);d.y0=Math.round(d.y0)
-    d.x1=Math.round(d.x1);d.y1=Math.round(d.y1)
+  tmData=items.slice(0,80)
+  if(!tmData.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
+  var W=el.clientWidth||800,H=Math.max(400,Math.min(600,window.innerHeight*0.6))
+  el.style.height=H+'px'
+  if(!tmSvg){tmSvg=d3.select(el).append('svg').attr('width',W).attr('height',H)}else{tmSvg.attr('width',W).attr('height',H)}
+  var rootData={name:'root',children:tmData.map(function(d){return {name:d.ticker,change:d.variacao,price:d.preco,volume:Math.max(d.volume||1,1),prevClose:d.fechamento}})}
+  var root=d3.hierarchy(rootData).sum(function(d){return d.data.volume})
+  d3.treemap().size([W,H]).paddingOuter(4).paddingInner(3).round(true)(root)
+  var leaves=root.leaves()
+  var cell=tmSvg.selectAll('g.tm-tile').data(leaves,function(d){return d.data.name})
+  cell.exit().transition().duration(300).attr('transform','scale(0,0)').remove()
+  var enter=cell.enter().append('g').attr('class','tm-tile').attr('transform','translate('+W/2+','+H/2+')scale(0,0)').on('click',function(){window.top.location.href='?p=analise-fii'})
+  enter.append('rect').attr('rx',3).attr('ry',3)
+  enter.append('text').attr('text-anchor','middle').attr('fill','#fff').attr('font-weight','bold').attr('font-family','"Segoe UI",sans-serif').style('pointer-events','none')
+  enter.append('text').attr('text-anchor','middle').attr('fill','#fff').attr('font-family','"Segoe UI",sans-serif').style('pointer-events','none')
+  cell=enter.merge(cell)
+  cell.transition().duration(400).ease(d3.easeCubicOut).attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'})
+  cell.select('rect').transition().duration(400).ease(d3.easeCubicOut).attr('width',function(d){return Math.max(0,d.x1-d.x0)}).attr('height',function(d){return Math.max(0,d.y1-d.y0)}).attr('fill',function(d){
+    var ch=d.data.change,a=Math.abs(ch),b=Math.min(1,a/10)
+    if(ch>0)return 'rgba(46,125,50,'+(0.2+b*0.5)+')'
+    if(ch<0)return 'rgba(180,50,50,'+(0.2+b*0.5)+')'
+    return 'rgba(255,255,255,0.04)'
   })
-  var colorScale=d3.scaleLinear().domain([-5,0,5]).range(['#ff4757','#232830','#00c896']).clamp(true)
-  var svg=d3.select(el).selectAll('svg').data([null]).join('svg').attr('width',w).attr('height',h)
-  var leaf=svg.selectAll('g').data(root.leaves()).join('g').attr('class','tm-tile').attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'}).on('click',function(){window.top.location.href='?p=analise-fii'})
-  leaf.append('rect').attr('width',function(d){return Math.max(0,d.x1-d.x0-1)}).attr('height',function(d){return Math.max(0,d.y1-d.y0-1)}).attr('fill',function(d){return colorScale(d.data.item?d.data.item.variacao:0)}).attr('rx',3).attr('ry',3)
-  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2-5}).attr('text-anchor','middle').attr('fill','#fff').attr('font-size',function(d){return Math.min((d.x1-d.x0)/6,16)}).attr('font-weight','700').style('text-shadow','0 1px 3px rgba(0,0,0,0.5)').text(function(d){return(d.x1-d.x0)>32&&(d.y1-d.y0)>22?d.data.name:''}).style('pointer-events','none')
-  leaf.append('text').attr('x',function(d){return(d.x1-d.x0)/2}).attr('y',function(d){return(d.y1-d.y0)/2+8}).attr('text-anchor','middle').attr('fill',function(d){var it=d.data.item;return it&&it.variacao>=0?'#00c896':'#ff4757'}).attr('font-size',function(d){return Math.min((d.x1-d.x0)/7,12)}).attr('font-weight','600').text(function(d){
-    if((d.x1-d.x0)<36||(d.y1-d.y0)<26)return ''
-    var it=d.data.item;return it?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':''
-  }).style('pointer-events','none')
+  cell.each(function(d){
+    var w=d.x1-d.x0,h=d.y1-d.y0,fs=Math.min(13,Math.max(8,w/7.5,h/5)),showText=h>fs*2.5&&w>fs*1.5
+    d3.select(this).select('text:first-of-type').attr('font-size',showText?fs+'px':'0px').attr('x',w/2).attr('y',h/2-fs*0.3).text(showText?d.data.name:'')
+    var s=d.data.change>0?'+':''
+    d3.select(this).select('text:last-of-type').attr('font-size',showText?fs*0.85+'px':'0px').attr('x',w/2).attr('y',h/2+fs*0.8).text(showText?s+d.data.change.toFixed(2)+'%':'')
+  })
 }
 
 // Patch render for treemap mode
@@ -453,6 +460,9 @@ render=function(isRefresh){
     renderTreemap(items)
   }
 }
+
+// Handle resize for treemap
+window.addEventListener('resize',function(){if(mode==='treemap'&&tmData.length)renderTreemap(tmData)})
 
 window.onload=load
 </script>
