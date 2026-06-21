@@ -407,47 +407,44 @@ function render(isRefresh){
 
 // ─── Treemap (Google Charts) ───
 var tmData=[],tmChart=null,tmReady=false
-google.charts.load('current',{packages:['treemap']})
-google.charts.setOnLoadCallback(function(){tmReady=true;if(tmData.length)renderTreemap(tmData)})
+try{
+  google.charts.load('current',{packages:['treemap']})
+  google.charts.setOnLoadCallback(function(){tmReady=true;if(tmData.length)renderTreemap(tmData)})
+}catch(e){console.warn('Google Charts load error:',e)}
 
 function renderTreemap(items){
   var el=document.getElementById('treemap')
+  if(!el)return
   var data=items.slice(0,80)
   if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
   var W=el.clientWidth||800,H=Math.max(400,Math.min(600,window.innerHeight*0.7))
   el.style.height=H+'px'
-  if(!tmReady)return
-  // Build data table: [ID, Parent, Volume, Variação]
-  var dt=new google.visualization.DataTable()
-  dt.addColumn('string','ID');dt.addColumn('string','Parent')
-  dt.addColumn('number','Volume');dt.addColumn('number','Variação')
-  dt.addRows([['root',null,0,0]])
-  data.forEach(function(d){
-    var vol=Math.max(d.volume||1,1)
-    dt.addRows([[d.ticker,'root',vol,d.variacao]])
-  })
-  var options={
-    minColor:'#b03232',
-    midColor:'#1a1e26',
-    maxColor:'#2e7d32',
-    headerHeight:0,
-    fontColor:'#fff',
-    fontSize:11,
-    showScale:false,
-    showTooltips:true,
-    tooltip:function(row,size,value){
-      var r=data[row-1]
-      if(!r)return''
-      var s=r.variacao>0?'+':''
-      return'<div style="padding:4px;font-size:12px"><b>'+r.ticker+'</b><br>R$ '+fmtShort(r.preco)+'<br><span style="color:'+(r.variacao>=0?'#4caf50':'#ef5350')+'">'+s+r.variacao.toFixed(2)+'%</span></div>'
-    },
-    enableHighlight:true,
-    maxDepth:1,
-    maxPostDepth:0,
-    useWeightedAverageForAggregation:true
+  if(!tmReady){el.innerHTML='<div class="tm-empty" style="justify-content:center;align-items:center"><div class="spinner" style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:8px"></div><span style="font-size:12px;color:var(--muted)">Carregando mapa...</span></div>';return}
+  try{
+    var dt=new google.visualization.DataTable()
+    dt.addColumn('string','ID');dt.addColumn('string','Parent')
+    dt.addColumn('number','Volume');dt.addColumn('number','Variação')
+    dt.addRows([['root',null,0,0]])
+    data.forEach(function(d){
+      dt.addRows([[d.ticker,'root',Math.max(d.volume||1,1),d.variacao]])
+    })
+    var tipData=data
+    var options={
+      minColor:'#b03232',midColor:'#1a1e26',maxColor:'#2e7d32',
+      headerHeight:0,fontColor:'#fff',fontSize:11,
+      showScale:false,showTooltips:true,
+      tooltip:function(row,size,value){
+        var r=tipData[row-1];if(!r)return''
+        var s=r.variacao>0?'+':''
+        return'<div style="padding:4px;font-size:12px"><b>'+r.ticker+'</b><br>R$ '+fmtShort(r.preco)+'<br><span style="color:'+(r.variacao>=0?'#4caf50':'#ef5350')+'">'+s+r.variacao.toFixed(2)+'%</span></div>'
+      },
+      enableHighlight:true,maxDepth:1,maxPostDepth:0,useWeightedAverageForAggregation:true
+    }
+    if(!tmChart){tmChart=new google.visualization.TreeMap(el)}
+    tmChart.draw(dt,options)
+  }catch(e){
+    el.innerHTML='<div class="tm-empty"><i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.3;margin-bottom:8px"></i>Erro ao carregar mapa: '+e.message+'</div>'
   }
-  if(!tmChart){tmChart=new google.visualization.TreeMap(el)}
-  tmChart.draw(dt,options)
 }
 
 // Patch render for treemap mode
