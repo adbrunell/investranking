@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Cotações de FIIs — Invest Ranking</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <meta name="description" content="Cotações em tempo real de Fundos Imobiliários com variação, preço atual e indicadores. Acompanhe o mercado de FIIs.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -93,9 +94,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 #treemap{display:none;width:100%;min-height:400px;position:relative}
 body.mode-treemap #feed{display:none}
 body.mode-treemap #treemap{display:block}
-#treemap{position:relative;width:100%;min-height:300px;overflow:hidden}
-#treemap .tm-cell{transition:all .1s;border-radius:3px}
-#treemap .tm-cell:hover{transform:scale(1.01);z-index:2;border-color:rgba(255,255,255,0.3)!important}
+#treemap{width:100%;min-height:400px;position:relative}
+#treemap svg{display:block;width:100%;height:100%}
+.tile{cursor:pointer}
+.tile:hover rect{stroke:rgba(255,255,255,0.3);stroke-width:1.5}
+.tile text{pointer-events:none;user-select:none}
 .tm-empty{display:flex;align-items:center;justify-content:center;min-height:400px;color:var(--muted);font-size:14px;flex-direction:column;gap:8px}
 
 @media(max-width:768px){
@@ -406,54 +409,45 @@ function render(isRefresh){
   }
 }
 
-// ─── Treemap (Pure CSS/HTML - Squarified) ───
-var tmData=[]
+// ─── Treemap (D3.js - Original Mosaico) ───
+var tmData=[],tmSvg=null
 function renderTreemap(items){
   var el=document.getElementById('treemap')
-  if(!el)return
-  var data=items.slice(0,60)
+  var data=items.slice(0,80)
   if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
-  var W=el.parentElement.clientWidth||800
-  el.style.width='100%';el.style.height=Math.max(300,Math.min(500,window.innerHeight*0.5))+'px'
-  // Squarified treemap algorithm
-  var total=data.reduce(function(s,d){return s+Math.max(d.volume||1,1)},0)
-  function layout(items,x,y,w,h){
-    if(!items.length||w<2||h<2)return[]
-    if(items.length===1){
-      var it=items[0];return[{item:it,x:x,y:y,w:w,h:h}]
-    }
-    // Try horizontal split
-    var half=total/2,acc=0,splitIdx=1
-    for(var i=0;i<items.length;i++){acc+=Math.max(items[i].volume||1,1);if(acc>=half){splitIdx=i+1;break}}
-    splitIdx=Math.max(1,Math.min(splitIdx,items.length-1))
-    var left=items.slice(0,splitIdx),right=items.slice(splitIdx)
-    var lTotal=left.reduce(function(s,d){return s+Math.max(d.volume||1,1)},0)
-    var rTotal=right.reduce(function(s,d){return s+Math.max(d.volume||1,1)},0)
-    var lRatio=lTotal/total,rRatio=rTotal/total
-    if(w>h){
-      var lw=w*lRatio
-      return layout(left,x,y,lw,h).concat(layout(right,x+lw,y,w-lw,h))
-    }else{
-      var lh=h*lRatio
-      return layout(left,x,y,w,lh).concat(layout(right,x,y+lh,w,h-lh))
-    }
+  var W=el.clientWidth||800,H=Math.max(400,Math.min(600,window.innerHeight*0.6))
+  el.style.height=H+'px'
+  if(!tmSvg){
+    tmSvg=d3.select(el).append('svg').attr('width',W).attr('height',H)
+  }else{
+    tmSvg.attr('width',W).attr('height',H)
   }
-  var rects=layout(data,0,0,1,1)
-  var html=''
-  rects.forEach(function(r){
-    var it=r.item,isUp=it.variacao>=0,a=Math.abs(it.variacao),b=Math.min(1,a/10),op=0.2+b*0.5
-    var bg=isUp?'rgba(46,125,50,'+op+')':'rgba(180,50,50,'+op+')'
-    var pctW=r.w*100+'%',pctH=r.h*100+'%',pctX=r.x*100+'%',pctY=r.y*100+'%'
-    var showTxt=r.w*W>35&&r.h*el.clientHeight>25
-    html+='<div class="tm-cell" style="position:absolute;left:'+pctX+';top:'+pctY+';width:'+pctW+';height:'+pctH+';background:'+bg+';border:1px solid rgba(0,0,0,0.15);border-radius:3px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center" onclick="window.top.location.href=\'?p=analise-fii\'">'
-    if(showTxt){
-      var fs=Math.min(14,Math.max(8,r.w*W/6.5,r.h*el.clientHeight/4.5))
-      html+='<div style="font-size:'+fs+'px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.4);line-height:1.2;text-align:center">'+it.ticker+'</div>'
-      html+='<div style="font-size:'+(fs*0.75)+'px;font-weight:600;color:'+(isUp?'#4caf50':'#ef5350')+';margin-top:1px">'+(isUp?'+':'')+it.variacao.toFixed(2)+'%</div>'
-    }
-    html+='</div>'
+  var rootData={name:'root',children:data.map(function(d){return{name:d.ticker,value:Math.max(d.volume||1,1),change:d.variacao,price:d.preco,prevClose:d.fechamento}})}
+  var root=d3.hierarchy(rootData).sum(function(d){return d.value}).sort(function(a,b){return b.value-a.value})
+  d3.treemap().size([W,H]).padding(3).round(true)(root)
+  var leaves=root.leaves()
+  var cell=tmSvg.selectAll('g.tile').data(leaves,function(d){return d.data.name})
+  cell.exit().transition().duration(400).attr('transform',function(d){
+    var cx=(d.x0+d.x1)/2,cy=(d.y0+d.y1)/2;return 'translate('+cx+','+cy+')scale(0,0)'
+  }).remove()
+  var enter=cell.enter().append('g').attr('class','tile').attr('transform','translate('+W/2+','+H/2+')scale(0,0)').on('click',function(){window.top.location.href='?p=analise-fii'})
+  enter.append('rect').attr('rx',3).attr('ry',3)
+  enter.append('text').attr('class','lbl-ticker').attr('text-anchor','middle').attr('fill','#fff').attr('font-weight','bold').attr('font-family','"Segoe UI",sans-serif').style('pointer-events','none')
+  enter.append('text').attr('class','lbl-change').attr('text-anchor','middle').attr('fill','#fff').attr('font-family','"Segoe UI",sans-serif').style('pointer-events','none')
+  cell=enter.merge(cell)
+  cell.transition().duration(500).ease(d3.easeCubicOut).attr('transform',function(d){return 'translate('+d.x0+','+d.y0+')'})
+  cell.select('rect').transition().duration(500).ease(d3.easeCubicOut).attr('width',function(d){return Math.max(0,d.x1-d.x0)}).attr('height',function(d){return Math.max(0,d.y1-d.y0)}).attr('fill',function(d){
+    var ch=d.data.change||0,a=Math.abs(ch),b=Math.min(1,a/10)
+    if(ch>0)return 'rgba(46,125,50,'+(0.2+b*0.5)+')'
+    if(ch<0)return 'rgba(180,50,50,'+(0.2+b*0.5)+')'
+    return 'rgba(255,255,255,0.04)'
   })
-  el.innerHTML=html
+  cell.each(function(d){
+    var w=d.x1-d.x0,h=d.y1-d.y0,fs=Math.min(13,Math.max(8,w/7.5,h/5)),showText=h>fs*2.5&&w>fs*1.5
+    d3.select(this).select('.lbl-ticker').attr('font-size',showText?fs+'px':'0px').attr('x',w/2).attr('y',h/2-fs*0.3).text(showText?d.data.name:'')
+    var s=d.data.change>0?'+':''
+    d3.select(this).select('.lbl-change').attr('font-size',showText?fs*0.85+'px':'0px').attr('x',w/2).attr('y',h/2+fs*0.8).text(showText?s+d.data.change.toFixed(2)+'%':'')
+  })
 }
 
 // Patch render for treemap mode
