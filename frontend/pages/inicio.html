@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Invest Ranking — O Radar Definitivo para o Investidor Fundamentalista</title>
-<meta name="description" content="Ranking fundamentalista de FIIs com indicadores reais. Central de anúncios instantâneos com fatos relevantes e rendimentos. Painel de cotações sem ruído.">
+<meta name="description" content="Ranking fundamentalista de FIIs com dados reais de B3, CVM e FNET. Central de anúncios com fatos relevantes e rendimentos em tempo real. Painel de cotações limpo e direto.">
 <meta property="og:title" content="Invest Ranking — Radar de Fundos Imobiliários">
-<meta property="og:description" content="Ranking matemático e central de anúncios para o investidor focado em fundamentos.">
+<meta property="og:description" content="Ranking matemático, central de anúncios e painel de cotações. Dados reais de B3, CVM e FNET.">
 <meta property="og:url" content="https://www.investranking.com.br">
 <meta property="og:type" content="website">
 <link rel="canonical" href="https://www.investranking.com.br">
@@ -14,126 +14,117 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0f172a;--surface:#111827;--card:#1e293b;--card2:#263548;--border:#2d3a4d;--text:#e2e8f0;--muted:#8899b0;--accent:#34d399;--accent-dim:rgba(52,211,153,0.06);--accent-soft:rgba(52,211,153,0.12);--radius:16px;--font:'Inter',system-ui,-apple-system,sans-serif}
+:root{--bg:#0c0e12;--surface:#111318;--card:#14171d;--card2:#1a1e26;--border:#232830;--text:#e8ecf1;--muted:#7a8290;--accent:#ffde59;--green:#00c896;--red:#ff4757;--accent-dim:rgba(255,222,89,0.06);--accent-soft:rgba(255,222,89,0.1);--radius:14px;--font:'Inter',system-ui,-apple-system,sans-serif}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.6}
 a{color:var(--accent);text-decoration:none}
 ::selection{background:var(--accent);color:#000}
 
-/* ─── Container ─── */
 .container{max-width:1120px;margin:0 auto;padding:0 20px}
 
-/* ─── Header / Nav ─── */
-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;max-width:1120px;margin:0 auto;position:relative;z-index:10}
+/* ─── Nav ─── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;max-width:1120px;margin:0 auto}
 .nav-logo{font-size:20px;font-weight:800;letter-spacing:-0.03em}
 .nav-logo span{color:var(--accent)}
-.nav-cta{background:var(--accent);color:#000;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;transition:all .2s}
-.nav-cta:hover{opacity:.9;transform:translateY(-1px)}
+.nav-cta{background:var(--accent);color:#000;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;transition:all .15s}
+.nav-cta:hover{opacity:.85}
 
 /* ─── Hero ─── */
 .hero{min-height:90vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:40px 0}
-.hero-glow{position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(ellipse,rgba(52,211,153,0.06),transparent 70%);pointer-events:none}
-.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;position:relative;z-index:1}
-.hero h1{font-size:clamp(30px,4.2vw,52px);font-weight:900;line-height:1.1;letter-spacing:-0.03em;margin-bottom:16px}
-.hero h1 .spark{position:relative;display:inline-block}
-.hero h1 .spark::after{content:'';position:absolute;top:0;right:-20px;width:12px;height:12px;background:var(--accent);border-radius:50%;opacity:.5;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.2;transform:scale(1.5)}}
-.hero p{font-size:15px;color:var(--muted);max-width:500px;line-height:1.7;margin-bottom:28px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(28px,4vw,48px);font-weight:900;line-height:1.1;letter-spacing:-0.03em;margin-bottom:16px}
+.hero h1 span{color:var(--accent)}
+.hero p{font-size:15px;color:var(--muted);max-width:480px;line-height:1.7;margin-bottom:28px}
 .hero-actions{display:flex;gap:12px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s;font-family:var(--font);border:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--font);border:none}
 .btn-primary{background:var(--accent);color:#000}
-.btn-primary:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 8px 28px rgba(52,211,153,0.25)}
+.btn-primary:hover{opacity:.85;transform:translateY(-2px)}
 .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
 .btn-outline:hover{background:var(--card2);transform:translateY(-2px)}
 
-/* ─── Bento Hero ─── */
-.bento{display:grid;grid-template-columns:1fr 1.2fr;gap:8px}
-.bento-main{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.bento-main .top3{grid-column:1/-1}
-.bento-main .top3 .tt{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:10px}
-.bento-main .t3-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--accent-dim)}
-.bento-main .t3-row:last-child{border:none}
-.bento-main .t3-row .r{font-weight:700;color:var(--accent)}
-.bento-main .t3-row .n{font-size:13px;font-weight:600}
-.bento-main .t3-row .v{font-size:12px;color:var(--muted)}
-.bento-side{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
-.bento-side .tt{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px}
-.bento-side .feed-item{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--accent-dim);font-size:12px}
-.bento-side .feed-item:last-child{border:none}
-.bento-side .feed-item .dot{width:5px;height:5px;background:var(--accent);border-radius:50%;margin-top:5px;flex-shrink:0}
-.bento-side .feed-item .fd{color:var(--muted);line-height:1.4}
-.bento-side .feed-item .fd strong{color:var(--text)}
-.bento-side .feed-item .time{font-size:10px;color:var(--muted);flex-shrink:0;margin-left:auto}
+/* ─── Real Preview Cards ─── */
+.preview{display:flex;flex-direction:column;gap:8px}
+.preview-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.preview-card .pc-head{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.preview-card .pc-head i{margin-right:4px}
+.preview-card .pc-head .badge{margin-left:auto;background:var(--accent-dim);border:1px solid rgba(255,222,89,0.15);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:9px}
+.preview-card .pc-body{padding:8px 14px 10px}
+.pc-row{display:grid;grid-template-columns:28px 1fr 55px 55px 50px;gap:4px;padding:6px 0;align-items:center;border-bottom:1px solid rgba(35,40,48,0.5);font-size:11px}
+.pc-row:last-child{border:none}
+.pc-row .pr{font-weight:700;color:var(--muted)}
+.pc-row .pr.gold{color:var(--accent)}
+.pc-row .pr.silver{color:#94a3b8}
+.pc-row .pr.bronze{color:#cd7f32}
+.pc-row .pt{font-weight:600;color:var(--text)}
+.pc-row .pv{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.pc-row .pv.dy{color:var(--green);font-weight:600}
+.pc-row .pnota{text-align:right;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ─── Feed Preview ─── */
+.feed-preview{background:var(--card);border:1px solid var(--border);border-radius:12px}
+.feed-preview .fp-head{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.feed-preview .fp-head .live{width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.feed-list{padding:6px 14px 10px}
+.fe-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid rgba(35,40,48,0.3);font-size:12px;align-items:flex-start}
+.fe-item:last-child{border:none}
+.fe-item .fe-dot{width:5px;height:5px;background:var(--green);border-radius:50%;margin-top:5px;flex-shrink:0}
+.fe-item .fe-dot.yellow{background:var(--accent)}
+.fe-item .fe-dot.red{background:var(--red)}
+.fe-item .fe-text{color:var(--muted);line-height:1.5}
+.fe-item .fe-text strong{color:var(--text)}
+.fe-item .fe-time{font-size:10px;color:var(--muted);flex-shrink:0;margin-left:auto}
 
 /* ─── Section ─── */
 .section{padding:96px 0}
 .section-alt{background:var(--surface)}
-.section-header{text-align:center;max-width:560px;margin:0 auto 56px}
-.section-header .label{display:inline-block;font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;padding:4px 10px;background:var(--accent-dim);border:1px solid rgba(52,211,153,0.1);border-radius:100px;margin-bottom:12px}
-.section-header h2{font-size:clamp(24px,3.2vw,38px);font-weight:800;letter-spacing:-0.02em;margin-bottom:10px}
+.section-header{text-align:center;max-width:560px;margin:0 auto 48px}
+.section-header .label{display:inline-block;font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:4px 10px;background:var(--accent-dim);border:1px solid rgba(255,222,89,0.1);border-radius:100px;margin-bottom:10px}
+.section-header h2{font-size:clamp(22px,3vw,34px);font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
 .section-header p{color:var(--muted);font-size:14px}
 
-/* ─── Features ─── */
 .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.feature{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 28px;transition:all .3s;position:relative;overflow:hidden}
-.feature::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s}
-.feature:hover::before{opacity:1}
-.feature:hover{border-color:rgba(52,211,153,0.2);transform:translateY(-3px)}
-.feature .icon{width:40px;height:40px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent);margin-bottom:16px}
-.feature h3{font-size:17px;font-weight:700;margin-bottom:8px}
-.feature p{font-size:13px;color:var(--muted);line-height:1.7}
+.feature{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;transition:all .2s}
+.feature:hover{border-color:rgba(255,222,89,0.2);transform:translateY(-2px)}
+.feature .icon{width:38px;height:38px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);margin-bottom:14px}
+.feature h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.feature p{font-size:12px;color:var(--muted);line-height:1.7}
 
-/* ─── Interactive Dashboard ─── */
-.dash{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
-.dash-tabs{display:flex;border-bottom:1px solid var(--border)}
-.dash-tab{flex:1;padding:14px 16px;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;position:relative;display:flex;align-items:center;justify-content:center;gap:6px}
-.dash-tab:hover{color:var(--text)}
-.dash-tab.active{color:var(--accent)}
-.dash-tab.active::after{content:'';position:absolute;bottom:-1px;left:10%;right:10%;height:2px;background:var(--accent);border-radius:1px}
-.dash-panel{padding:20px;display:none}
-.dash-panel.active{display:block}
-.dash-row{display:grid;grid-template-columns:32px 1fr 80px 80px;gap:8px;padding:10px 0;align-items:center;border-bottom:1px solid rgba(45,58,77,0.4)}
-.dash-row:last-child{border:none}
-.dash-row .dp{font-size:12px;font-weight:700;color:var(--muted)}
-.dash-row .dp.gold{color:var(--accent)}
-.dash-row .dp.silver{color:#94a3b8}
-.dash-row .dp.bronze{color:#cd7f32}
-.dash-row .dn{font-size:13px;font-weight:600}
-.dash-row .dv{font-size:12px;font-weight:600;color:var(--accent);text-align:right}
-.dash-row .dpct{font-size:12px;font-weight:600;text-align:right}
-.dash-row .dpct.up{color:var(--accent)}
-.dash-row .dpct.down{color:#ef4444}
-
-/* ─── Anúncios Feed ─── */
-.feed-list{padding:8px 0}
-.feed-entry{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid rgba(45,58,77,0.3);align-items:flex-start}
-.feed-entry:last-child{border:none}
-.feed-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;margin-top:2px}
-.feed-badge.relevante{background:rgba(239,68,68,0.15);color:#ef4444}
-.feed-badge.rendimento{background:var(--accent-soft);color:var(--accent)}
-.feed-badge.gerencial{background:rgba(99,102,241,0.15);color:#818cf8}
-.feed-text{font-size:13px;color:var(--muted);line-height:1.5}
-.feed-text strong{color:var(--text)}
-.feed-time{font-size:10px;color:var(--muted);flex-shrink:0;margin-left:auto}
+/* ─── Screenshot mockup ─── */
+.screen-mockup{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.screen-mockup .sm-top{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border)}
+.screen-mockup .sm-top .dot{width:8px;height:8px;border-radius:50%}
+.screen-mockup .sm-top .dot.r{background:#ef4444}
+.screen-mockup .sm-top .dot.y{background:var(--accent)}
+.screen-mockup .sm-top .dot.g{background:var(--green)}
+.screen-mockup .sm-top .sm-title{font-size:10px;color:var(--muted);margin-left:8px}
+.screen-mockup .sm-body{padding:16px}
+.sm-row{display:grid;grid-template-columns:24px 1fr 50px 50px 45px;gap:4px;padding:7px 0;align-items:center;border-bottom:1px solid rgba(35,40,48,0.5);font-size:11px}
+.sm-row:last-child{border:none}
+.sm-row .sr{font-weight:700;color:var(--muted)}
+.sm-row .sr.accent{color:var(--accent)}
+.sm-row .st{font-weight:600}
+.sm-row .sv{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.sm-row .sv.g{color:var(--green);font-weight:600}
+.sm-row .sn{text-align:right;color:var(--accent);font-weight:700}
 
 /* ─── Manifesto ─── */
-.manifesto{position:relative;padding:96px 0;text-align:center;overflow:hidden}
-.manifesto::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(52,211,153,0.04),transparent 70%)}
-.manifesto blockquote{max-width:660px;margin:0 auto;position:relative;z-index:1}
-.manifesto blockquote .big{font-size:clamp(22px,3.2vw,38px);font-weight:700;line-height:1.3;letter-spacing:-0.02em;margin-bottom:20px}
+.manifesto{position:relative;padding:80px 0;text-align:center}
+.manifesto blockquote{max-width:600px;margin:0 auto}
+.manifesto blockquote .big{font-size:clamp(20px,3vw,34px);font-weight:700;line-height:1.3;letter-spacing:-0.02em;margin-bottom:16px}
 .manifesto blockquote .big span{color:var(--accent)}
-.manifesto blockquote p{font-size:14px;color:var(--muted);max-width:480px;margin:0 auto;line-height:1.7}
+.manifesto blockquote p{font-size:14px;color:var(--muted);max-width:440px;margin:0 auto;line-height:1.7}
 
 /* ─── FAQ ─── */
-.faq-list{max-width:640px;margin:0 auto}
-.faq-item{border:1px solid var(--border);border-radius:10px;margin-bottom:6px;overflow:hidden;transition:border-color .2s}
-.faq-item.open{border-color:rgba(52,211,153,0.3)}
-.faq-q{width:100%;background:var(--card);border:none;padding:14px 18px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--font);transition:background .15s;text-align:left}
+.faq-list{max-width:600px;margin:0 auto}
+.faq-item{border:1px solid var(--border);border-radius:10px;margin-bottom:6px;overflow:hidden}
+.faq-item.open{border-color:rgba(255,222,89,0.25)}
+.faq-q{width:100%;background:var(--card);border:none;padding:14px 16px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--font);transition:background .15s;text-align:left}
 .faq-q:hover{background:var(--card2)}
-.faq-q i{font-size:11px;color:var(--muted);transition:transform .3s;flex-shrink:0}
+.faq-q i{font-size:11px;color:var(--muted);transition:transform .2s}
 .faq-item.open .faq-q i{transform:rotate(180deg)}
-.faq-a{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s}
-.faq-item.open .faq-a{padding:0 18px 14px;max-height:300px}
+.faq-a{padding:0 16px;max-height:0;overflow:hidden;transition:all .2s}
+.faq-item.open .faq-a{padding:0 16px 12px;max-height:300px}
 .faq-a p{font-size:12px;color:var(--muted);line-height:1.7}
 
 /* ─── Footer ─── */
@@ -141,28 +132,25 @@ footer{padding:48px 24px 24px;background:var(--surface);border-top:1px solid var
 .footer-grid{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px}
 .footer-brand .logo{font-size:18px;font-weight:800}
 .footer-brand .logo span{color:var(--accent)}
-.footer-brand p{font-size:12px;color:var(--muted);margin-top:8px;max-width:240px;line-height:1.6}
-.footer-col h4{font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.footer-col a{display:block;font-size:12px;color:var(--muted);padding:2px 0;transition:color .15s}
+.footer-brand p{font-size:12px;color:var(--muted);margin-top:6px;max-width:220px;line-height:1.6}
+.footer-col h4{font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.footer-col a{display:block;font-size:12px;color:var(--muted);padding:2px 0;transition:color .1s}
 .footer-col a:hover{color:var(--text)}
 .footer-bottom{border-top:1px solid var(--border);margin-top:32px;padding-top:20px;text-align:center}
-.footer-bottom p{font-size:11px;color:var(--muted);max-width:600px;margin:0 auto;line-height:1.6}
+.footer-bottom p{font-size:11px;color:var(--muted);max-width:560px;margin:0 auto;line-height:1.6}
 .footer-copy{text-align:center;font-size:11px;color:var(--muted);margin-top:16px}
 
-/* ─── Mobile ─── */
 @media(max-width:900px){
-.hero-grid{grid-template-columns:1fr;gap:32px;text-align:center}
-.hero p{margin-left:auto;margin-right:auto}
+.hero-grid{grid-template-columns:1fr;gap:24px;text-align:center}
+.hero p{margin:0 auto 28px}
 .hero-actions{justify-content:center}
 .features-grid{grid-template-columns:1fr}
-.bento{grid-template-columns:1fr}
-.bento-main{grid-template-columns:1fr}
 .footer-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:600px){
-.hero{min-height:auto;padding:60px 0 40px}
+.hero{min-height:auto;padding:40px 0}
 .section{padding:60px 0}
-.dash-row{grid-template-columns:28px 1fr 60px 60px;font-size:12px}
+.pc-row{grid-template-columns:24px 1fr 40px 40px 38px;font-size:10px}
 .footer-grid{grid-template-columns:1fr}
 }
 </style>
@@ -175,59 +163,65 @@ footer{padding:48px 24px 24px;background:var(--surface);border-top:1px solid var
 </nav>
 
 <header class="hero" role="banner">
-  <div class="hero-glow"></div>
   <div class="container hero-grid">
     <div>
-      <div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid rgba(52,211,153,0.1);color:var(--accent);padding:4px 10px;border-radius:100px;font-size:10px;font-weight:500;letter-spacing:.3px;margin-bottom:20px"><i class="fas fa-bolt" style="font-size:8px"></i> Radar ligado 24/7</div>
-      <h1>O radar definitivo para o investidor focado em <span class="spark">fundamentos.</span></h1>
-      <p>Identifique os fundos mais descontados da bolsa com nosso ranking matemático e receba Fatos Relevantes e Rendimentos em primeira mão. Sem ruído, sem euforia.</p>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);border:1px solid rgba(255,222,89,0.12);color:var(--accent);padding:4px 10px;border-radius:100px;font-size:10px;font-weight:600;margin-bottom:16px"><i class="fas fa-database"></i> Dados de B3 · CVM · FNET · StatusInvest</div>
+      <h1>O radar definitivo do investidor <span>fundamentalista.</span></h1>
+      <p>Ranking matemático de Fundos Imobiliários, central de fatos relevantes em tempo real e painel de cotações limpo. Dados reais, sem achismo.</p>
       <div class="hero-actions">
-        <a href="?p=ranking-fiis" class="btn btn-primary"><i class="fas fa-trophy"></i> Ver Ranking Grátis</a>
-        <a href="#plataforma" class="btn btn-outline"><i class="fas fa-compass"></i> Conhecer a Plataforma</a>
+        <a href="?p=ranking-fiis" class="btn btn-primary"><i class="fas fa-trophy"></i> Acessar Ranking</a>
+        <a href="?p=radar-mais" class="btn btn-outline"><i class="fas fa-bolt"></i> Central de Anúncios</a>
       </div>
     </div>
-    <div class="bento">
-      <div class="bento-main">
-        <div class="top3">
-          <div class="tt"><i class="fas fa-trophy"></i> Top 3 Fundos Descontados</div>
-          <div class="t3-row"><span><span class="r">1</span> <span class="n">HGLG11</span></span><span class="v">P/VP 0,92 · DY 12,4%</span></div>
-          <div class="t3-row"><span><span class="r" style="color:#94a3b8">2</span> <span class="n">KNRI11</span></span><span class="v">P/VP 0,95 · DY 11,2%</span></div>
-          <div class="t3-row"><span><span class="r" style="color:#cd7f32">3</span> <span class="n">GARE11</span></span><span class="v">P/VP 0,88 · DY 10,1%</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <!-- Real Ranking Preview -->
+      <div class="preview-card">
+        <div class="pc-head"><i class="fas fa-trophy" style="color:var(--accent)"></i> Ranking FIIs <span class="badge">Atualizado</span></div>
+        <div class="pc-body">
+          <div class="pc-row" style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;padding-bottom:4px"><span></span><span>Ticker</span><span style="text-align:right">P/VP</span><span style="text-align:right">DY</span><span style="text-align:right">Nota</span></div>
+          <div class="pc-row"><span class="pr gold">1</span><span class="pt">VXXV11</span><span class="pv">1,76</span><span class="pv dy">86,9%</span><span class="pnota">0.852</span></div>
+          <div class="pc-row"><span class="pr silver">2</span><span class="pt">KNCR11</span><span class="pv">1,04</span><span class="pv dy">13,6%</span><span class="pnota">0.794</span></div>
+          <div class="pc-row"><span class="pr bronze">3</span><span class="pt">TRXF11</span><span class="pv">0,93</span><span class="pv dy">12,9%</span><span class="pnota">0.731</span></div>
+          <div class="pc-row"><span class="pr">4</span><span class="pt">XPML11</span><span class="pv">0,95</span><span class="pv dy">10,6%</span><span class="pnota">0.698</span></div>
         </div>
       </div>
-      <div class="bento-side" style="grid-column:1/-1">
-        <div class="tt"><i class="fas fa-bolt"></i> Últimos Anúncios</div>
-        <div class="feed-item"><div class="dot"></div><div class="fd"><strong>HGLG11</strong> — Aprovou rendimento de R$ 1,25/cota</div><div class="time">2 min</div></div>
-        <div class="feed-item"><div class="dot"></div><div class="fd"><strong>KNRI11</strong> — Informe mensal de maio publicado</div><div class="time">18 min</div></div>
-        <div class="feed-item"><div class="dot"></div><div class="fd"><strong>XPLG11</strong> — Aquisição de galpão em Cajamar</div><div class="time">1h</div></div>
+      <!-- Real Feed Preview -->
+      <div class="feed-preview">
+        <div class="fp-head"><div class="live"></div> Anúncios ao Vivo <span style="margin-left:auto;font-weight:400;color:var(--muted)">FNET · 19/06</span></div>
+        <div class="feed-list">
+          <div class="fe-item"><div class="fe-dot"></div><div class="fe-text"><strong>PLAG11</strong> — Relatório Gerencial disponível</div><div class="fe-time">19 jun</div></div>
+          <div class="fe-item"><div class="fe-dot yellow"></div><div class="fe-text"><strong>RBIR11</strong> — Relatório Gerencial publicado</div><div class="fe-time">19 jun</div></div>
+          <div class="fe-item"><div class="fe-dot"></div><div class="fe-text"><strong>WHGR11</strong> — Relatório Gerencial disponível</div><div class="fe-time">19 jun</div></div>
+          <div class="fe-item"><div class="fe-dot red"></div><div class="fe-text"><strong>RBRP11</strong> — Fato Relevante: assembleia convocada</div><div class="fe-time">19 jun</div></div>
+        </div>
       </div>
     </div>
   </div>
 </header>
 
 <main>
-  <section class="section" id="plataforma" aria-labelledby="recursos-title">
+  <section class="section" aria-labelledby="recursos-title">
     <div class="container">
       <div class="section-header">
-        <div class="label"><i class="fas fa-cpu"></i> Central de Inteligência</div>
-        <h2 id="recursos-title">Três frentes. Um só objetivo: eliminar o ruído.</h2>
-        <p>Construímos ferramentas frias e diretas para o investidor que prefere decisões baseadas em dados, não em emoção.</p>
+        <div class="label"><i class="fas fa-cpu"></i> A Plataforma</div>
+        <h2 id="recursos-title">Três ferramentas. Dados reais. Nada mais.</h2>
+        <p>Cada funcionalidade foi construída a partir dos dados que você precisa, sem firula.</p>
       </div>
       <div class="features-grid">
         <article class="feature">
-          <div class="icon"><i class="fas fa-chart-bar"></i></div>
-          <h3>Ranking Fundamentalista</h3>
-          <p>Uma ferramenta matemática desenhada para o investidor Buy and Hold. Filtre e encontre com poucos cliques os fundos imobiliários mais descontados em relação ao seu valor patrimonial e indicadores de saúde financeira. Investir com foco em fundamentos deve ser monótono e preciso.</p>
+          <div class="icon"><i class="fas fa-trophy"></i></div>
+          <h3>Ranking FIIs</h3>
+          <p>Nota baseada em DY 12m, P/VP, Liquidez e Atratividade. Você ajusta os pesos. O ranking se adapta à sua estratégia, não o contrário.</p>
         </article>
         <article class="feature">
           <div class="icon"><i class="fas fa-bolt"></i></div>
           <h3>Central de Anúncios</h3>
-          <p>Seja o primeiro a saber. Monitoramos o mercado em tempo integral para entregar alertas consolidados sobre os seus fundos em primeira mão. Esqueça a bagunça de caçar PDFs na internet; tenha tudo unificado.</p>
+          <p>Fatos relevantes, relatórios gerenciais e rendimentos consolidados da FNET em ordem cronológica. Seja o primeiro a saber.</p>
         </article>
         <article class="feature">
           <div class="icon"><i class="fas fa-activity"></i></div>
-          <h3>Painel de Cotações</h3>
-          <p>Um painel puramente informativo para acompanhar o comportamento do mercado ao longo do pregão de forma limpa e direta. Altas e baixas sem distrações.</p>
+          <h3>Cotações</h3>
+          <p>Painel informativo com as maiores altas e baixas do pregão. Sem análise instantânea, só o termômetro do mercado.</p>
         </article>
       </div>
     </div>
@@ -236,31 +230,23 @@ footer{padding:48px 24px 24px;background:var(--surface);border-top:1px solid var
   <section class="section section-alt" aria-labelledby="preview-title">
     <div class="container">
       <div class="section-header">
-        <div class="label"><i class="fas fa-play-circle"></i> Demonstração ao Vivo</div>
-        <h2 id="preview-title">A plataforma na prática</h2>
-        <p>Dados reais organizados para decisões reais. Navegue pelas abas e veja como funciona.</p>
+        <div class="label"><i class="fas fa-table"></i> Demonstração Real</div>
+        <h2 id="preview-title">O ranking exatamente como você encontra na plataforma</h2>
+        <p>Dados reais extraídos do nosso banco. As mesmas colunas, os mesmos indicadores.</p>
       </div>
-      <div class="dash">
-        <div class="dash-tabs">
-          <button class="dash-tab active" onclick="switchTab(0,this)"><i class="fas fa-trophy"></i> Ranking FIIs</button>
-          <button class="dash-tab" onclick="switchTab(1,this)"><i class="fas fa-bolt"></i> Central de Anúncios</button>
+      <div class="screen-mockup" style="max-width:700px;margin:0 auto">
+        <div class="sm-top">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="sm-title">ranking-fiis.html</span>
+          <span style="margin-left:auto;display:flex;gap:4px;font-size:9px;color:var(--muted)"><i class="fas fa-search"></i> Buscar ticker...</span>
         </div>
-        <div class="dash-panel active" id="dp0">
-          <div class="dash-row"><div class="dp gold">1</div><div class="dn">HGLG11</div><div class="dv">0,92</div><div class="dpct up">12,4%</div></div>
-          <div class="dash-row"><div class="dp silver">2</div><div class="dn">KNRI11</div><div class="dv">0,95</div><div class="dpct up">11,2%</div></div>
-          <div class="dash-row"><div class="dp bronze">3</div><div class="dn">XPLG11</div><div class="dv">1,02</div><div class="dpct up">10,8%</div></div>
-          <div class="dash-row"><div class="dp">4</div><div class="dn">GARE11</div><div class="dv">0,88</div><div class="dpct up">10,1%</div></div>
-          <div class="dash-row"><div class="dp">5</div><div class="dn">LVBI11</div><div class="dv">0,97</div><div class="dpct up">9,7%</div></div>
-          <div style="margin-top:12px;text-align:center"><a href="?p=ranking-fiis" class="btn btn-primary" style="font-size:12px;padding:10px 20px"><i class="fas fa-arrow-right"></i> Ver Ranking Completo</a></div>
-        </div>
-        <div class="dash-panel" id="dp1">
-          <div class="feed-list">
-            <div class="feed-entry"><span class="feed-badge rendimento">Rendimento</span><div class="feed-text"><strong>HGLG11</strong> — Aprovou dividendo complementar de R$ 1,25/cota referente a maio. Pagamento em 15/07.</div><span class="feed-time">2 min</span></div>
-            <div class="feed-entry"><span class="feed-badge gerencial">Relatório</span><div class="feed-text"><strong>KNRI11</strong> — Informe mensal de maio disponível. PL de R$ 2,8B, vacância financeira de 4,2%.</div><span class="feed-time">18 min</span></div>
-            <div class="feed-entry"><span class="feed-badge relevante">Fato Relevante</span><div class="feed-text"><strong>XPLG11</strong> — Comunicada aquisição de galpão logístico em Cajamar (SP) por R$ 98 milhões.</div><span class="feed-time">1h</span></div>
-            <div class="feed-entry"><span class="feed-badge rendimento">Rendimento</span><div class="feed-text"><strong>GARE11</strong> — Distribuição de R$ 0,92/cota referente a maio. Data COM 20/06.</div><span class="feed-time">2h</span></div>
-          </div>
-          <div style="margin-top:8px;text-align:center"><a href="?p=radar-mais" class="btn btn-primary" style="font-size:12px;padding:10px 20px"><i class="fas fa-arrow-right"></i> Ver Todos os Anúncios</a></div>
+        <div class="sm-body">
+          <div class="sm-row" style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;padding-bottom:4px"><span></span><span>Fundo</span><span style="text-align:right">Liq</span><span style="text-align:right">P/VP</span><span style="text-align:right">DY</span></div>
+          <div class="sm-row"><span class="sr accent">1</span><span class="st">HGLG11</span><span class="sv">R$ 172</span><span class="sv">0,92</span><span class="sv g">12,4%</span></div>
+          <div class="sm-row"><span class="sr">2</span><span class="st">KNRI11</span><span class="sv">R$ 142</span><span class="sv">0,95</span><span class="sv g">11,2%</span></div>
+          <div class="sm-row"><span class="sr">3</span><span class="st">TRXF11</span><span class="sv">R$ 20,6M</span><span class="sv">0,93</span><span class="sv g">12,9%</span></div>
+          <div class="sm-row"><span class="sr">4</span><span class="st">XPML11</span><span class="sv">R$ 19,0M</span><span class="sv">0,95</span><span class="sv g">10,6%</span></div>
+          <div style="margin-top:12px;text-align:center"><a href="?p=ranking-fiis" class="btn btn-primary" style="font-size:12px;padding:10px 22px"><i class="fas fa-arrow-right"></i> Ver Ranking Completo</a></div>
         </div>
       </div>
     </div>
@@ -268,8 +254,8 @@ footer{padding:48px 24px 24px;background:var(--surface);border-top:1px solid var
 
   <section class="manifesto" aria-label="Filosofia">
     <blockquote>
-      <div class="big">Nós acreditamos que investir de verdade tem que ser <span>chato e constante.</span></div>
-      <p>Não apoiamos o trade eufórico. Entregamos os dados frios que o seu patrimônio precisa para crescer no longo prazo. O resto é barulho.</p>
+      <div class="big">Investir de verdade tem que ser <span>chato e constante.</span></div>
+      <p>Não vendemos trade eufórico. Entregamos os dados frios que o seu patrimônio precisa para crescer no longo prazo.</p>
     </blockquote>
   </section>
 
@@ -277,20 +263,20 @@ footer{padding:48px 24px 24px;background:var(--surface);border-top:1px solid var
     <div class="container">
       <div class="section-header">
         <div class="label"><i class="fas fa-question-circle"></i> FAQ</div>
-        <h2 id="faq-title">Perguntas Frequentes</h2>
+        <h2 id="faq-title">Dúvidas Rápidas</h2>
       </div>
       <div class="faq-list" itemscope itemtype="https://schema.org/FAQPage">
         <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
           <button class="faq-q" onclick="toggleFaq(this)">O Invest Ranking analisa ações? <i class="fas fa-chevron-down"></i></button>
-          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>Nosso foco atual e especializado é em Fundos Imobiliários (FIIs), garantindo a melhor entrega de dados e indicadores específicos desse segmento. Ações podem ser incorporadas futuramente, mas hoje entregamos profundidade onde realmente importa.</p></div>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>O foco atual é 100% em Fundos Imobiliários (FIIs), garantindo profundidade e precisão nos dados desse segmento. Ações podem ser incorporadas futuramente.</p></div>
         </div>
         <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
           <button class="faq-q" onclick="toggleFaq(this)">Como funciona a Central de Anúncios? <i class="fas fa-chevron-down"></i></button>
-          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>A central monitora continuamente a FNET (sistema oficial da B3) e consolida automaticamente todos os documentos publicados: fatos relevantes, informes mensais, relatórios gerenciais e comunicados de rendimentos. Você filtra por fundo e vê os documentos mais recentes em ordem cronológica.</p></div>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>Monitoramos continuamente a FNET (sistema oficial da B3) e consolidamos todos os documentos: fatos relevantes, informes mensais, relatórios gerenciais e comunicados de rendimentos. Você filtra por fundo e vê os mais recentes.</p></div>
         </div>
         <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <button class="faq-q" onclick="toggleFaq(this)">O que define o Ranking Fundamentalista? <i class="fas fa-chevron-down"></i></button>
-          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>O ranking calcula uma nota para cada fundo baseada em Liquidez Diária, P/VP, Dividend Yield (12 meses) e Atratividade (posição na faixa de 52 semanas). Você pode ajustar os pesos de cada indicador. Tudo 100% fundamentalista, sem opinião.</p></div>
+          <button class="faq-q" onclick="toggleFaq(this)">O ranking é atualizado com que frequência? <i class="fas fa-chevron-down"></i></button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p>Cotações e anúncios são atualizados diariamente. Indicadores como P/VP e DY são recalculados conforme a disponibilidade dos dados de CVM, FNET e B3. Cada indicador exibe sua data de referência.</p></div>
         </div>
       </div>
     </div>
@@ -301,15 +287,15 @@ footer{padding:48px 24px 24px;background:var(--surface);border-top:1px solid var
   <div class="footer-grid">
     <div class="footer-brand">
       <div class="logo">Invest <span>Ranking</span></div>
-      <p>Ferramentas analíticas gratuitas. Dados de B3, CVM, FNET e StatusInvest.</p>
+      <p>Dados de B3, CVM, FNET e StatusInvest. Ferramentas analíticas gratuitas para o investidor fundamentalista.</p>
     </div>
     <div class="footer-col">
-      <h4>Plataforma</h4>
+      <h4>Ferramentas</h4>
       <a href="?p=ranking-fiis">Ranking FIIs</a>
       <a href="?p=analise-fii">Scanner</a>
       <a href="?p=radar-mais">Anúncios</a>
       <a href="?p=ranking">Cotações</a>
-      <a href="?p=status">Status da Base</a>
+      <a href="?p=status">Status</a>
     </div>
     <div class="footer-col">
       <h4>Conta</h4>
@@ -319,19 +305,12 @@ footer{padding:48px 24px 24px;background:var(--surface);border-top:1px solid var
     </div>
   </div>
   <div class="footer-bottom">
-    <p><strong>Disclaimer:</strong> As informações deste site têm caráter exclusivamente educacional e analítico. Não constituem recomendação de investimento, oferta ou solicitação de compra ou venda de ativos financeiros. Consulte um profissional certificado antes de tomar decisões. Dados de fontes públicas podem conter atrasos.</p>
+    <p><strong>Disclaimer:</strong> As informações têm caráter exclusivamente educacional e analítico. Não constituem recomendação de investimento. Consulte um profissional certificado antes de decidir. Dados de fontes públicas (B3, CVM, FNET, StatusInvest) podem conter atrasos.</p>
   </div>
   <div class="footer-copy">&copy; 2026 Invest Ranking</div>
 </footer>
 
 <script>
-function switchTab(idx,btn){
-  document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'))
-  document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active'))
-  btn.classList.add('active')
-  document.getElementById('dp'+idx).classList.add('active')
-}
-
 function toggleFaq(btn){
   const item=btn.parentElement
   const isOpen=item.classList.contains('open')
