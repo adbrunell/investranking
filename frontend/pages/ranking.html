@@ -89,6 +89,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 
 .mode-volume .rank-variacao{display:none}
 .mode-volume .rank-volume{display:flex}
+#treemap{display:none;width:100%;min-height:400px;position:relative}
+body.mode-treemap .rank-card{display:none}
+body.mode-treemap .rank-variacao{display:none}
+body.mode-treemap .rank-volume{display:none}
+body.mode-treemap #treemap{display:block}
+.tm-cell{position:absolute;overflow:hidden;border-radius:4px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:1px solid rgba(0,0,0,0.2)}
+.tm-cell:hover{transform:scale(1.02);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.tm-cell .tm-ticker{font-size:clamp(10px,1.2vw,14px);font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);line-height:1.2;text-align:center;pointer-events:none}
+.tm-cell .tm-price{font-size:clamp(8px,0.9vw,11px);color:rgba(255,255,255,0.8);margin-top:2px;text-shadow:0 1px 3px rgba(0,0,0,0.4);pointer-events:none}
+.tm-cell .tm-var{font-size:clamp(8px,0.8vw,10px);font-weight:600;margin-top:1px;pointer-events:none}
+.tm-empty{display:flex;align-items:center;justify-content:center;min-height:400px;color:var(--muted);font-size:14px;flex-direction:column;gap:8px}
 
 @media(max-width:768px){
 .topbar{padding:0 12px 0 48px;height:auto;min-height:44px;gap:4px;flex-wrap:wrap}
@@ -141,6 +152,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
       <button class="mode-btn active" data-mode="altas" onclick="setMode(this)"><i class="fas fa-arrow-up" style="font-size:10px"></i> Altas</button>
       <button class="mode-btn" data-mode="baixas" onclick="setMode(this)"><i class="fas fa-arrow-down" style="font-size:10px"></i> Baixas</button>
       <button class="mode-btn" data-mode="volume" onclick="setMode(this)"><i class="fas fa-water-chart" style="font-size:10px"></i> Volume</button>
+      <button class="mode-btn" data-mode="treemap" onclick="setMode(this)"><i class="fas fa-th" style="font-size:10px"></i> Mapa</button>
     </div>
     <div class="asset-divider"></div>
     <div class="asset-group" id="assetGroup">
@@ -155,6 +167,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 <div class="container">
   <div id="loading" class="loading"><div class="spinner"></div><span>Carregando cotações...</span></div>
   <div id="feed"></div>
+  <div id="treemap"></div>
 </div>
 
 <script>
@@ -291,7 +304,9 @@ function setMode(el){
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'))
   el.classList.add('active')
   mode=el.dataset.mode
-  document.body.classList.toggle('mode-volume',mode==='volume')
+  document.body.classList.remove('mode-volume','mode-treemap')
+  if(mode==='volume')document.body.classList.add('mode-volume')
+  if(mode==='treemap')document.body.classList.add('mode-treemap')
   render()
 }
 
@@ -391,6 +406,72 @@ function render(isRefresh){
         }
       })
     })
+  }
+}
+
+// ─── Treemap ───
+function renderTreemap(items, topN){
+  var el=document.getElementById('treemap')
+  var data=items.slice(0,topN||50)
+  if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
+  // Normalize values
+  var total=0;data.forEach(function(d){total+=Math.max(d.volume||1,1)})
+  var w=el.parentElement.clientWidth||800,h=Math.max(400,Math.min(600,window.innerHeight*0.6))
+  el.style.height=h+'px'
+  // Simple treemap: row-based layout
+  var cells=[],x=0,y=0,rw=w,rh=h,row=[],rowArea=0
+  function layoutRow(){
+    if(!row.length)return
+    var rowTotal=0;row.forEach(function(r){rowTotal+=r.val})
+    var rowH=rh*(rowTotal/total)
+    var cx=x,cy=y
+    row.forEach(function(r){
+      var cw=rw*(r.val/rowTotal)
+      cells.push({x:cx,y:cy,w:cw,h:rowH,item:r.item})
+      cx+=cw
+    })
+    y+=rowH;rh-=rowH
+    row=[];rowArea=0
+  }
+  data.forEach(function(d){
+    var val=Math.max(d.volume||1,1)
+    var ideal=w*h*4/3
+    if(row.length&&(rowArea+val)*rw>ideal)layoutRow()
+    row.push({val:val,item:d});rowArea+=val
+  })
+  if(row.length)layoutRow()
+  // Render
+  var html=''
+  cells.forEach(function(c){
+    var it=c.item,isUp=it.variacao>=0
+    var cor=isUp?'var(--green)':'var(--red)'
+    var bg=isUp?'rgba(0,200,150,'+(0.1+0.5*(c.w*c.h)/(w*h))+')':'rgba(255,71,87,'+(0.1+0.5*(c.w*c.h)/(w*h))+')'
+    var showText=c.w>40&&c.h>30
+    var fontSize=Math.min(c.w,c.h)/6
+    html+='<div class="tm-cell" style="left:'+(c.x/w*100)+'%;top:'+(c.y/h*100)+'%;width:'+(c.w/w*100)+'%;height:'+(c.h/h*100)+'%;background:'+bg+';border-left:3px solid '+cor+'" onclick="window.top.location.href=\'?p=analise-fii\'" title="'+it.ticker+' - R$ '+fmtShort(it.preco)+'">'
+    if(showText){
+      html+='<div class="tm-ticker" style="font-size:'+Math.min(fontSize,16)+'px">'+it.ticker+'</div>'
+      html+='<div class="tm-price" style="font-size:'+Math.min(fontSize*0.8,13)+'px">R$ '+fmtShort(it.preco)+'</div>'
+      html+='<div class="tm-var" style="font-size:'+Math.min(fontSize*0.7,11)+'px;color:'+cor+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</div>'
+    }
+    html+='</div>'
+  })
+  el.innerHTML=html
+}
+
+// Patch render for treemap mode
+var _origRender=render
+render=function(isRefresh){
+  _origRender(isRefresh)
+  if(mode==='treemap'){
+    var items=[...allItems]
+    items=items.filter(function(it){
+      var cat=ASSET_MAP[it.tipo]
+      return cat?assetFilter[cat]:false
+    })
+    if(searchTerm)items=items.filter(function(it){return it.ticker.includes(searchTerm)})
+    items.sort(function(a,b){return b.volume-a.volume})
+    renderTreemap(items)
   }
 }
 
