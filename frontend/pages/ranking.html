@@ -410,49 +410,51 @@ function render(isRefresh){
 }
 
 // ─── Treemap ───
+var TM_COLORS={acao:'#3b82f6',fii:'#10b981',fiagro:'#f59e0b',fiinfra:'#8b5cf6'}
+var TM_COLORS_BG={acao:'rgba(59,130,246,0.15)',fii:'rgba(16,185,129,0.15)',fiagro:'rgba(245,158,11,0.15)',fiinfra:'rgba(139,92,246,0.15)'}
+
 function renderTreemap(items, topN){
   var el=document.getElementById('treemap')
-  var data=items.slice(0,topN||50)
+  var data=items.slice(0,topN||80)
   if(!data.length){el.innerHTML='<div class="tm-empty"><i class="fas fa-inbox" style="font-size:28px;opacity:.3"></i>Nenhum dado disponível</div>';return}
-  // Normalize values
-  var total=0;data.forEach(function(d){total+=Math.max(d.volume||1,1)})
+  // Group by category
+  var groups={}
+  data.forEach(function(d){
+    var cat=ASSET_MAP[d.tipo]||'fii'
+    if(!groups[cat])groups[cat]={items:[],total:0}
+    groups[cat].items.push(d)
+    groups[cat].total+=Math.max(d.volume||1,1)
+  })
+  var total=0;Object.keys(groups).forEach(function(k){total+=groups[k].total})
   var w=el.parentElement.clientWidth||800,h=Math.max(400,Math.min(600,window.innerHeight*0.6))
   el.style.height=h+'px'
-  // Simple treemap: row-based layout
-  var cells=[],x=0,y=0,rw=w,rh=h,row=[],rowArea=0
-  function layoutRow(){
-    if(!row.length)return
-    var rowTotal=0;row.forEach(function(r){rowTotal+=r.val})
-    var rowH=rh*(rowTotal/total)
-    var cx=x,cy=y
-    row.forEach(function(r){
-      var cw=rw*(r.val/rowTotal)
-      cells.push({x:cx,y:cy,w:cw,h:rowH,item:r.item})
-      cx+=cw
+  // Layout groups as horizontal strips
+  var cells=[],y=0
+  Object.keys(groups).forEach(function(cat){
+    var group=groups[cat],gh=h*(group.total/total),x=0
+    var items=group.items.sort(function(a,b){return (b.volume||1)-(a.volume||1)})
+    var gTotal=group.total
+    items.forEach(function(it){
+      var cw=w*(Math.max(it.volume||1,1)/gTotal)
+      cells.push({x:x,y:y,w:cw,h:gh,item:it,cat:cat})
+      x+=cw
     })
-    y+=rowH;rh-=rowH
-    row=[];rowArea=0
-  }
-  data.forEach(function(d){
-    var val=Math.max(d.volume||1,1)
-    var ideal=w*h*4/3
-    if(row.length&&(rowArea+val)*rw>ideal)layoutRow()
-    row.push({val:val,item:d});rowArea+=val
+    y+=gh
   })
-  if(row.length)layoutRow()
   // Render
   var html=''
   cells.forEach(function(c){
     var it=c.item,isUp=it.variacao>=0
-    var cor=isUp?'var(--green)':'var(--red)'
-    var bg=isUp?'rgba(0,200,150,'+(0.1+0.5*(c.w*c.h)/(w*h))+')':'rgba(255,71,87,'+(0.1+0.5*(c.w*c.h)/(w*h))+')'
-    var showText=c.w>40&&c.h>30
-    var fontSize=Math.min(c.w,c.h)/6
-    html+='<div class="tm-cell" style="left:'+(c.x/w*100)+'%;top:'+(c.y/h*100)+'%;width:'+(c.w/w*100)+'%;height:'+(c.h/h*100)+'%;background:'+bg+';border-left:3px solid '+cor+'" onclick="window.top.location.href=\'?p=analise-fii\'" title="'+it.ticker+' - R$ '+fmtShort(it.preco)+'">'
+    var bg=TM_COLORS_BG[c.cat]||'rgba(16,185,129,0.1)'
+    var borderColor=TM_COLORS[c.cat]||'#10b981'
+    var minDim=Math.min(c.w,c.h)
+    var showText=c.w>45&&c.h>32
+    var fs=Math.min(minDim/5.5,15)
+    html+='<div class="tm-cell" style="left:'+(c.x/w*100)+'%;top:'+(c.y/h*100)+'%;width:'+(c.w/w*100)+'%;height:'+(c.h/h*100)+'%;background:'+bg+';border-left:3px solid '+borderColor+'" onclick="window.top.location.href=\'?p=analise-fii\'" title="'+it.ticker+' - R$ '+fmtShort(it.preco)+' - '+fmtNum(it.variacao)+'%">'
     if(showText){
-      html+='<div class="tm-ticker" style="font-size:'+Math.min(fontSize,16)+'px">'+it.ticker+'</div>'
-      html+='<div class="tm-price" style="font-size:'+Math.min(fontSize*0.8,13)+'px">R$ '+fmtShort(it.preco)+'</div>'
-      html+='<div class="tm-var" style="font-size:'+Math.min(fontSize*0.7,11)+'px;color:'+cor+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</div>'
+      html+='<div class="tm-ticker" style="font-size:'+Math.min(fs,15)+'px">'+it.ticker+'</div>'
+      html+='<div class="tm-price" style="font-size:'+Math.min(fs*0.75,11)+'px">R$ '+fmtShort(it.preco)+'</div>'
+      html+='<div class="tm-var" style="font-size:'+Math.min(fs*0.65,10)+'px;color:'+(isUp?'var(--green)':'var(--red)')+'">'+(isUp?'+':'')+fmtNum(it.variacao)+'%</div>'
     }
     html+='</div>'
   })
