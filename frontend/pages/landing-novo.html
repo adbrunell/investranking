@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Ranking de Fundos Imobiliários: Encontre os FIIs Mais Descontados | Invest Ranking</title>
-<meta name="description" content="Ranking fundamentalista de Fundos Imobiliários com P/VP, Dividend Yield e liquidez. Ferramenta gratuita para o investidor Buy and Hold avaliar FIIs sem ruídos.">
+<meta name="description" content="Ranking fundamentalista de Fundos Imobiliários com P/VP, Dividend Yield e liquidez. Ferramenta para o investidor Buy and Hold avaliar FIIs sem ruídos.">
 <meta property="og:title" content="Ranking de Fundos Imobiliários — Invest Ranking">
-<meta property="og:description" content="Ranking fundamentalista de FIIs com P/VP, Dividend Yield e liquidez. Ferramenta gratuita para Buy and Hold.">
+<meta property="og:description" content="Ranking fundamentalista de FIIs com P/VP, Dividend Yield e liquidez. Ferramenta para Buy and Hold.">
 <meta property="og:url" content="https://www.investranking.com.br">
 <meta property="og:type" content="website">
 <meta name="keywords" content="como avaliar fundos imobiliários, FIIs mais descontados, indicadores fundamentalistas, P/VP de FIIs, ranking de FIIs, dividend yield fundos imobiliários">
@@ -20,8 +20,7 @@ tailwind.config={
       colors:{
         surface:'#111318',card:'#1a1d24',card2:'#1f232b',border:'#2a2e36',
         muted:'#8a909a',accent:'#ffde59',
-        emerald:{400:'#34d399',500:'#10b981',600:'#059669'},
-        teal:{400:'#2dd4bf',500:'#14b8a6',600:'#0d9488'},
+        green:{400:'#2ec4b6',500:'#00c896'},
       },
       fontFamily:{sans:['"Segoe UI"','system-ui','-apple-system','sans-serif']}
     }
@@ -37,10 +36,10 @@ a{color:inherit;text-decoration:none}
 @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .anim-fade{animation:fadeIn .6s ease-out both}
 .anim-d1{animation-delay:.1s}.anim-d2{animation-delay:.2s}.anim-d3{animation-delay:.3s}.anim-d4{animation-delay:.4s}
-@keyframes pulseGlow{0%,100%{box-shadow:0 0 20px rgba(16,185,129,.15)}50%{box-shadow:0 0 40px rgba(16,185,129,.3)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 20px rgba(255,222,89,.15)}50%{box-shadow:0 0 40px rgba(255,222,89,.3)}}
 .glow{animation:pulseGlow 2s ease-in-out infinite}
 .row-hl{transition:all .12s ease;cursor:default}
-.row-hl:hover{background:rgba(255,255,255,.04);border-color:rgba(52,211,153,.3);transform:translateX(2px)}
+.row-hl:hover{background:rgba(255,255,255,.04);border-color:rgba(46,196,182,.3);transform:translateX(2px)}
 .accordion-content{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}
 .accordion-open .accordion-content{grid-template-rows:1fr}
 .accordion-inner{overflow:hidden}
@@ -60,8 +59,8 @@ a{color:inherit;text-decoration:none}
       <a href="/?p=analise-fii" class="text-sm text-[#8a909a] hover:text-[#e8ecf1] transition-colors" target="_top">Scanner</a>
       <a href="/?p=ranking" class="text-sm text-[#8a909a] hover:text-[#e8ecf1] transition-colors" target="_top">Cotações</a>
     </nav>
-    <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#14b8a6] hover:bg-[#0d9488] text-black text-sm font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 glow">
-      Acessar o Ranking Gratuito
+    <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#ffde59] hover:bg-[#e0c54a] text-black text-sm font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 glow">
+      Acessar o Ranking
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
     </a>
   </div>
@@ -72,19 +71,19 @@ a{color:inherit;text-decoration:none}
 <!-- Hero -->
 <section class="pt-28 pb-16 md:pt-36 md:pb-24 px-5">
   <div class="max-w-5xl mx-auto text-center">
-    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#14b8a6]/10 border border-[#14b8a6]/20 rounded-full text-xs text-[#14b8a6] font-medium mb-6 anim-fade">
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ffde59]/10 border border-[#ffde59]/20 rounded-full text-xs text-[#ffde59] font-medium mb-6 anim-fade">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 inline"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Dados atualizados em tempo real
     </div>
     <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold text-[#e8ecf1] leading-tight mb-5 anim-fade anim-d1">
-      Ranking de Fundos Imobiliários:<br>Encontre os <span class="text-[#34d399]">FIIs Mais Descontados</span> da Bolsa
+      Ranking de Fundos Imobiliários:<br>Encontre os <span class="text-[#2ec4b6]">FIIs Mais Descontados</span> da Bolsa
     </h1>
     <p class="text-base md:text-lg text-[#8a909a] max-w-3xl mx-auto mb-8 anim-fade anim-d2">
       Uma ferramenta matemática e fundamentalista para o investidor Buy and Hold. Filtre ativos pelo P/VP, Dividend Yield e saúde financeira, sem ruídos ou falsas promessas.
     </p>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 anim-fade anim-d2">
-      <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-2 px-7 py-3.5 bg-[#14b8a6] hover:bg-[#0d9488] text-black text-base font-bold rounded-xl transition-all hover:scale-105 active:scale-95 glow">
-        Acessar o Ranking Gratuito
+      <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-2 px-7 py-3.5 bg-[#ffde59] hover:bg-[#e0c54a] text-black text-base font-bold rounded-xl transition-all hover:scale-105 active:scale-95 glow">
+        Acessar o Ranking
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
       </a>
       <a href="#como-funciona" class="inline-flex items-center gap-2 px-7 py-3.5 border border-[#2a2e36] hover:border-[#8a909a] text-[#8a909a] hover:text-[#e8ecf1] text-base font-medium rounded-xl transition-all">
@@ -116,7 +115,7 @@ a{color:inherit;text-decoration:none}
         <!-- Search -->
         <div class="relative mb-3">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8a909a] pointer-events-none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="searchInput" placeholder="Buscar fundo por ticker..." oninput="filtrarTabela()" class="w-full bg-[#1a1d24] border border-[#2a2e36] rounded-lg pl-9 pr-3 py-2 text-sm text-[#e8ecf1] placeholder-[#8a909a] outline-none focus:border-[#14b8a6] transition-colors">
+          <input type="text" id="searchInput" placeholder="Buscar fundo por ticker..." oninput="filtrarTabela()" class="w-full bg-[#1a1d24] border border-[#2a2e36] rounded-lg pl-9 pr-3 py-2 text-sm text-[#e8ecf1] placeholder-[#8a909a] outline-none focus:border-[#ffde59] transition-colors">
         </div>
         <!-- Table -->
         <div class="overflow-x-auto">
@@ -136,7 +135,7 @@ a{color:inherit;text-decoration:none}
         </div>
       </div>
       <div class="px-5 py-3 bg-[#111318] border-t border-[#2a2e36] text-center">
-        <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-1.5 text-xs text-[#14b8a6] hover:text-[#34d399] transition-colors">
+        <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-1.5 text-xs text-[#ffde59] hover:text-[#2ec4b6] transition-colors">
           Ver ranking completo com todos os indicadores
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
@@ -152,31 +151,31 @@ a{color:inherit;text-decoration:none}
     <p class="text-[#8a909a] text-center max-w-2xl mx-auto mb-12 text-base">Três frentes de conteúdo que transformam dados públicos em decisões de investimento.</p>
     <div class="grid md:grid-cols-3 gap-5">
       <!-- Card 1 - Destaque -->
-      <div class="bg-[#1a1d24] border border-[#14b8a6]/30 rounded-xl p-6 transition-all hover:border-[#14b8a6]/40 flex flex-col md:scale-105">
-        <div class="w-11 h-11 rounded-lg bg-[#14b8a6]/15 text-[#14b8a6] flex items-center justify-center mb-4">
+      <div class="bg-[#1a1d24] border border-[#ffde59]/30 rounded-xl p-6 transition-all hover:border-[#ffde59]/40 flex flex-col md:scale-105">
+        <div class="w-11 h-11 rounded-lg bg-[#ffde59]/15 text-[#ffde59] flex items-center justify-center mb-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
         <h3 class="text-lg font-semibold text-[#e8ecf1] mb-2">O Carro-Chefe: Ranking Fundamentalista</h3>
         <p class="text-sm text-[#8a909a] leading-relaxed mb-5 flex-1">O algoritmo do Invest Ranking organiza os fundos por múltiplos reais como desconto patrimonial (P/VP), rendimento sobre o preço (DY) e liquidez — removendo a emoção e o trade do processo. Nosso lema: investir deve ser monótono e focado em números.</p>
-        <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-1.5 text-sm font-medium text-[#14b8a6] hover:text-[#34d399] transition-colors">Ver Ranking de FIIs <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>
+        <a href="/?p=ranking-fiis" target="_top" class="inline-flex items-center gap-1.5 text-sm font-medium text-[#ffde59] hover:text-[#2ec4b6] transition-colors">Ver Ranking de FIIs <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>
       </div>
       <!-- Card 2 -->
-      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 transition-all hover:border-[#14b8a6]/40 flex flex-col">
+      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 transition-all hover:border-[#ffde59]/40 flex flex-col">
         <div class="w-11 h-11 rounded-lg bg-[#1f232b] text-[#8a909a] flex items-center justify-center mb-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         </div>
         <h3 class="text-lg font-semibold text-[#e8ecf1] mb-2">Central de Anúncios e Fatos Relevantes</h3>
         <p class="text-sm text-[#8a909a] leading-relaxed mb-5 flex-1">Receba em primeira mão os relatórios gerenciais, informes mensais, rendimentos e fatos relevantes de cada FII diretamente do FNET — sem precisar caçar PDFs espalhados pela internet. Tudo organizado por fundo e por data.</p>
-        <a href="/?p=radar-mais" target="_top" class="inline-flex items-center gap-1.5 text-sm font-medium text-[#14b8a6] hover:text-[#34d399] transition-colors">Acessar Central de Anúncios <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>
+        <a href="/?p=radar-mais" target="_top" class="inline-flex items-center gap-1.5 text-sm font-medium text-[#ffde59] hover:text-[#2ec4b6] transition-colors">Acessar Central de Anúncios <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>
       </div>
       <!-- Card 3 -->
-      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 transition-all hover:border-[#14b8a6]/40 flex flex-col">
+      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 transition-all hover:border-[#ffde59]/40 flex flex-col">
         <div class="w-11 h-11 rounded-lg bg-[#1f232b] text-[#8a909a] flex items-center justify-center mb-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
         <h3 class="text-lg font-semibold text-[#e8ecf1] mb-2">Monitoramento de Cotações</h3>
         <p class="text-sm text-[#8a909a] leading-relaxed mb-5 flex-1">Painel simples e puramente informativo para acompanhar as maiores altas e baixas do pregão, além do volume negociado. Visualização em lista ou mapa de árvore (treemap) com dados intraday da B3.</p>
-        <a href="/?p=ranking" target="_top" class="inline-flex items-center gap-1.5 text-sm font-medium text-[#14b8a6] hover:text-[#34d399] transition-colors">Acompanhar Cotações <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>
+        <a href="/?p=ranking" target="_top" class="inline-flex items-center gap-1.5 text-sm font-medium text-[#ffde59] hover:text-[#2ec4b6] transition-colors">Acompanhar Cotações <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>
       </div>
     </div>
   </div>
@@ -188,29 +187,29 @@ a{color:inherit;text-decoration:none}
     <h2 class="text-2xl md:text-3xl font-bold text-center text-[#e8ecf1] mb-4">Indicadores que Orientam suas Decisões</h2>
     <p class="text-[#8a909a] text-center max-w-2xl mx-auto mb-10 text-sm">Entenda como cada métrica é calculada e por que ela importa para o investidor Buy and Hold de FIIs.</p>
     <div class="grid sm:grid-cols-2 gap-4">
-      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#14b8a6]/30 transition-all">
-        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#14b8a6] mb-4">
+      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#ffde59]/30 transition-all">
+        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#ffde59] mb-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <h3 class="text-base font-semibold text-[#e8ecf1] mb-2">O que é P/VP de FIIs?</h3>
         <p class="text-sm text-[#8a909a] leading-relaxed">Preço sobre Valor Patrimonial. Indica quanto você está pagando por cada real de patrimônio líquido do fundo. Um P/VP abaixo de 1,00 sugere que o fundo está sendo negociado com desconto em relação ao seu patrimônio — o oposto de um prêmio.</p>
       </div>
-      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#14b8a6]/30 transition-all">
-        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#14b8a6] mb-4">
+      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#ffde59]/30 transition-all">
+        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#ffde59] mb-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
         <h3 class="text-base font-semibold text-[#e8ecf1] mb-2">Dividend Yield (DY) de FIIs</h3>
         <p class="text-sm text-[#8a909a] leading-relaxed">O DY 12m do Invest Ranking considera os últimos 12 dividendos declarados divididos pelo preço atual da cota. Diferente de projeções futuras, esse número é baseado em dados reais pagos aos cotistas, vindos do StatusInvest.</p>
       </div>
-      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#14b8a6]/30 transition-all">
-        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#14b8a6] mb-4">
+      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#ffde59]/30 transition-all">
+        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#ffde59] mb-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><line x1="3" y1="20" x2="3" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="17" y1="20" x2="17" y2="13"/><polyline points="21 8 17 4 13 8"/></svg>
         </div>
         <h3 class="text-base font-semibold text-[#e8ecf1] mb-2">Liquidez e Volume de Negociação</h3>
         <p class="text-sm text-[#8a909a] leading-relaxed">Liquidez média diária em reais — essencial para saber se você consegue comprar ou vender cotas sem derrapar o preço. Fundos com liquidez muito baixa podem ter P/VP atraente mas não são negociáveis com facilidade. O ranking só inclui fundos com liquidez positiva.</p>
       </div>
-      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#14b8a6]/30 transition-all">
-        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#14b8a6] mb-4">
+      <div class="bg-[#1a1d24] border border-[#2a2e36] rounded-xl p-6 hover:border-[#ffde59]/30 transition-all">
+        <div class="w-10 h-10 rounded-lg bg-[#1f232b] flex items-center justify-center text-[#ffde59] mb-4">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
         <h3 class="text-base font-semibold text-[#e8ecf1] mb-2">Maturidade do Fundo (LCI)</h3>
@@ -237,7 +236,7 @@ a{color:inherit;text-decoration:none}
     <div class="grid sm:grid-cols-3 gap-8 mb-10">
       <div>
         <h4 class="text-sm font-semibold text-[#e8ecf1] mb-3">Invest Ranking</h4>
-        <p class="text-xs text-[#8a909a] leading-relaxed">Ferramenta gratuita de análise fundamentalista de Fundos Imobiliários. Dados atualizados de B3, CVM, FNET e StatusInvest.</p>
+        <p class="text-xs text-[#8a909a] leading-relaxed">Ferramenta de análise fundamentalista de Fundos Imobiliários. Dados atualizados de B3, CVM, FNET e StatusInvest.</p>
       </div>
       <div>
         <h4 class="text-sm font-semibold text-[#e8ecf1] mb-3">Ferramentas</h4>
@@ -282,8 +281,8 @@ function renderTabela(q){
       '<td class="py-2.5 pr-2 text-[#8a909a] text-xs">'+(i+1)+'</td>'+
       '<td class="py-2.5 pr-2"><span class="font-semibold text-[#e8ecf1]">'+f.ticker+'</span><span class="text-xs text-[#8a909a] ml-2 hidden sm:inline">'+f.nome.split(' ').slice(0,2).join(' ')+'</span></td>'+
       '<td class="py-2.5 pr-2 text-[#8a909a] text-xs hidden sm:table-cell">'+f.segmento+'</td>'+
-      '<td class="py-2.5 pr-2 text-right font-medium text-[#34d399]">'+f.pvp.toFixed(2)+'</td>'+
-      '<td class="py-2.5 pr-2 text-right font-medium text-[#14b8a6]">'+f.dy.toFixed(1)+'%</td>'+
+      '<td class="py-2.5 pr-2 text-right font-medium text-[#2ec4b6]">'+f.pvp.toFixed(2)+'</td>'+
+      '<td class="py-2.5 pr-2 text-right font-medium text-[#ffde59]">'+f.dy.toFixed(1)+'%</td>'+
       '<td class="py-2.5 text-right text-[#e8ecf1] font-semibold">R$ '+f.preco.toFixed(2)+'</td>'+
     '</tr>'
   ).join('')
@@ -295,8 +294,8 @@ renderTabela()
 const FAQS = [
   {q:'Como o Invest Ranking define quais são os melhores FIIs?',a:'O ranking não define "melhores" — ele organiza os fundos por indicadores objetivos e mensuráveis: P/VP, Dividend Yield, Liquidez Média Diária e Maturidade do fundo. Você define os pesos de cada indicador e o algoritmo ordena os ativos de acordo com a sua estratégia. É uma ferramenta de análise, não uma recomendação de compra.'},
   {q:'O que significa investir com foco em indicadores fundamentalistas?',a:'Significa basear suas decisões em números extraídos dos regulatórios (CVM, FNET, B3) em vez de fichas técnicas de corretoras ou opiniões de redes sociais. P/VP, DY, vacância, liquidez e idade do fundo são métricas que mostram a saúde financeira real de um FII, não o hype do momento.'},
-  {q:'Como ter acesso aos Fatos Relevantes e Rendimentos em primeira mão?',a:'A Central de Anúncios do Invest Ranking reúne os documentos oficiais do FNET (Fato Relevante, Informe Mensal, Relatório Gerencial) e os rendimentos declarados. Você busca por ticker e vê o histórico completo. Disponível gratuitamente para todos os usuários.'},
-  {q:'A plataforma Invest Ranking é gratuita?',a:'Sim. Todas as ferramentas do Invest Ranking — Ranking Fundamentalista, Central de Anúncios, Monitoramento de Cotações e Scanner de FIIs — são 100% gratuitas e alimentadas por dados públicos da B3, CVM, FNET e StatusInvest.'},
+  {q:'Como ter acesso aos Fatos Relevantes e Rendimentos em primeira mão?',a:'A Central de Anúncios do Invest Ranking reúne os documentos oficiais do FNET (Fato Relevante, Informe Mensal, Relatório Gerencial) e os rendimentos declarados. Você busca por ticker e vê o histórico completo. Disponível para todos os usuários.'},
+  {q:'A plataforma Invest Ranking é gratuita?',a:'Sim. Todas as ferramentas do Invest Ranking — Ranking Fundamentalista, Central de Anúncios, Monitoramento de Cotações e Scanner de FIIs — estão disponíveis e alimentadas por dados públicos da B3, CVM, FNET e StatusInvest.'},
 ]
 
 let openFaq=null
