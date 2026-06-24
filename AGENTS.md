@@ -3,14 +3,14 @@
 ## Tech Stack
 - **DB**: Supabase (PostgreSQL) — project `oaqmnaekrpukwmrxjtud`
 - **Frontend**: Vanilla HTML/CSS/JS (no build tools, no framework)
-- **ETL**: Python scripts in `scripts/data-updates/`
+- **ETL**: Python scripts in `backend/data-updates/`
 - **Charts**: Canvas 2D API (Scanner page), D3.js v7 CDN (treemap on ranking page)
 - **Auth**: Custom `ir_auth` key in localStorage — bypasses Supabase client's isolated storage
 
 ## Serve & Deploy
 - **Dev**: `.\servidor.ps1` → http://localhost:8080 (Python http.server on `frontend/`). NEVER use `file://`
 - **Prod**: Vercel auto-deploy from `main`. Vercel project rootDirectory = `frontend/` (set in dashboard, not in repo). `vercel.json` rewrites all routes to `/index.html`
-- **Python ETL**: `scripts/.venv/Scripts/python.exe` — system Python lacks deps
+- **Python ETL**: `backend/.venv/Scripts/python.exe` — system Python lacks deps
 
 ## Routing
 - `frontend/index.html` is the shell: sidebar + iframe. `initFromQuery()` reads `?p=` param, calls `abrir()` to set iframe src. Title updates via `abrir()`
@@ -37,9 +37,9 @@
 - `database/migrations/` — 22 timestamped SQL migration files (e.g. `20260613000001_create_fiagro_tables.sql`)
 - Views `00_Master` (columns: Ticker, Classe, CNPJ) and `vw_b3_tickers` exist in Supabase but have **no migration file** in repo — created manually in dashboard
 
-## ETL Orchestration — `scripts/data-updates/run_all.ps1`
+## ETL Orchestration — `backend/data-updates/run_all.ps1`
 - Canonical runner. Manages scheduling via `.run_state.json`
-- Python: `scripts/.venv/Scripts/python.exe`
+- Python: `backend/.venv/Scripts/python.exe`
 - `.env` at project root — loaded by `run_all.ps1` (Get-Content split on `=`) and by ETL scripts (manual file read)
 - 5 required env vars in `.env.example`: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`
 
@@ -73,6 +73,6 @@
 - Requirements (`requirements.txt`): `supabase>=2.0.0`, `httpx>=0.27.0`, `playwright>=1.60.0`, `pytesseract>=0.3.13`, `pillow>=12.2.0`
 
 ## OpenCode Config
-- `opencode.json` at root — MCP Supabase enabled via `scripts/mcp-supabase.ps1` (loads `.env` then runs `@supabase/mcp-server-supabase`). `test`/`lint`/`build` commands are generic templates only — no actual test/lint/build framework exists
+- `opencode.json` at root — MCP Supabase enabled via `backend/mcp-supabase.ps1` (loads `.env` then runs `@supabase/mcp-server-supabase`). `test`/`lint`/`build` commands are generic templates only — no actual test/lint/build framework exists
 - Skill `invest-ranking-analyst` at `.opencode/skills/invest-ranking-analyst/SKILL.md` — loaded for financial/data tasks. Contains deep domain guidance on FII metrics, CVM/B3/FNET data sources, and analyst reasoning patterns
 - `.opencode/rules/supabase.md` contradicts actual codebase (says "Use Supabase JS client for all DB ops" — real code uses `_api()` REST calls). Prefer `_api()` pattern from this file

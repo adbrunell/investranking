@@ -34,7 +34,7 @@ project-root/
 │   ├── seeds/                 # seed/sample data, never real prod data
 │   ├── schema/                # current schema snapshot (reference only)
 │   └── policies/              # RLS policies, kept as version-controlled SQL
-├── scripts/
+├── backend/
 │   ├── data-updates/          # the recurring Python jobs that update Supabase
 │   ├── one-off/                # ad-hoc/maintenance scripts, dated in filename
 │   └── utils/                  # shared helper modules imported by other scripts
@@ -52,7 +52,7 @@ Naming rules:
 - Folders: lowercase, hyphen-separated (`data-updates`, not `DataUpdates`).
 - Files: lowercase, hyphen-separated, descriptive, with purpose visible from
   the name alone — `update-prices-daily.py`, not `script2.py` or `temp.py`.
-- Python update scripts in `scripts/data-updates/` must be named
+- Python update scripts in `backend/data-updates/` must be named
   `update-<entity>-<frequency>.py` (e.g. `update-inventory-hourly.py`).
 - One concept per file. If a file's name needs "and" to describe it, split it.
 
@@ -83,7 +83,7 @@ this" files, log captures, half-finished experiments — go into:
 ```
 
 Rules:
-- NEVER create temporary files in `frontend/`, `backend/`, `scripts/`,
+- NEVER create temporary files in `frontend/`, `backend/`, `backend/`,
   `database/`, or the project root. If a file is needed only to test/debug
   something during the current session, it goes in `.scratch/<today's date>/`.
 - `.scratch/` is in `.gitignore` — nothing inside it is ever committed.
@@ -105,7 +105,7 @@ Treat every database-related action with high caution:
 - **Never** hardcode keys/URLs in source files, scripts, notebooks, or
   committed config — including inside `.scratch/`. If a key appears in a
   file destined for `.scratch/` or any output, redact it before writing.
-- **Service role key usage**: only Python scripts in `scripts/data-updates/`
+- **Service role key usage**: only Python scripts in `backend/data-updates/`
   that run server-side/locally should use the service role key. Frontend and
   any client-exposed code must use only the anon/public key, and must rely on
   Row Level Security (RLS).

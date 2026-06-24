@@ -6,4 +6,4 @@ Write-Host "  Invest Ranking - Servidor Local" -ForegroundColor Yellow
 Write-Host "  Acesse: http://localhost:$port" -ForegroundColor Green
 Write-Host "  Ctrl+C para parar" -ForegroundColor Gray
 Write-Host "========================================" -ForegroundColor Cyan
-& "$dir\scripts\.venv\Scripts\python.exe" -m http.server $port --directory "$frontend"
+& "$dir\backend\.venv\Scripts\python.exe" -m http.server $port --directory "$frontend"

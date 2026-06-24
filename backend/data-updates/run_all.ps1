@@ -12,7 +12,7 @@ $logFile = "$PSScriptRoot\log.txt"
 if (-not (Test-Path $logFile)) {
   "data_hora | b3_aovivo | fnet_dados | youtube | cvm_fii | cvm_fiagro | cvm_cadastral | status_acoes | status_dividendos | b3_cotahist" | Set-Content $logFile
 }
-$py = "$projectRoot\scripts\.venv\Scripts\python.exe"
+$py = "$projectRoot\backend\.venv\Scripts\python.exe"
 $apiKey = $env:SUPABASE_SERVICE_KEY
 $supabaseUrl = $env:SUPABASE_URL
 $parentProc = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId

@@ -8,7 +8,7 @@
   "mcp": {
     "supabase": {
       "type": "local",
-      "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", "./scripts/mcp-supabase.ps1"],
+      "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", "./backend/mcp-supabase.ps1"],
 
       "enabled": true
     }

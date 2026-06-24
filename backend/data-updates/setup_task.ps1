@@ -9,7 +9,7 @@ schtasks /delete /tn "\InvestRanking-Update" /f 2>$null
 
 # Cria nova tarefa com repeticao a cada 30min
 schtasks /create /tn "\InvestRanking-Update" `
-  /tr "powershell.exe -ExecutionPolicy Bypass -File 'C:\Users\adria\OneDrive\Projetos\Invest Ranking\scripts\data-updates\run_all.ps1'" `
+  /tr "powershell.exe -ExecutionPolicy Bypass -File 'C:\Users\adria\OneDrive\Projetos\Invest Ranking\backend\data-updates\run_all.ps1'" `
   /sc ONLOGON `
   /ru "DESKTOP-3AR4LBD\adria" `
   /rl HIGHEST `
