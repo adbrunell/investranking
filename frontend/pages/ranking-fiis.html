@@ -355,11 +355,29 @@ function togglePanel(){
   document.getElementById(id).onchange=function(){render()}
 })
 
+function getTodayBR(){
+  let now=new Date()
+  let br=new Date(now.toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}))
+  return br.toISOString().slice(0,10)
+}
+async function getLiveDate(){
+  let r=await fetch(REST+'/b3_cotacoes_aovivo?select=data_referencia&order=data_referencia.desc&limit=1',{headers:H})
+  if(!r.ok)return null
+  let d=await r.json()
+  return d&&d.length>0?d[0].data_referencia:null
+}
 async function load(){
   try{
+    let liveDate=await getLiveDate()
+    let todayTickers=null
+    if(liveDate===getTodayBR()){
+      let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento&data_referencia=eq.'+liveDate+'&limit=1000',{headers:H})
+      if(r.ok){let d=await r.json();todayTickers=new Set((d||[]).map(x=>x.codigo_instrumento))}
+    }
     let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes,historico_dividendos,maturidade_lci&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
+    if(todayTickers)allData=allData.filter(d=>todayTickers.has(d.ticker))
     allData=allData.filter(d=>d.dividend_yield_12m==null||d.dividend_yield_12m<=1)
     populateDatalist()
     initSliders()
