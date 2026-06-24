@@ -45,7 +45,8 @@
 
 | Group | Scripts | When |
 |---|---|---|
-| Always | `b3_cotacoes_aovivo`, `fnet_dados`, `youtube_videos`, `gdrive_cotahist` | Every run |
+| Always | `b3_cotacoes_aovivo`, `fnet_dados` | Every run (10min via Task Scheduler) |
+| 1h interval | `youtube_videos`, `gdrive_cotahist` | Skip if <1h since last |
 | 2h interval | `cvm_fii_mensal`, `cvm_fiagro_mensal`, `cvm_cadastral`, `statusinvest_acoes`, `statusinvest_dividendos` | Skip if <2h since last |
 
 - `fnet_dados` always calls `fnet_rendimentos` at the end (inline import in the same process)

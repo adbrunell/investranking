@@ -2,6 +2,14 @@
 import os, sys, io, zipfile
 from datetime import datetime, date
 
+_env_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as f:
+        for line in f:
+            if "=" in line and not line.startswith("#"):
+                k, v = line.strip().split("=", 1)
+                os.environ.setdefault(k, v)
+
 import httpx
 from google.oauth2 import service_account
 from googleapiclient.discovery import build

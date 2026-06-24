@@ -84,15 +84,29 @@ $runStarted = (Get-Date).ToUniversalTime()
 
 $sempre = @(
   @{Name="B3_AOVIVO"; File="atualizar_b3_cotacoes_aovivo.py"},
-  @{Name="FNET_DADOS"; File="atualizar_fnet_dados.py"},
-  @{Name="YOUTUBE"; File="atualizar_youtube_videos.py"},
-  @{Name="B3_COTAHIST"; File="gdrive_cotahist.py"}
+  @{Name="FNET_DADOS"; File="atualizar_fnet_dados.py"}
 )
 foreach ($s in $sempre) {
   $st = run-script $s.Name $s.File
   $statuses[$s.Name] = $st
   if ($st -like "ERRO*") { $globalExitCode = 1 }
   $state[$s.Name] = $now.ToString("o")
+}
+
+$horario = @(
+  @{Name="YOUTUBE"; File="atualizar_youtube_videos.py"},
+  @{Name="B3_COTAHIST"; File="gdrive_cotahist.py"}
+)
+foreach ($s in $horario) {
+  if (should-run $s.Name 1) {
+    $st = run-script $s.Name $s.File
+    $statuses[$s.Name] = $st
+    if ($st -like "ERRO*") { $globalExitCode = 1 }
+    $state[$s.Name] = $now.ToString("o")
+  } else {
+    $statuses[$s.Name] = "SKIP"
+    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] $($s.Name) - pulado (<1h)" -ForegroundColor Gray
+  }
 }
 
 $cvm = @(
@@ -128,8 +142,8 @@ foreach ($s in $status) {
   } else {
     $statuses[$s.Name] = "SKIP"
     Write-Host "[$(Get-Date -Format 'HH:mm:ss')] $($s.Name) - pulado (<2h)" -ForegroundColor Gray
+  }
 }
-
 
 $parts = foreach ($k in $scriptOrder) { $statuses[$k] }
 $logLine = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | $($parts -join ' | ')"
