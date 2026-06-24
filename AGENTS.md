@@ -1,101 +1,77 @@
 # Invest Ranking
 
 ## Tech Stack
-- **DB**: Supabase (PostgreSQL) — `oaqmnaekrpukwmrxjtud`
-- **Frontend**: Vanilla HTML/CSS/JS (no build tools)
+- **DB**: Supabase (PostgreSQL) — project `oaqmnaekrpukwmrxjtud`
+- **Frontend**: Vanilla HTML/CSS/JS (no build tools, no framework)
 - **ETL**: Python scripts in `scripts/data-updates/`
-- **Charts**: Canvas 2D API (Scanner page), D3.js v7 CDN (treemap on cotacoes page)
-- **Auth**: Custom `ir_auth` key in localStorage (bypasses Supabase client's internal storage)
+- **Charts**: Canvas 2D API (Scanner/fii page), D3.js v7 CDN (treemap on ranking page)
+- **Auth**: Custom `ir_auth` key in localStorage — bypasses Supabase client's isolated storage
 
-## Critical Setup
-- **Serve**: `.\servidor.ps1` → http://localhost:8080 (Python http.server on `frontend/`). NEVER open `frontend/index.html` via `file://`
-- **Prod domain**: `https://www.investranking.com.br` (Vercel auto-deploy from GitHub `main`)
-- **Python**: `scripts/.venv/Scripts/python.exe` — use directly; system Python won't have deps
-- **`.env.example`** lists all 5 required vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`
-- **`.env` at project root** — loaded by `run_all.ps1` (`Get-Content` split on `=`) and by ETL scripts (manual `open().read().split("=")`)
-- **No test/lint/build framework** exists — `opencode.json` commands are generic templates only
-- **`vercel.json`** at repo root rewrites `/` → `pages/inicio.html`, `/?p=*` → `app.html` (shell), and serves static files from `frontend/`
+## Serve & Deploy
+- **Dev**: `.\servidor.ps1` → http://localhost:8080 (Python http.server on `frontend/`). NEVER use `file://`
+- **Prod**: Vercel auto-deploy from `main`. Vercel project rootDirectory = `frontend/` (set in dashboard, not in repo). `vercel.json` rewrites all routes to `/index.html`
+- **Python ETL**: `scripts/.venv/Scripts/python.exe` — system Python lacks deps
 
-## Routing & Pages
-- `frontend/index.html` (shell) has sidebar + iframe. All pages render inside the iframe
-- `pages/inicio.html` is the landing page / dashboard (served at root URL)
-- `pages/ranking-fiis.html` — ranking table with sliders, maturidade LCI, dividend bar chart
-- `pages/ranking.html` — cotacoes page with list view + D3.js treemap toggle (.mode-treemap)
-- `pages/meus-ativos.html` / `pages/minha-conta.html` / `pages/recuperar-senha.html` — auth-gated pages (redirect via `window.top.location.href='/?p=login'`)
-- Protected pages use `obterSessao()` which reads `ir_auth` from localStorage directly
-- Sidebar: collapsible on desktop (icon-only mode), opens via hamburger in brand area, overlay closes on outside click
-
-## Database — User Tables
-- `user_ativos` — user's asset portfolio (RLS: `auth.uid() = user_id`)
-- `user_profiles` — name, estado, cidade per user (RLS: `auth.uid() = user_id`)
-- `user_setup` — saved filter/weight preferences (RLS: `auth.uid() = user_id`)
-- `log_atualizacao` — VIEW on `"00.log_atualizacao"` (table name has dot, use view for REST API)
+## Routing
+- `frontend/index.html` is the shell: sidebar + iframe. `initFromQuery()` reads `?p=` param, calls `abrir()` to set iframe src. Title updates via `abrir()`
+- All pages at `frontend/pages/`. Accessed as `/pages/foo.html` via Vercel
+- Protected pages (`meus-ativos`, `minha-conta`): inline `obterSessao()` reads `ir_auth` from localStorage, redirects `window.top.location.href='/?p=login'` if missing
 
 ## Auth Flow
-- **Login**: `signIn()` in `supabase.js` calls Supabase SDK, then saves session under `ir_auth` key in localStorage
-- **Session check**: `getSession()` reads from `ir_auth`, NOT from Supabase client (avoids iframe storage isolation issues)
-- **CRUD operations**: `_api()` helper makes raw REST calls with token from `ir_auth` — bypasses Supabase JS client entirely. Used by all user data functions (`listarAtivos`, `upsertProfile`, `listarSetups`, etc.)
-- **Email confirmation**: disabled (`mailer_autoconfirm: true`). Users are active immediately on signup
-- **Password recovery**: `resetSenha()` sends email via Supabase, redirects to `pages/recuperar-senha.html`
-- **Email confirmation disabled** in Supabase Auth settings
+- **`signIn()`** in `frontend/js/supabase.js` calls Supabase SDK, saves session under `ir_auth` key
+- **`getSession()`** reads from `ir_auth` — NOT from Supabase client (avoids iframe storage isolation)
+- **CRUD**: `_api()` helper makes raw REST calls with token from `ir_auth` — bypasses Supabase JS client entirely. Used by `listarAtivos`, `upsertProfile`, `listarSetups`, etc.
+- Supabase JS client (`@supabase/supabase-js@2` loaded via CDN in index.html) used ONLY for: `signIn`, `signUp`, `signOut`, `resetPasswordForEmail`, `updateUser`
+- `updatePassword`: re-auths via RPC `login`, then calls Supabase `updateUser`
+- Email confirmation disabled (`mailer_autoconfirm: true`). Users active immediately on signup
+- Password recovery via `resetSenha()` → Supabase email → `pages/recuperar-senha.html`
+- `_api(path)` — path param is raw PostgREST path (e.g. `user_ativos?select=*&user_id=eq.${uid}`)
 
-## Supabase JS Client Usage
-- Used ONLY for: `signIn`, `signUp`, `signOut`, `resetPasswordForEmail`, `updateUser`
-- NOT used for data queries — those go through `_api()` or raw `fetch` with publishable key
-- The client in iframes has session isolation issues — always use `_api()` for CRUD from iframe pages
+## Database — User Tables (RLS: `auth.uid() = user_id`)
+- `user_ativos` — asset portfolio
+- `user_profiles` — name, estado, cidade
+- `user_setup` — saved filter/weight preferences
+- `"00.log_atualizacao"` — ETL run log (table name has a dot; `run_all.ps1` accesses as `00.log_atualizacao` directly)
+- `fn_deletar_conta()` — SECURITY DEFINER, deletes user + all data
+- All public data tables (CVM, B3, FNET) are **read-only for anon** — ETL uses service_role key (bypasses RLS)
+- `database/migrations/` — 22 timestamped SQL migration files (e.g. `20260613000001_create_fiagro_tables.sql`)
+- Views `00_Master` (columns: Ticker, Classe, CNPJ) and `vw_b3_tickers` exist in Supabase but have **no migration file** in repo — created manually in dashboard
 
-## ETL Orchestration
-`scripts/data-updates/run_all.ps1` is the **canonical runner**. Manages scheduling via `.run_state.json`:
+## ETL Orchestration — `scripts/data-updates/run_all.ps1`
+- Canonical runner. Manages scheduling via `.run_state.json`
+- Python: `scripts/.venv/Scripts/python.exe`
+- `.env` at project root — loaded by `run_all.ps1` (Get-Content split on `=`) and by ETL scripts (manual file read)
+- 5 required env vars in `.env.example`: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`
 
 | Group | Scripts | When |
 |---|---|---|
-| **Always** | `b3_cotacoes_aovivo`, `fnet_dados`, `youtube_videos` | Every run |
-| **2h interval** | `cvm_fii_mensal`, `cvm_fiagro_mensal`, `cvm_cadastral`, `statusinvest_acoes`, `statusinvest_dividendos` | Skip if <2h since last |
-| **24h interval** | `b3_cotahist` | Skip if <24h; also skipped from Task Scheduler (captcha) |
+| Always | `b3_cotacoes_aovivo`, `fnet_dados`, `youtube_videos`, `gdrive_cotahist` | Every run |
+| 2h interval | `cvm_fii_mensal`, `cvm_fiagro_mensal`, `cvm_cadastral`, `statusinvest_acoes`, `statusinvest_dividendos` | Skip if <2h since last |
 
-- `fnet_dados` always calls `fnet_rendimentos` at the end
+- `fnet_dados` always calls `fnet_rendimentos` at the end (inline import in the same process)
 - Post-run RPCs: `fn_atualizar_minigrafico`, `fn_refresh_ranking_fiis`, `fn_limpar_b3_historico`
-- `fnet_dados` now fetches only the first page per CNPJ (base is complete, just checking for new docs)
-- Task Scheduler runs every 30min; Playwright scripts (`b3_cotahist`, `statusinvest_acoes`) skipped when detected as Task Scheduler run (`$captchaScripts`)
+- Task Scheduler runs every 30min (`\InvestRanking-Update` trigger ONLOGON). Playwright scripts (`statusinvest_acoes`) skipped when detected as Task Scheduler run (captcha). `gdrive_cotahist` substituiu o captcha por Google Drive
+- `.run_state.json` prevents re-running CVM/StatusInvest scripts <2h — delete to force re-run
+- **CRITICAL**: `atualizar_fnet_dados.py` strips `tipo`, `rendimento`, `data_com`, `data_pagamento` before upsert — otherwise overwrites values from `fnet_rendimentos.py`
 
 ## PostgREST API Quirks
 - `like` uses `*` wildcard: `like.*Relat*rio*`
-- `limit` defaults to 1000 — paginate with `limit=N&offset=M` + `Prefer: count=exact`
+- `limit` defaults to 1000 — paginate with `limit=N&offset=M` + `Prefer: count=exact`. `apiAll()` in `app.js` handles this automatically
 - `tipo=neq.` means `tipo != ''`
-- Table names with dots (e.g. `00.log_atualizacao`) are interpreted as `schema.table` by PostgREST — use a VIEW without dot or quote with `%22name%22`
-- Client key `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR` is hardcoded in pages as `H`/`HEADERS`
+- Table names with dots (e.g. `"00.log_atualizacao"`) — use directly as path (`00.log_atualizacao`) which works despite PostgREST dot ambiguity
+- Client key `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR` hardcoded in multiple files as `HEADERS`/`apikey`
+- Intermittent 500 errors with `like` + `order` on `fnet_tudo`
 
-## Database Schema
-- `"Ranking_FIIs"` — materialized view refreshed post-ETL. Includes `historico_cotacoes` (price sparkline data) and `historico_dividendos` (last 12 dividend values), `maturidade_lci` (A|B|C classification)
-- `00_fundos_master` — curated FII list (manual Google Sheet). `00_Master` is a VIEW on it
+## Database Schema Tips
+- `"Ranking_FIIs"` — materialized view, refreshed post-ETL via `fn_refresh_ranking_fiis()`. Reads live prices from `b3_cotacoes_aovivo` (not a bridge table). Contains `historico_cotacoes` (sparkline, 1y of closes), `historico_dividendos` (last 12 dividends), `maturidade_lci` (`A|B|C` format from liquidity/cotistas/age)
+- `00_fundos_master` — curated FII list from manual Google Sheet (`atualizar_00_fundos_master.py` downloads CSV). `00_Master` is a VIEW (created outside migrations) joining this with `00_Master_cnpj`
 - `cvm_fii_*` tables have versioned rows — always `ORDER BY data_referencia DESC, versao DESC LIMIT 1`
 - CVM `percentual_*` fields are decimals (0–1), multiply by 100 for display
-- All user tables (`user_ativos`, `user_profiles`, `user_setup`) have RLS: `auth.uid() = user_id`
-- `fn_deletar_conta()` — SECURITY DEFINER function that deletes user + all associated data
+- CVM date columns: `data_referencia` for period reference, `data_informacao_numero_cotistas` for cotistas snapshot date
+- DY 12m in Ranking_FIIs comes from `status_dividendos` (last 12 entries per ticker), NOT from `fnet_tudo`
+- Requirements (`requirements.txt`): `supabase>=2.0.0`, `httpx>=0.27.0`, `playwright>=1.60.0`, `pytesseract>=0.3.13`, `pillow>=12.2.0`
 
-## RLS Security
-- All public data tables (CVM, B3, FNET, etc.) are **read-only for anon** — all permissive anon INSERT/UPDATE/DELETE policies have been removed. ETL uses service_role key which bypasses RLS entirely.
-- User tables have strict RLS: each user can only see/modify their own rows
-
-## SEO
-- `frontend/sitemap.xml` — lists 5 URLs with priority
-- `frontend/robots.txt` — allows all crawlers, points to sitemap
-- Each page has `<title>` and `<meta name="description">` with canonical URL
-- Dynamic title updates via `abrir()` function based on `?p=` parameter
-- Schema.org FAQPage markup on landing page
-- Content is loaded in iframes — Google indexes the landing page (`inicio.html`), not the iframed tools
-
-## ETL Pitfalls
-- **CRITICAL**: `atualizar_fnet_dados.py` strips `tipo`, `rendimento`, `data_com`, `data_pagamento` before upsert — otherwise overwrites values extracted by `fnet_rendimentos.py`
-- CVM date columns use `data_referencia` (NOT `data_informacao`)
-- Intermittent 500 errors with `like` + `order` on `fnet_tudo`
-- `.run_state.json` prevents re-running CVM/StatusInvest scripts more than once per 2h — delete to force re-run
-
-## Frontend Conventions
-- Font Awesome 6.5.0 CDN for icons (`https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css`)
-- Inter font from Google Fonts used on landing page
-- All pages are self-contained (inline CSS/JS) except `pages/fii.html` which loads `../js/app.js` + `../css/style.css`
-- Scanner: `pages/analise-fii.html` (default ticker `GARE11`)
-- Treemap on `pages/ranking.html` uses D3.js v7 CDN, toggled via `.mode-treemap` body class
-- Weight/filter values auto-save to localStorage key `rankingSetup` on every `render()` call
-- `await _supabase.auth.setSession()` used to restore session in iframe when needed
+## OpenCode Config
+- `opencode.json` at root — MCP Supabase enabled via `scripts/mcp-supabase.ps1` (loads `.env` then runs `@supabase/mcp-server-supabase`). `test`/`lint`/`build` commands are generic templates only — no actual test/lint/build framework exists
+- Skill `invest-ranking-analyst` at `.opencode/skills/invest-ranking-analyst/SKILL.md` — loaded for financial/data tasks. Contains deep domain guidance on FII metrics, CVM/B3/FNET data sources, and analyst reasoning patterns
+- `.opencode/rules/supabase.md` contradicts actual codebase (says "Use Supabase JS client for all DB ops" — real code uses `_api()` REST calls). Prefer `_api()` pattern from this file

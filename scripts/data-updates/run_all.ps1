@@ -18,7 +18,7 @@ $supabaseUrl = $env:SUPABASE_URL
 $parentProc = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
 $parentName = (Get-CimInstance Win32_Process -Filter "ProcessId=$parentProc").Name
 $isTaskScheduler = $parentName -match 'svchost|taskeng|explorer'
-$captchaScripts = @("STATUS_ACOES", "B3_COTAHIST")
+$captchaScripts = @("STATUS_ACOES")
 $scriptOrder = @("B3_AOVIVO","FNET_DADOS","YOUTUBE","CVM_FII","CVM_FIAGRO","CVM_CADASTRAL","STATUS_ACOES","STATUS_DIVIDENDOS","B3_COTAHIST")
 
 $state = @{}
@@ -85,7 +85,8 @@ $runStarted = (Get-Date).ToUniversalTime()
 $sempre = @(
   @{Name="B3_AOVIVO"; File="atualizar_b3_cotacoes_aovivo.py"},
   @{Name="FNET_DADOS"; File="atualizar_fnet_dados.py"},
-  @{Name="YOUTUBE"; File="atualizar_youtube_videos.py"}
+  @{Name="YOUTUBE"; File="atualizar_youtube_videos.py"},
+  @{Name="B3_COTAHIST"; File="gdrive_cotahist.py"}
 )
 foreach ($s in $sempre) {
   $st = run-script $s.Name $s.File
@@ -127,21 +128,8 @@ foreach ($s in $status) {
   } else {
     $statuses[$s.Name] = "SKIP"
     Write-Host "[$(Get-Date -Format 'HH:mm:ss')] $($s.Name) - pulado (<2h)" -ForegroundColor Gray
-  }
 }
 
-if ($isTaskScheduler -and $captchaScripts -contains "B3_COTAHIST") {
-  $statuses["B3_COTAHIST"] = "SKIP"
-  Write-Host "[$(Get-Date -Format 'HH:mm:ss')] B3_COTAHIST - pulado (requer captcha)" -ForegroundColor Gray
-} elseif (should-run "B3_COTAHIST" 24) {
-  $st = run-script "B3_COTAHIST" "atualizar_b3_cotahist.py"
-  $statuses["B3_COTAHIST"] = $st
-  if ($st -like "ERRO*") { $globalExitCode = 1 }
-  $state["B3_COTAHIST"] = $now.ToString("o")
-} else {
-  $statuses["B3_COTAHIST"] = "SKIP"
-  Write-Host "[$(Get-Date -Format 'HH:mm:ss')] B3_COTAHIST - pulado (<24h)" -ForegroundColor Gray
-}
 
 $parts = foreach ($k in $scriptOrder) { $statuses[$k] }
 $logLine = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | $($parts -join ' | ')"

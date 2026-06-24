@@ -5,6 +5,7 @@ build/
 .env
 .env.local
 *.key
+gdrive-key.json
 .DS_Store
 *.log
 coverage/
