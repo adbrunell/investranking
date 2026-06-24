@@ -147,7 +147,7 @@ function abrir(pagina, el){
   document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'))
   if (el) el.classList.add('active')
   closeMenu()
-  let src=pagina
+  let src=pagina==='inicio'?'landing-novo':pagina
   let cache='?v='+Date.now()
   // Protected pages: check auth before opening
   if(['minha-conta','meus-ativos'].includes(pagina)&&!_irAuth())
