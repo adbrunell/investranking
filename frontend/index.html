@@ -95,7 +95,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
   <div class="scroll">
     <div class="nav-label">Geral</div>
-    <a class="nav-item" href="pages/inicio.html" onclick="abrir('inicio',this);return false"><i class="fas fa-home icon"></i><span class="txt">Página Inicial</span></a>
+    <a class="nav-item" href="pages/landing-novo.html" onclick="abrir('landing-novo',this);return false"><i class="fas fa-home icon"></i><span class="txt">Página Inicial</span></a>
     <div class="nav-divider"></div>
     <div class="nav-label">Ferramentas</div>
     <a class="nav-item" href="pages/ranking-fiis.html" onclick="abrir('ranking-fiis',this);return false"><i class="fas fa-trophy icon"></i><span class="txt">Ranking FIIs</span></a>
@@ -119,7 +119,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="overlay" onclick="closeMenu()"></div>
 
 <main id="main">
-  <iframe id="contentFrame" src="pages/inicio.html"></iframe>
+  <iframe id="contentFrame" src="pages/landing-novo.html"></iframe>
 </main>
 
 <script>
@@ -154,14 +154,14 @@ function abrir(pagina, el){
   document.getElementById('contentFrame').src='pages/'+pagina+'.html'+cache
   history.replaceState(null, '', '?p=' + pagina)
   // Update page title dynamically
-  var titles={inicio:'',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar',inicio:'Página Inicial','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
+  var titles={'landing-novo':'Ranking de Fundos Imobiliários',ranking:'Cotações','radar-mais':'Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar',inicio:'Página Inicial','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
   document.title='Invest Ranking'+(titles[pagina]?' — '+titles[pagina]:'')
 }
 
 // --- Page restoration from query string ---
 function initFromQuery(){
   let params = new URLSearchParams(location.search)
-  let pagina = params.get('p') || 'inicio'
+  let pagina = params.get('p') || 'landing-novo'
   let el = document.querySelector(`.nav-item[href="pages/${pagina}.html"]`)
   abrir(pagina, el)
 }
