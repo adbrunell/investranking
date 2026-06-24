@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;min-width:0}
-:root{--bg:#111318;--card:#1a1d24;--card2:#1f232b;--border:#2a2e36;--text:#e2e5e9;--muted:#8a909a;--accent:#ffde59;--green:#2ec4b6;--red:#ee6363;--orange:#f5a623;--blue:#4285F4;--radius:12px}
+:root{--bg:#111318;--card:#1a1d24;--border:#2a2e36;--text:#e2e5e9;--muted:#8a909a;--accent:#ffde59;--green:#2ec4b6;--red:#ee6363}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 ::selection{background:var(--accent);color:#000}
 
@@ -30,44 +30,41 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .loading .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.container{max-width:800px;margin:0 auto;padding:0 16px 40px}
+.container{max-width:900px;margin:0 auto;padding:0 16px 40px}
 
-.date-group{margin-bottom:2px}
-.date-header{position:sticky;top:44px;z-index:50;background:var(--bg);padding:10px 0 6px;font-size:12px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);margin-bottom:6px}
-.date-header .date-badge{background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 10px;border-radius:10px;font-size:12px;color:var(--text);font-weight:600;margin-left:auto}
+.date-group{margin-bottom:4px}
+.date-header{position:sticky;top:44px;z-index:50;background:var(--bg);padding:10px 0 6px;font-size:13px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.date-header .day-label{color:var(--muted);font-weight:400;font-size:11px}
+.date-header .count{color:var(--muted);font-size:11px;margin-left:auto}
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:4px;display:flex;align-items:stretch;transition:border .2s;overflow:hidden}
-.card:hover{border-color:rgba(255,255,255,0.15)}
-.card-side{width:3px;flex-shrink:0}
-.card-side.ok{background:var(--green)}
-.card-side.erro{background:var(--red)}
-.card-side.skip{background:#555}
-.card-side.pend{background:var(--accent)}
-.card-body{flex:1;padding:10px 14px;min-width:0}
-.card-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.card-time{font-size:15px;font-weight:600;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
-.card-label{font-size:10px;color:var(--muted);white-space:nowrap}
-.card-label i{margin-right:3px}
-.card-dots{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.dot-group{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
-.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
+th{position:sticky;top:44px;z-index:49;background:var(--card);padding:6px 5px;text-align:center;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+th:first-child{text-align:left;padding-left:10px;min-width:65px;position:sticky;left:0;z-index:51;background:var(--card)}
+td{padding:5px 5px;text-align:center;border-bottom:1px solid rgba(42,46,54,.3);vertical-align:middle}
+td:first-child{text-align:left;padding-left:10px;font-size:12px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;position:sticky;left:0;z-index:1;background:var(--bg)}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr:hover td:first-child{background:var(--bg)}
+tr:last-child td{border-bottom:none}
+
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle}
 .dot.ok{background:var(--green)}
 .dot.erro{background:var(--red)}
 .dot.skip{background:#555}
 .dot.pend{background:var(--accent)}
-.dot-label{font-size:10px;color:var(--muted);white-space:nowrap}
+
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-state i{font-size:36px;opacity:.3;margin-bottom:10px}
 
 @media(max-width:640px){
 .topbar{height:auto;flex-wrap:wrap;padding:8px 14px 8px 48px;gap:6px}
 .topbar h1{font-size:16px}
-.container{padding:0 10px 30px}
-.card-body{padding:8px 10px}
-.card-time{font-size:14px}
-.card-dots{gap:6px}
+.container{padding:0 8px 30px}
+th{font-size:9px;padding:4px 2px}
+td{padding:4px 2px;font-size:11px}
+td:first-child{font-size:11px;min-width:55px}
 .dot{width:8px;height:8px}
-.dot-group{font-size:9px}
+.date-header{font-size:12px;padding:8px 0 4px}
 }
 </style>
 </head>
@@ -97,17 +94,15 @@ const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'
 
 const SCRIPTS=[
   {id:'b3_aovivo', label:'B3 Ao Vivo'},
-  {id:'b3_cotahist', label:'B3 Histórico'},
+  {id:'b3_cotahist', label:'B3 Hist.'},
   {id:'fnet_dados', label:'FNET'},
   {id:'youtube', label:'YouTube'},
   {id:'cvm_fii', label:'CVM FII'},
   {id:'cvm_fiagro', label:'CVM Fiagro'},
-  {id:'cvm_cadastral', label:'CVM Cadastral'},
+  {id:'cvm_cadastral', label:'CVM Cad.'},
   {id:'status_acoes', label:'St. Ações'},
-  {id:'status_dividendos', label:'St. Dividendos'},
+  {id:'status_dividendos', label:'St. Div.'},
 ]
-
-const DIAS={0:'Dom',1:'Seg',2:'Ter',3:'Qua',4:'Qui',5:'Sex',6:'Sáb'}
 
 function dotStatus(v){
   if(!v)return'pend'
@@ -118,49 +113,35 @@ function dotStatus(v){
   return'pend'
 }
 
-function overallStatus(row){
-  for(let s of SCRIPTS){let st=dotStatus(row[s.id]);if(st==='erro')return'erro'}
-  for(let s of SCRIPTS){let st=dotStatus(row[s.id]);if(st==='pend')return'pend'}
-  for(let s of SCRIPTS){let st=dotStatus(row[s.id]);if(st==='skip')return'skip'}
-  return'ok'
-}
-
 function fmtTime(s){
   if(!s)return'—'
   let d=new Date(s.includes('T')?s:s.replace(' ','T'))
-  return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
-}
-
-function fmtDate(s){
-  if(!s)return'—'
-  let p=s.slice(0,10).split('-')
-  return p[2]+'/'+p[1]
+  return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
 }
 
 function fmtFull(s){
   if(!s)return'—'
   let d=new Date(s.includes('T')?s:s.replace(' ','T'))
-  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
 }
 
 function dateKey(s){
   return s?s.slice(0,10):''
 }
 
-function hojeKey(){
-  return new Date().toISOString().slice(0,10)
-}
-
-function labelDia(key){
+function fmtDateBR(key){
   if(!key)return''
   let p=key.split('-')
   if(p.length<3)return key
+  return p[2]+'/'+p[1]+'/'+p[0]
+}
+
+function diaSemana(key){
+  let p=key.split('-')
+  if(p.length<3)return''
   let d=new Date(+p[0],+p[1]-1,+p[2])
-  let hoje=dateKey(new Date().toISOString())
-  let ontem=dateKey(new Date(Date.now()-86400000).toISOString())
-  if(key===hoje)return'Hoje'
-  if(key===ontem)return'Ontem'
-  return DIAS[d.getDay()]+' — '+p[2]+'/'+p[1]
+  let dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+  return dias[d.getDay()]
 }
 
 async function carregar(){
@@ -194,28 +175,25 @@ async function carregar(){
     }
 
     let keys=Object.keys(groups).sort().reverse()
-    let hoje=hojeKey()
     let feedHtml=''
 
     for(let ki=0;ki<keys.length;ki++){
       let k=keys[ki],items=groups[k]
       feedHtml+='<div class="date-group">'
-      feedHtml+='<div class="date-header">'+labelDia(k)+(k===hoje?' <span style="color:var(--accent);font-size:10px">· ao vivo</span>':'')+'<span class="date-badge">'+items.length+' execuções</span></div>'
+      feedHtml+='<div class="date-header">'+fmtDateBR(k)+' <span class="day-label">'+diaSemana(k)+'</span><span class="count">'+items.length+' execuções</span></div>'
+      feedHtml+='<div class="wrap"><table><thead><tr><th>Horário</th>'
+      for(let s of SCRIPTS)feedHtml+='<th title="'+s.label+'">'+s.label+'</th>'
+      feedHtml+='</tr></thead><tbody>'
       for(let r of items){
-        let ov=overallStatus(r)
         let t=r.finished_at||r.started_at||''
-        feedHtml+='<div class="card" title="'+fmtFull(t)+'">'
-        feedHtml+='<div class="card-side '+ov+'"></div>'
-        feedHtml+='<div class="card-body">'
-        feedHtml+='<div class="card-top"><span class="card-time">'+fmtTime(t)+'</span></div>'
-        feedHtml+='<div class="card-dots">'
+        feedHtml+='<tr><td title="'+fmtFull(t)+'">'+fmtTime(t)+'</td>'
         for(let s of SCRIPTS){
           let st=dotStatus(r[s.id])
-          feedHtml+='<span class="dot-group"><span class="dot '+st+'" title="'+s.label+': '+(r[s.id]||'pendente')+'"></span><span class="dot-label">'+s.label+'</span></span>'
+          feedHtml+='<td><span class="dot '+st+'" title="'+s.label+': '+(r[s.id]||'pendente')+'"></span></td>'
         }
-        feedHtml+='</div></div></div>'
+        feedHtml+='</tr>'
       }
-      feedHtml+='</div>'
+      feedHtml+='</tbody></table></div></div>'
     }
     document.getElementById('feed').innerHTML=feedHtml
   }catch(e){
