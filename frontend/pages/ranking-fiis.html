@@ -369,15 +369,29 @@ async function getLiveDate(){
 async function load(){
   try{
     let liveDate=await getLiveDate()
-    let todayTickers=null
+    let liveMap=null
     if(liveDate===getTodayBR()){
-      let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento&data_referencia=eq.'+liveDate+'&limit=1000',{headers:H})
-      if(r.ok){let d=await r.json();todayTickers=new Set((d||[]).map(x=>x.codigo_instrumento))}
+      let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,variacao&data_referencia=eq.'+liveDate+'&limit=1000',{headers:H})
+      if(r.ok){let d=await r.json();liveMap=new Map((d||[]).map(x=>[x.codigo_instrumento,{preco:x.preco_ultimo_negocio,variacao:x.variacao}]))}
     }
     let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes,historico_dividendos,maturidade_lci&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
-    if(todayTickers)allData=allData.filter(d=>todayTickers.has(d.ticker))
+    if(liveMap){
+      allData=allData.filter(d=>liveMap.has(d.ticker))
+      for(let d of allData){
+        let live=liveMap.get(d.ticker)
+        if(live&&live.preco!=null){
+          let old=d.cotacao
+          d.cotacao=live.preco
+          d.variacao=live.variacao
+          if(old&&old>0){
+            if(d.p_vp!=null)d.p_vp=d.p_vp*live.preco/old
+            if(d.dividend_yield_12m!=null)d.dividend_yield_12m=d.dividend_yield_12m*old/live.preco
+          }
+        }
+      }
+    }
     allData=allData.filter(d=>d.dividend_yield_12m==null||d.dividend_yield_12m<=1)
     populateDatalist()
     initSliders()
