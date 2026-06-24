@@ -4,7 +4,7 @@
 - **DB**: Supabase (PostgreSQL) — project `oaqmnaekrpukwmrxjtud`
 - **Frontend**: Vanilla HTML/CSS/JS (no build tools, no framework)
 - **ETL**: Python scripts in `scripts/data-updates/`
-- **Charts**: Canvas 2D API (Scanner/fii page), D3.js v7 CDN (treemap on ranking page)
+- **Charts**: Canvas 2D API (Scanner page), D3.js v7 CDN (treemap on ranking page)
 - **Auth**: Custom `ir_auth` key in localStorage — bypasses Supabase client's isolated storage
 
 ## Serve & Deploy
