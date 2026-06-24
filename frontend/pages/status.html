@@ -33,13 +33,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .container{max-width:900px;margin:0 auto;padding:0 16px 40px}
 
 .date-group{margin-bottom:4px}
-.date-header{position:sticky;top:44px;z-index:50;background:var(--bg);padding:10px 0 6px;font-size:13px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.date-header .day-label{color:var(--muted);font-weight:400;font-size:11px}
-.date-header .count{color:var(--muted);font-size:11px;margin-left:auto}
 
 .wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--card)}
 table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
-th{position:sticky;top:44px;z-index:49;background:var(--card);padding:6px 5px;text-align:center;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+.date-row th{position:sticky;top:44px;z-index:49;background:var(--bg);padding:8px 5px;text-align:left;font-size:13px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border)}
+.date-row .day-label{color:var(--muted);font-weight:400;font-size:11px}
+.date-row .count{font-weight:400;font-size:11px;color:var(--muted);float:right}
+th{position:sticky;top:71px;z-index:48;background:var(--card);padding:6px 5px;text-align:center;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.3px}
 th:first-child{text-align:left;padding-left:10px;min-width:65px;position:sticky;left:0;z-index:51;background:var(--card)}
 td{padding:5px 5px;text-align:center;border-bottom:1px solid rgba(42,46,54,.3);vertical-align:middle}
 td:first-child{text-align:left;padding-left:10px;font-size:12px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;position:sticky;left:0;z-index:1;background:var(--bg)}
@@ -180,8 +180,9 @@ async function carregar(){
     for(let ki=0;ki<keys.length;ki++){
       let k=keys[ki],items=groups[k]
       feedHtml+='<div class="date-group">'
-      feedHtml+='<div class="date-header">'+fmtDateBR(k)+' <span class="day-label">'+diaSemana(k)+'</span><span class="count">'+items.length+' execuções</span></div>'
-      feedHtml+='<div class="wrap"><table><thead><tr><th>Horário</th>'
+      feedHtml+='<div class="wrap"><table><thead>'
+      feedHtml+='<tr class="date-row"><th colspan="'+(SCRIPTS.length+1)+'">'+fmtDateBR(k)+' <span class="day-label">'+diaSemana(k)+'</span><span class="count">'+items.length+' execuções</span></th></tr>'
+      feedHtml+='<tr><th>Horário</th>'
       for(let s of SCRIPTS)feedHtml+='<th title="'+s.label+'">'+s.label+'</th>'
       feedHtml+='</tr></thead><tbody>'
       for(let r of items){
