@@ -233,29 +233,48 @@ async function api(url){
   if(!r.ok)throw new Error(r.status)
   return r.json()
 }
+function getTodayBR(){
+  let now=new Date()
+  let br=new Date(now.toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}))
+  return br.toISOString().slice(0,10)
+}
+async function getLatestDate(){
+  let r=await fetch(REST+'/b3_cotacoes_aovivo?select=data_referencia&order=data_referencia.desc&limit=1',{headers:H})
+  if(!r.ok)return null
+  let d=await r.json()
+  return d&&d.length>0?d[0].data_referencia:null
+}
+async function fetchQuotes(dateFilter){
+  let url=REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia,horario_ultima_transacao&tipo=not.is.null&order=data_referencia.desc&limit=1000'
+  if(dateFilter)url+='&data_referencia=eq.'+dateFilter
+  let quotes=await api(url)
+  let items=[]
+  for(let r of quotes||[]){
+    let tick=r.codigo_instrumento
+    if(!tick)continue
+    let tipo=r.tipo||''
+    let varia=r.variacao!=null?parseFloat(r.variacao):null
+    if(varia==null||isNaN(varia))continue
+    items.push({
+      ticker:tick,
+      preco:r.preco_ultimo_negocio!=null?parseFloat(r.preco_ultimo_negocio):null,
+      variacao:varia,
+      volume:r.volume_total!=null?parseFloat(r.volume_total):0,
+      fechamento:r.fechamento_anterior!=null?parseFloat(r.fechamento_anterior):null,
+      tipo:tipo,
+      data:r.data_referencia,
+      hora:r.horario_ultima_transacao||''
+    })
+  }
+  return items
+}
 async function load(){
   document.getElementById('loading').style.display='flex'
   document.getElementById('feed').innerHTML=''
   try{
-    let quotes=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia,horario_ultima_transacao&tipo=not.is.null&order=data_referencia.desc&limit=1000')
-    allItems=[]
-    for(let r of quotes||[]){
-      let tick=r.codigo_instrumento
-      if(!tick)continue
-      let tipo=r.tipo||''
-      varia=r.variacao!=null?parseFloat(r.variacao):null
-      if(varia==null||isNaN(varia))continue
-      allItems.push({
-        ticker:tick,
-        preco:r.preco_ultimo_negocio!=null?parseFloat(r.preco_ultimo_negocio):null,
-        variacao:varia,
-        volume:r.volume_total!=null?parseFloat(r.volume_total):0,
-        fechamento:r.fechamento_anterior!=null?parseFloat(r.fechamento_anterior):null,
-        tipo:tipo,
-        data:r.data_referencia,
-        hora:r.horario_ultima_transacao||''
-      })
-    }
+    let latestDate=await getLatestDate()
+    let dateFilter=latestDate===getTodayBR()?latestDate:(latestDate||'')
+    allItems=await fetchQuotes(dateFilter)
     document.getElementById('loading').style.display='none'
     render()
     updateMarketStatus()
@@ -267,25 +286,9 @@ async function load(){
 }
 async function refresh(){
   try{
-    let quotes=await api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,volume_total,fechamento_anterior,variacao,tipo,atualizado_em,data_referencia,horario_ultima_transacao&tipo=not.is.null&order=data_referencia.desc&limit=1000')
-    allItems=[]
-    for(let r of quotes||[]){
-      let tick=r.codigo_instrumento
-      if(!tick)continue
-      let tipo=r.tipo||''
-      varia=r.variacao!=null?parseFloat(r.variacao):null
-      if(varia==null||isNaN(varia))continue
-      allItems.push({
-        ticker:tick,
-        preco:r.preco_ultimo_negocio!=null?parseFloat(r.preco_ultimo_negocio):null,
-        variacao:varia,
-        volume:r.volume_total!=null?parseFloat(r.volume_total):0,
-        fechamento:r.fechamento_anterior!=null?parseFloat(r.fechamento_anterior):null,
-        tipo:tipo,
-        data:r.data_referencia,
-        hora:r.horario_ultima_transacao||''
-      })
-    }
+    let latestDate=await getLatestDate()
+    let dateFilter=latestDate===getTodayBR()?latestDate:(latestDate||'')
+    allItems=await fetchQuotes(dateFilter)
     render(true)
   }catch(e){/*silent*/}
 }
