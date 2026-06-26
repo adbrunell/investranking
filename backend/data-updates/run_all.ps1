@@ -18,7 +18,7 @@ $supabaseUrl = $env:SUPABASE_URL
 $parentProc = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
 $parentName = (Get-CimInstance Win32_Process -Filter "ProcessId=$parentProc").Name
 $isTaskScheduler = $parentName -match 'svchost|taskeng|explorer'
-$captchaScripts = @("STATUS_ACOES")
+$captchaScripts = @()
 $scriptOrder = @("B3_AOVIVO","FNET_DADOS","YOUTUBE","CVM_FII","CVM_FIAGRO","CVM_CADASTRAL","STATUS_ACOES","STATUS_DIVIDENDOS","B3_COTAHIST")
 
 $state = @{}

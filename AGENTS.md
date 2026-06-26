@@ -25,7 +25,8 @@
 - `updatePassword`: re-auths via RPC `login`, then calls Supabase `updateUser`
 - Email confirmation disabled (`mailer_autoconfirm: true`). Users active immediately on signup
 - Password recovery via `resetSenha()` → Supabase email → `pages/recuperar-senha.html`
-- `_api(path)` — path param is raw PostgREST path (e.g. `user_ativos?select=*&user_id=eq.${uid}`)
+- `_api(path)` — path is raw PostgREST path, appended to `SUPABASE_URL/rest/v1/` (e.g. `_api('user_ativos?select=*&user_id=eq.${uid}')`)
+- `SUPABASE_ANON_KEY` is `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR` — hardcoded as `HEADERS`/`apikey` in multiple files
 
 ## Database — User Tables (RLS: `auth.uid() = user_id`)
 - `user_ativos` — asset portfolio
@@ -51,16 +52,15 @@
 
 - `fnet_dados` always calls `fnet_rendimentos` at the end (inline import in the same process)
 - Post-run RPCs: `fn_atualizar_minigrafico`, `fn_refresh_ranking_fiis`, `fn_limpar_b3_historico`
-- Task Scheduler runs every 30min (`\InvestRanking-Update` trigger ONLOGON). Playwright scripts (`statusinvest_acoes`) skipped when detected as Task Scheduler run (captcha). `gdrive_cotahist` substituiu o captcha por Google Drive
+- Task Scheduler runs every 30min (`\InvestRanking-Update` trigger ONLOGON). `gdrive_cotahist` substituiu o captcha por Google Drive
 - `.run_state.json` prevents re-running CVM/StatusInvest scripts <2h — delete to force re-run
 - **CRITICAL**: `atualizar_fnet_dados.py` strips `tipo`, `rendimento`, `data_com`, `data_pagamento` before upsert — otherwise overwrites values from `fnet_rendimentos.py`
 
 ## PostgREST API Quirks
 - `like` uses `*` wildcard: `like.*Relat*rio*`
-- `limit` defaults to 1000 — paginate with `limit=N&offset=M` + `Prefer: count=exact`. `apiAll()` in `app.js` handles this automatically
+- `limit` defaults to 1000 — paginate with `limit=N&offset=M` + `Prefer: count=exact`. `apiAll()` (defined per-page in `pages/analise-fii.html`) and `apiAllRadar()` (in `pages/radar-mais.html`) handle this automatically
 - `tipo=neq.` means `tipo != ''`
 - Table names with dots (e.g. `"00.log_atualizacao"`) — use directly as path (`00.log_atualizacao`) which works despite PostgREST dot ambiguity
-- Client key `sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR` hardcoded in multiple files as `HEADERS`/`apikey`
 - Intermittent 500 errors with `like` + `order` on `fnet_tudo`
 
 ## Database Schema Tips
@@ -70,9 +70,9 @@
 - CVM `percentual_*` fields are decimals (0–1), multiply by 100 for display
 - CVM date columns: `data_referencia` for period reference, `data_informacao_numero_cotistas` for cotistas snapshot date
 - DY 12m in Ranking_FIIs comes from `status_dividendos` (last 12 entries per ticker), NOT from `fnet_tudo`
-- Requirements (`requirements.txt`): `supabase>=2.0.0`, `httpx>=0.27.0`, `playwright>=1.60.0`, `pytesseract>=0.3.13`, `pillow>=12.2.0`
+- Requirements (`requirements.txt`): `supabase>=2.0.0`, `httpx>=0.27.0`, `playwright>=1.60.0`, `pytesseract>=0.3.13`, `pillow>=12.2.0`, `google-api-python-client>=2.0.0`, `google-auth-httplib2>=0.1.0`, `google-auth-oauthlib>=1.0.0`
 
 ## OpenCode Config
 - `opencode.json` at root — MCP Supabase enabled via `backend/mcp-supabase.ps1` (loads `.env` then runs `@supabase/mcp-server-supabase`). `test`/`lint`/`build` commands are generic templates only — no actual test/lint/build framework exists
 - Skill `invest-ranking-analyst` at `.opencode/skills/invest-ranking-analyst/SKILL.md` — loaded for financial/data tasks. Contains deep domain guidance on FII metrics, CVM/B3/FNET data sources, and analyst reasoning patterns
-- `.opencode/rules/supabase.md` contradicts actual codebase (says "Use Supabase JS client for all DB ops" — real code uses `_api()` REST calls). Prefer `_api()` pattern from this file
+- `.opencode/rules/supabase.md` says "Use Supabase JS client for all DB ops" — wrong. Real code uses `_api()` REST calls. Ignore that rule.
