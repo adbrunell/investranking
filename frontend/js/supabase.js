@@ -51,10 +51,13 @@ function _getAuth(){
     if(!d)return null
     const p=JSON.parse(d)
     if(!p.access_token)return null
-    if(p.expires_at&&p.expires_at*1000<Date.now()){_limparAuth();return null}
     return p
   }catch(e){}
   return null
+}
+
+function _tokenExpirado(a){
+  return a.expires_at&&a.expires_at*1000<Date.now()
 }
 
 function _userId(){
@@ -72,9 +75,18 @@ function _userId(){
   return null
 }
 
-function _api(path,opts){
-  const a=_getAuth()
+async function _api(path,opts){
+  let a=_getAuth()
   if(!a)return Promise.reject(new Error('Não autenticado'))
+  if(_tokenExpirado(a)){
+    try{
+      if(_supabase){
+        const r=await _supabase.auth.setSession({access_token:a.access_token,refresh_token:a.refresh_token})
+        if(r?.data?.session){_salvarAuth({session:r.data.session});a=_getAuth()}
+      }
+    }catch(e){}
+    if(!a||_tokenExpirado(a)){_limparAuth();return Promise.reject(new Error('Sessão expirada'))}
+  }
   return fetch(SUPABASE_URL+'/rest/v1/'+path,{...opts,headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+a.access_token,...opts?.headers}})
 }
 
