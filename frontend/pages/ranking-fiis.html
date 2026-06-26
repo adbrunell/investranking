@@ -299,7 +299,7 @@ td.price-down{background:rgb(255,0,0);border-radius:6px}
         <th>DY<br>12m</th>
         <th>Histórico<br>1A</th>
         <th>Atratividade</th>
-        <th>Cotação</th>
+        <th id="thCotacao">Cotação</th>
         <th>Dividendos<br>12m</th>
         <th>Último<br>Dividendo</th>
         <th>Nota</th>
@@ -315,7 +315,7 @@ td.price-down{background:rgb(255,0,0);border-radius:6px}
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allData=[],searchTerm='',userTickers=[]
+let allData=[],searchTerm='',userTickers=[],liveDate=null
 let activeTipos={}
 document.querySelectorAll('.filter-chip[data-tipo]').forEach(el=>{activeTipos[el.dataset.tipo]=el.classList.contains('active')})
 
@@ -368,7 +368,7 @@ async function getLiveDate(){
 }
 async function load(){
   try{
-    let liveDate=await getLiveDate()
+    liveDate=await getLiveDate()
     let liveMap=null
     if(liveDate===getTodayBR()){
       let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,variacao&data_referencia=eq.'+liveDate+'&limit=1000',{headers:H})
@@ -434,6 +434,14 @@ async function load(){
     document.getElementById('loading').style.display='none'
     document.getElementById('tblWrap').style.display='block'
     render()
+    if(liveDate){
+      let p=liveDate.split('-')
+      let d=new Date(p[0],p[1]-1,p[2])
+      let label=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+      let agora=new Date()
+      let h=agora.toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'})
+      document.getElementById('thCotacao').innerHTML='Cotação<br><span style="font-weight:400;font-size:9px">'+label+' '+h+'</span>'
+    }
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.4;margin-bottom:8px"></i><br>Erro: '+e.message
   }
@@ -570,7 +578,7 @@ function render(){
     let it=items[i],pos=i+1
     html+='<tr style="animation-delay:'+(i*0.012)+'s">'
     html+='<td>'+pos+'</td>'
-    html+='<td>'+(it.ticker||'')+'</td>'
+    html+='<td><div>'+(it.ticker||'')+'</div><div style="font-size:9px;color:var(--muted);font-weight:400">'+(it.segmento||'')+'</div></td>'
     if(it.maturidade_lci){
       let ps=it.maturidade_lci.split('|'),sc=0
       for(let k=0;k<3;k++){if(ps[k]==='A')sc+=2;else if(ps[k]==='B')sc+=1}
