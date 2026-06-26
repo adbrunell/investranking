@@ -71,8 +71,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .tipo-FIP-IE{background:rgba(200,130,255,.15);color:#c882ff}
 .cot-val{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2;color:var(--text)}
 .cot-var{font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;display:block}
-.cot-var.up{color:var(--green)}
-.cot-var.down{color:var(--red)}
+td.price-up{background:rgba(106,168,79,0.2);border-radius:6px}
+td.price-down{background:rgba(255,0,0,0.2);border-radius:6px}
 .atr-bar{width:100%;height:20px;background:rgba(255,255,255,0.06);overflow:hidden}
 .atr-fill{height:100%;transition:width .6s;background:var(--text)}
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
@@ -600,7 +600,7 @@ function render(){
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
     html+='<td><div class="atr-bar"><div class="atr-fill" style="width:'+((atratividade!=null?Math.round(atratividade*100):0))+'%;background:var(--text)"></div></div></td>'
-    html+='<td><span class="cot-val">'+(it.cotacao!=null?'R$ '+fmtNum(it.cotacao):'—')+'</span><span class="cot-var '+(it.variacao>=0?'up':'down')+'">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></td>'
+    html+='<td class="'+(it.variacao!=null?(it.variacao>=0?'price-up':'price-down'):'')+'"><span class="cot-val">'+(it.cotacao!=null?'R$ '+fmtNum(it.cotacao):'—')+'</span><span class="cot-var">'+(it.variacao!=null?(it.variacao>=0?'+':'')+fmtNum(it.variacao)+'%':'—')+'</span></td>'
     let divs=it.historico_dividendos;if(typeof divs==='string')try{divs=JSON.parse(divs)}catch(e){divs=null};if(!Array.isArray(divs))divs=null
     if(divs&&divs.length>1){
       let n=divs.length,h=24,w=80,bw=Math.max(2,Math.floor((w-4)/n)),mx=divs[0]
