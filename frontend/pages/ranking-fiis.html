@@ -784,7 +784,7 @@ function initSliders(){
   ;['liq','pvp','dy','alav'].forEach(m=>{
     let rd=rangeData[m],minEl=document.querySelector('.ps-min[data-m="'+m+'"]'),maxEl=document.querySelector('.ps-max[data-m="'+m+'"]')
     if(!minEl||!maxEl)return
-    let step=m==='liq'?Math.max(1,Math.ceil((rd.max-rd.min)/500)):m==='pvp'?0.01:m==='alav'?0.1:0.001
+    let step=m==='liq'?Math.max(1,Math.ceil((rd.max-rd.min)/500)):m==='pvp'?0.01:m==='alav'?Math.max(0.001,(rd.max-rd.min)/500):0.001
     minEl.min=rd.min;minEl.max=rd.max;minEl.step=step;minEl.value=rd.min
     maxEl.min=rd.min;maxEl.max=rd.max;maxEl.step=step;maxEl.value=rd.max
   })
