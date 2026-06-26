@@ -626,7 +626,7 @@ function render(){
       let ps=it.maturidade_lci.split('|'),sc=0
       for(let k=0;k<3;k++){if(ps[k]==='A')sc+=2;else if(ps[k]==='B')sc+=1}
       let cor=sc>=5?'rgb(106,168,79)':sc>=3?'#ffde59':'rgb(255,0,0)'
-      html+='<td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+cor+';vertical-align:middle;margin-right:4px"></span><span style="font-size:13px;font-weight:600;letter-spacing:1px">'+it.maturidade_lci+'</span></td>'
+      html+='<td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+cor+';vertical-align:middle;margin-right:4px;flex-shrink:0"></span><span style="font-size:13px;font-weight:600;letter-spacing:1px;vertical-align:middle">'+it.maturidade_lci+'</span></td>'
     }else{
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
