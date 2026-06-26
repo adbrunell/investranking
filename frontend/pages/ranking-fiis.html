@@ -804,6 +804,35 @@ function syncSliFromPanel(){
 }
 
 load()
+setInterval(async ()=>{
+  let ld=await getLiveDate()
+  if(!ld||ld.data!==getTodayBR())return
+  let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,variacao&data_referencia=eq.'+ld.data+'&limit=1000',{headers:H})
+  if(!r.ok)return
+  let d=await r.json()
+  let m=new Map((d||[]).map(x=>[x.codigo_instrumento,{preco:x.preco_ultimo_negocio,variacao:x.variacao}]))
+  let mudou=false
+  for(let item of allData){
+    let l=m.get(item.ticker)
+    if(l&&l.preco!=null&&l.preco!==item.cotacao){
+      let old=item.cotacao
+      item.cotacao=l.preco
+      item.variacao=l.variacao
+      if(old&&old>0){
+        if(item.p_vp!=null)item.p_vp=item.p_vp*l.preco/old
+        if(item.dividend_yield_12m!=null)item.dividend_yield_12m=item.dividend_yield_12m*old/l.preco
+      }
+      mudou=true
+    }
+  }
+  if(ld.atualizado_em){
+    let dt=new Date(ld.atualizado_em)
+    let data=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+    let hora=dt.toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'})
+    document.getElementById('thCotacao').innerHTML='Cotação<br><span style="font-weight:400;font-size:9px">'+data+' '+hora+'</span>'
+  }
+  if(mudou)render()
+},60000)
 </script>
 </body>
 </html>
