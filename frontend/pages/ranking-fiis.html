@@ -248,11 +248,27 @@ td.price-down{background:rgb(255,0,0);border-radius:6px}
         <div class="pf-cell"><label class="pf-label">Peso</label><select id="wDy" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
       </div>
     </div>
+    <div class="pgroup"><div class="pgroup-title">Alavancagem</div>
+      <div class="ps-row">
+        <div class="ps-track-wrap">
+          <div class="ps-track">
+            <div class="ps-fill" id="ps-fill-alav"></div>
+            <input type="range" class="ps-min" data-m="alav" min="0" max="100" value="0">
+            <input type="range" class="ps-max" data-m="alav" min="0" max="100" value="100">
+          </div>
+        </div>
+      </div>
+      <div class="pf-row">
+        <div class="pf-cell"><label class="pf-label">Mín %</label><input type="number" id="alavMin" placeholder="0" oninput="syncSliFromPanel();render()" step="0.1"></div>
+        <div class="pf-cell"><label class="pf-label">Máx %</label><input type="number" id="alavMax" placeholder="—" oninput="syncSliFromPanel();render()" step="0.1"></div>
+        <div class="pf-cell"><label class="pf-label">Peso</label><select id="wAlav" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
+      </div>
+    </div>
     <div class="pgroup"><div class="pgroup-title">Atratividade</div>
       <div class="prow"><label>Peso</label><select id="wAtr" onchange="render()" class="wsel"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
     </div>
   </div>
-  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5',wAtr:'5'})" style="font-size:10px">Limpar</button><span id="panelSaveArea" style="margin-left:auto;font-size:10px;color:var(--muted)">⋯</span></div>
+  <div class="panel-footer"><button class="filter-chip" onclick="aplicarFiltros({tipos:{},liqMin:'',liqMax:'',wLiq:'5',pvpMin:'',pvpMax:'',wPvp:'5',dyMin:'',dyMax:'',wDy:'5',alavMin:'',alavMax:'',wAlav:'5',wAtr:'5'})" style="font-size:10px">Limpar</button><span id="panelSaveArea" style="margin-left:auto;font-size:10px;color:var(--muted)">⋯</span></div>
 </div>
 
 <div class="container">
@@ -363,7 +379,7 @@ function togglePanel(){
   document.getElementById('panel').classList.toggle('open')
   document.getElementById('panelOverlay').classList.toggle('open')
 }
-['wLiq','wPvp','wDy','wAtr'].forEach(id=>{
+['wLiq','wPvp','wDy','wAlav','wAtr'].forEach(id=>{
   document.getElementById(id).onchange=function(){render()}
 })
 
@@ -520,9 +536,12 @@ function restaurarFiltros(){
       if(el('dyMin'))el('dyMin').value=f.dyMin||''
       if(el('dyMax'))el('dyMax').value=f.dyMax||''
       if(el('wDy')){el('wDy').value=f.wDy||'5';el('wDy').dispatchEvent(new Event('change'))}
+      if(el('alavMin'))el('alavMin').value=f.alavMin||''
+      if(el('alavMax'))el('alavMax').value=f.alavMax||''
+      if(el('wAlav')){el('wAlav').value=f.wAlav||'5';el('wAlav').dispatchEvent(new Event('change'))}
       if(el('wAtr')){el('wAtr').value=f.wAtr||'5';el('wAtr').dispatchEvent(new Event('change'))}
       // Restore slider positions
-      ;['liq','pvp','dy'].forEach(m=>{
+      ;['liq','pvp','dy','alav'].forEach(m=>{
         const minEl=document.querySelector('.ps-min[data-m="'+m+'"]')
         const maxEl=document.querySelector('.ps-max[data-m="'+m+'"]')
         if(minEl&&f['sli_'+m+'_min']!=null)minEl.value=f['sli_'+m+'_min']
@@ -541,6 +560,9 @@ function restaurarFiltros(){
       if(el('dyMin'))el('dyMin').value='8'
       if(el('dyMax'))el('dyMax').value=''
       if(el('wDy')){el('wDy').value='10';el('wDy').dispatchEvent(new Event('change'))}
+      if(el('alavMin'))el('alavMin').value=''
+      if(el('alavMax'))el('alavMax').value=''
+      if(el('wAlav')){el('wAlav').value='5';el('wAlav').dispatchEvent(new Event('change'))}
       if(el('wAtr')){el('wAtr').value='5';el('wAtr').dispatchEvent(new Event('change'))}
       syncSliFromPanel()
     }
@@ -556,26 +578,28 @@ function render(){
     if(fk.length<Object.keys(activeTipos).length)items=items.filter(it=>fk.includes(it.tipo))
     if(searchTerm)items=items.filter(it=>it.ticker.toUpperCase().includes(searchTerm))
     function fv(id,raw){let e=document.getElementById(id);if(!e||!e.value)return null;let v=raw?e.value:+e.value;return v||v===0?v:null}
-    let flMin=fv('liqMin',1),flMax=fv('liqMax',1),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax')
+    let flMin=fv('liqMin',1),flMax=fv('liqMax',1),fpMin=fv('pvpMin'),fpMax=fv('pvpMax'),fdMin=fv('dyMin'),fdMax=fv('dyMax'),faMin=fv('alavMin'),faMax=fv('alavMax')
     if(flMin!=null||flMax!=null)items=items.filter(it=>{let v=+it.liquidez_media_30d;let mn=parseLiqVal(flMin),mx=parseLiqVal(flMax);return(mn==null||v>=mn)&&(mx==null||v<=mx)})
     if(fpMin!=null||fpMax!=null)items=items.filter(it=>{let v=it.p_vp;return v!=null&&(fpMin==null||v>=fpMin)&&(fpMax==null||v<=fpMax)})
     if(fdMin!=null||fdMax!=null)items=items.filter(it=>{let v=it.dividend_yield_12m;return v!=null&&(fdMin==null||v>=fdMin/100)&&(fdMax==null||v<=fdMax/100)})
+    if(faMin!=null||faMax!=null)items=items.filter(it=>{let v=it.alavancagem;return v!=null&&v>=0&&(faMin==null||v>=faMin/100)&&(faMax==null||v<=faMax/100)})
   }
 
-  let mnLiq=Infinity,mxLiq=-Infinity,mnPvp=Infinity,mxPvp=-Infinity,mnDy=Infinity,mxDy=-Infinity
+  let mnLiq=Infinity,mxLiq=-Infinity,mnPvp=Infinity,mxPvp=-Infinity,mnDy=Infinity,mxDy=-Infinity,mnAlav=Infinity,mxAlav=-Infinity
   for(let z=0;z<items.length;z++){
     let it=items[z]
     let lv=+it.liquidez_media_30d;if(lv>0){if(lv<mnLiq)mnLiq=lv;if(lv>mxLiq)mxLiq=lv}
     let pv=it.p_vp;if(pv!=null&&pv>0){if(pv<mnPvp)mnPvp=pv;if(pv>mxPvp)mxPvp=pv}
     let dv=it.dividend_yield_12m;if(dv!=null&&dv>0){if(dv<mnDy)mnDy=dv;if(dv>mxDy)mxDy=dv}
+    let av=it.alavancagem;if(av!=null&&av>=0){if(av<mnAlav)mnAlav=av;if(av>mxAlav)mxAlav=av}
   }
-  let rgLiq=mxLiq>mnLiq?mxLiq-mnLiq:1,rgPvp=mxPvp>mnPvp?mxPvp-mnPvp:1,rgDy=mxDy>mnDy?mxDy-mnDy:1
-  let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10,wa=(+document.getElementById('wAtr').value||0)/10
+  let rgLiq=mxLiq>mnLiq?mxLiq-mnLiq:1,rgPvp=mxPvp>mnPvp?mxPvp-mnPvp:1,rgDy=mxDy>mnDy?mxDy-mnDy:1,rgAlav=mxAlav>mnAlav?mxAlav-mnAlav:1
+  let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10,walav=(+document.getElementById('wAlav').value||0)/10,wa=(+document.getElementById('wAtr').value||0)/10
 
   items.sort((a,b)=>{
-    let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?Math.max(0,Math.min(1,1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s))):0
-    let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?Math.max(0,Math.min(1,1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s))):0
-    let na=al*wl+ap*wp+ad*wd+aat*wa,nb=bl*wl+bp*wp+bd*wd+bat*wa
+    let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aalav=a.alavancagem!=null&&a.alavancagem>=0?1-(a.alavancagem-mnAlav)/rgAlav:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?Math.max(0,Math.min(1,1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s))):0
+    let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,balav=b.alavancagem!=null&&b.alavancagem>=0?1-(b.alavancagem-mnAlav)/rgAlav:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?Math.max(0,Math.min(1,1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s))):0
+    let na=al*wl+ap*wp+ad*wd+aalav*walav+aat*wa,nb=bl*wl+bp*wp+bd*wd+balav*walav+bat*wa
     return nb-na
   })
 
@@ -641,9 +665,10 @@ function render(){
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
+    let salav=it.alavancagem!=null&&it.alavancagem>=0?1-(it.alavancagem-mnAlav)/rgAlav:0
     let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?Math.max(0,Math.min(1,1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s))):0
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
-    let nota=sl*wl+sp*wp+sd*wd+sa*wa
+    let nota=sl*wl+sp*wp+sd*wd+salav*walav+sa*wa
     html+='<td>'+nota.toFixed(3)+'</td>'
     html+='</tr>'
   }
@@ -655,6 +680,7 @@ function render(){
       liqMin:el('liqMin')?.value||'',liqMax:el('liqMax')?.value||'',wLiq:el('wLiq')?.value||'5',
       pvpMin:el('pvpMin')?.value||'',pvpMax:el('pvpMax')?.value||'',wPvp:el('wPvp')?.value||'5',
       dyMin:el('dyMin')?.value||'',dyMax:el('dyMax')?.value||'',wDy:el('wDy')?.value||'5',
+      alavMin:el('alavMin')?.value||'',alavMax:el('alavMax')?.value||'',wAlav:el('wAlav')?.value||'5',
       wAtr:el('wAtr')?.value||'5'
     }
     // Also save slider positions for reliable restore
@@ -686,7 +712,8 @@ function aplicarFiltros(f) {
   document.querySelector('.filter-chip[data-tipo="all"]').classList.toggle('active', allOn)
   s('liqMin', f.liqMin); s('liqMax', f.liqMax); s('wLiq', f.wLiq)
   s('pvpMin', f.pvpMin); s('pvpMax', f.pvpMax); s('wPvp', f.wPvp)
-  s('dyMin', f.dyMin); s('dyMax', f.dyMax); s('wDy', f.wDy); s('wAtr', f.wAtr)
+  s('dyMin', f.dyMin); s('dyMax', f.dyMax); s('wDy', f.wDy)
+  s('alavMin', f.alavMin); s('alavMax', f.alavMax); s('wAlav', f.wAlav); s('wAtr', f.wAtr)
 
   syncSliFromPanel()
   render()
@@ -713,6 +740,9 @@ async function salvarSetupAtual() {
       dyMin: document.getElementById('dyMin').value,
       dyMax: document.getElementById('dyMax').value,
       wDy: document.getElementById('wDy').value,
+      alavMin: document.getElementById('alavMin').value,
+      alavMax: document.getElementById('alavMax').value,
+      wAlav: document.getElementById('wAlav').value,
       wAtr: document.getElementById('wAtr').value,
     }
   })()
@@ -737,7 +767,7 @@ function fecharAjudaAlavancagem(){document.getElementById('modalAlavancagem').cl
 let rangeData={}
 
 function initSliders(){
-  let r={liq:{min:Infinity,max:-Infinity},pvp:{min:Infinity,max:-Infinity},dy:{min:Infinity,max:-Infinity}}
+  let r={liq:{min:Infinity,max:-Infinity},pvp:{min:Infinity,max:-Infinity},dy:{min:Infinity,max:-Infinity},alav:{min:Infinity,max:-Infinity}}
   for(let i=0;i<allData.length;i++){
     let d=allData[i],l=+d.liquidez_media_30d
     if(l>0){if(l<r.liq.min)r.liq.min=l;if(l>r.liq.max)r.liq.max=l}
@@ -745,14 +775,16 @@ function initSliders(){
     if(p!=null&&p>0){if(p<r.pvp.min)r.pvp.min=p;if(p>r.pvp.max)r.pvp.max=p}
     let dv=d.dividend_yield_12m
     if(dv!=null&&dv>0){if(dv<r.dy.min)r.dy.min=dv;if(dv>r.dy.max)r.dy.max=dv}
+    let av=d.alavancagem
+    if(av!=null&&av>=0){if(av<r.alav.min)r.alav.min=av;if(av>r.alav.max)r.alav.max=av}
   }
-  let kk=['liq','pvp','dy']
-  for(let i=0;i<3;i++){let m=kk[i];if(r[m].min===Infinity){r[m].min=0;r[m].max=1}}
+  let kk=['liq','pvp','dy','alav']
+  for(let i=0;i<kk.length;i++){let m=kk[i];if(r[m].min===Infinity){r[m].min=0;r[m].max=1}}
   rangeData=r
-  ;['liq','pvp','dy'].forEach(m=>{
+  ;['liq','pvp','dy','alav'].forEach(m=>{
     let rd=rangeData[m],minEl=document.querySelector('.ps-min[data-m="'+m+'"]'),maxEl=document.querySelector('.ps-max[data-m="'+m+'"]')
     if(!minEl||!maxEl)return
-    let step=m==='liq'?Math.max(1,Math.ceil((rd.max-rd.min)/500)):m==='pvp'?0.01:0.001
+    let step=m==='liq'?Math.max(1,Math.ceil((rd.max-rd.min)/500)):m==='pvp'?0.01:m==='alav'?0.1:0.001
     minEl.min=rd.min;minEl.max=rd.max;minEl.step=step;minEl.value=rd.min
     maxEl.min=rd.min;maxEl.max=rd.max;maxEl.step=step;maxEl.value=rd.max
   })
@@ -772,7 +804,7 @@ function onSlide(e){
 }
 
 function updSliDisp(){
-  ;['liq','pvp','dy'].forEach(m=>{
+  ;['liq','pvp','dy','alav'].forEach(m=>{
     let rd=rangeData[m],minEl=document.querySelector('.ps-min[data-m="'+m+'"]'),maxEl=document.querySelector('.ps-max[data-m="'+m+'"]')
     if(!minEl||!maxEl)return
     let mn=+minEl.value,mx=+maxEl.value,t=rd.max-rd.min||1
@@ -782,30 +814,30 @@ function updSliDisp(){
 }
 
 function syncPanFromSli(){
-  ;['liq','pvp','dy'].forEach(m=>{
+  ;['liq','pvp','dy','alav'].forEach(m=>{
     let minV=+document.querySelector('.ps-min[data-m="'+m+'"]').value
     let maxV=+document.querySelector('.ps-max[data-m="'+m+'"]').value
     let mxEl=document.querySelector('.ps-max[data-m="'+m+'"]'),maxAttr=+mxEl.max
     let mn=document.getElementById(m==='liq'?'liqMin':m+'Min'),mx=document.getElementById(m==='liq'?'liqMax':m+'Max')
     if(!mn)return
     if(m==='liq')mn.value=minV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')
-    else if(m==='dy')mn.value=(minV*100).toFixed(1)
+    else if(m==='dy'||m==='alav')mn.value=(minV*100).toFixed(1)
     else mn.value=minV.toFixed(2)
     if(!mx)return
     if(maxV>=maxAttr){mx.value=''}
     else{if(m==='liq')mx.value=maxV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')
-    else if(m==='dy')mx.value=(maxV*100).toFixed(1)
+    else if(m==='dy'||m==='alav')mx.value=(maxV*100).toFixed(1)
     else mx.value=maxV.toFixed(2)}
   })
 }
 
 function syncSliFromPanel(){
-  ;['liq','pvp','dy'].forEach(m=>{
+  ;['liq','pvp','dy','alav'].forEach(m=>{
     let rd=rangeData[m];if(!rd)return
     let mn=document.getElementById(m==='liq'?'liqMin':m+'Min'),mx=document.getElementById(m==='liq'?'liqMax':m+'Max')
     let minV=null,maxV=null
     if(m==='liq'){minV=parseLiqVal(mn?mn.value:'');maxV=parseLiqVal(mx?mx.value:'')}
-    else{minV=mn&&mn.value?+mn.value:null;maxV=mx&&mx.value?+mx.value:null;if(m==='dy'){if(minV!=null)minV/=100;if(maxV!=null)maxV/=100}}
+    else{minV=mn&&mn.value?+mn.value:null;maxV=mx&&mx.value?+mx.value:null;if(m==='dy'||m==='alav'){if(minV!=null)minV/=100;if(maxV!=null)maxV/=100}}
     let e1=document.querySelector('.ps-min[data-m="'+m+'"]'),e2=document.querySelector('.ps-max[data-m="'+m+'"]')
     if(!e1||!e2)return
     e1.value=minV!=null?Math.max(+e1.min,Math.min(+e1.max,minV)):+e1.min
