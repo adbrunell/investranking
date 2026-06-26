@@ -109,11 +109,12 @@ td.price-down{background:rgb(255,0,0);border-radius:6px}
 .tbl-wrap tbody td:nth-child(4),
 .tbl-wrap tbody td:nth-child(5),
 .tbl-wrap tbody td:nth-child(6){font-size:13px;font-weight:400;color:var(--text);min-width:38px}
-.tbl-wrap tbody td:nth-child(7){min-width:80px;padding:1px 4px}
-.tbl-wrap tbody td:nth-child(8){min-width:44px;padding:1px 4px}
-.tbl-wrap tbody td:nth-child(10){text-align:center;min-width:88px}
-.tbl-wrap tbody td:nth-child(11){min-width:52px}
-.tbl-wrap tbody td:nth-child(12){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
+.tbl-wrap tbody td:nth-child(7){font-size:13px;font-weight:400;color:var(--text);min-width:48px}
+.tbl-wrap tbody td:nth-child(8){min-width:80px;padding:1px 4px}
+.tbl-wrap tbody td:nth-child(9){min-width:44px;padding:1px 4px}
+.tbl-wrap tbody td:nth-child(11){text-align:center;min-width:88px}
+.tbl-wrap tbody td:nth-child(12){min-width:52px}
+.tbl-wrap tbody td:nth-child(13){font-size:11px;font-weight:700;color:var(--accent);min-width:32px}
 .tbl-wrap tbody tr:first-child td:first-child{color:#ffd700;font-size:16px}
 .tbl-wrap tbody tr:nth-child(2) td:first-child{color:#c0c0c0;font-size:15px}
 .tbl-wrap tbody tr:nth-child(3) td:first-child{color:#cd7f32;font-size:14px}
@@ -144,12 +145,13 @@ td.price-down{background:rgb(255,0,0);border-radius:6px}
 .tbl-wrap tbody td:nth-child(4),
 .tbl-wrap tbody td:nth-child(5),
 .tbl-wrap tbody td:nth-child(6){font-size:11px;min-width:34px}
-.tbl-wrap tbody td:nth-child(7){min-width:72px}
-.tbl-wrap tbody td:nth-child(8){min-width:36px}
-.tbl-wrap tbody td:nth-child(9){min-width:44px}
-.tbl-wrap tbody td:nth-child(10){min-width:72px}
-.tbl-wrap tbody td:nth-child(11){min-width:44px}
-.tbl-wrap tbody td:nth-child(12){font-size:10px;min-width:30px}
+.tbl-wrap tbody td:nth-child(7){min-width:40px}
+.tbl-wrap tbody td:nth-child(8){min-width:72px}
+.tbl-wrap tbody td:nth-child(9){min-width:36px}
+.tbl-wrap tbody td:nth-child(10){min-width:44px}
+.tbl-wrap tbody td:nth-child(11){min-width:72px}
+.tbl-wrap tbody td:nth-child(12){min-width:44px}
+.tbl-wrap tbody td:nth-child(13){font-size:10px;min-width:30px}
 }
 .pf-row{display:flex;gap:6px;margin-bottom:8px}
 .pf-cell{flex:1;display:flex;flex-direction:column;gap:2px}
@@ -279,6 +281,18 @@ td.price-down{background:rgb(255,0,0);border-radius:6px}
       <button class="modal-close" onclick="fecharAjudaMaturidade()">Entendi</button>
     </div>
   </div>
+  <div id="modalAlavancagem" class="modal-overlay" onclick="if(event.target===this)fecharAjudaAlavancagem()">
+    <div class="modal-box">
+      <h3><i class="fas fa-chart-bar"></i> Alavancagem</h3>
+      <p>A alavancagem mede quanto do patrimônio do fundo é financiado por dívidas.</p>
+      <div style="background:var(--card);border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px">Fórmula</div>
+        <div style="font-size:13px;font-weight:600;font-family:monospace;color:var(--accent)">(Ativo Total - Patrimônio Líquido) ÷ Ativo Total</div>
+      </div>
+      <p style="font-size:11px;color:var(--muted)">Quanto maior o percentual, mais o fundo usa dívida para financiar seus ativos. Valores acima de 50% indicam alavancagem elevada.</p>
+      <button class="modal-close" onclick="fecharAjudaAlavancagem()">Entendi</button>
+    </div>
+  </div>
   <div id="modalLoginMsg" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
     <div class="modal-box" style="text-align:center;padding:32px">
       <i class="fas fa-lock" style="font-size:32px;opacity:.4;margin-bottom:12px;display:block"></i>
@@ -297,6 +311,7 @@ td.price-down{background:rgb(255,0,0);border-radius:6px}
         <th>Liquidez<br>Diária</th>
         <th>P/VP</th>
         <th>DY<br>12m</th>
+        <th>Alavancagem <i class="fas fa-question-circle" onclick="event.stopPropagation();abrirAjudaAlavancagem()" style="cursor:pointer;color:var(--accent);font-size:9px"></i></th>
         <th>Histórico<br>1A</th>
         <th>Atratividade</th>
         <th id="thCotacao">Cotação</th>
@@ -372,7 +387,7 @@ async function load(){
       let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,variacao&data_referencia=eq.'+liveDate.data+'&limit=1000',{headers:H})
       if(r.ok){let d=await r.json();liveMap=new Map((d||[]).map(x=>[x.codigo_instrumento,{preco:x.preco_ultimo_negocio,variacao:x.variacao}]))}
     }
-    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes,historico_dividendos,maturidade_lci&limit=1000',{headers:H})
+    let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,alavancagem,min_52s,max_52s,historico_cotacoes,historico_dividendos,maturidade_lci&limit=1000',{headers:H})
     if(!raw.ok)throw new Error(raw.status)
     allData=await raw.json()
     if(liveMap){
@@ -587,6 +602,7 @@ function render(){
     html+='<td>'+fmtNum(it.p_vp)+'</td>'
     let sp=it.p_vp!=null&&it.p_vp>0?1-(it.p_vp-mnPvp)/rgPvp:0
     html+='<td>'+fmtPct(it.dividend_yield_12m)+'</td>'
+    html+='<td>'+(it.alavancagem!=null?fmtPct(it.alavancagem):'—')+'</td>'
     let vals=it.historico_cotacoes;if(typeof vals==='string')try{vals=JSON.parse(vals)}catch(e){vals=null};if(!Array.isArray(vals))vals=null
     let min52=it.min_52s!=null?+it.min_52s:null
     let max52=it.max_52s!=null?+it.max_52s:null
@@ -715,6 +731,8 @@ async function salvarSetupAtual() {
 // ─── Maturidade LCI Help ────────────────────
 function abrirAjudaMaturidade(){document.getElementById('modalMaturidade').classList.add('open')}
 function fecharAjudaMaturidade(){document.getElementById('modalMaturidade').classList.remove('open')}
+function abrirAjudaAlavancagem(){document.getElementById('modalAlavancagem').classList.add('open')}
+function fecharAjudaAlavancagem(){document.getElementById('modalAlavancagem').classList.remove('open')}
 // ─── Panel Sliders ──────────────────────────
 let rangeData={}
 
