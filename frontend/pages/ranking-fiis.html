@@ -361,17 +361,18 @@ function getTodayBR(){
   return br.toISOString().slice(0,10)
 }
 async function getLiveDate(){
-  let r=await fetch(REST+'/b3_cotacoes_aovivo?select=data_referencia&order=data_referencia.desc&limit=1',{headers:H})
+  let r=await fetch(REST+'/b3_cotacoes_aovivo?select=data_referencia,atualizado_em&order=atualizado_em.desc&limit=1',{headers:H})
   if(!r.ok)return null
   let d=await r.json()
-  return d&&d.length>0?d[0].data_referencia:null
+  if(!d||!d.length)return null
+  return {data:d[0].data_referencia,atualizado_em:d[0].atualizado_em}
 }
 async function load(){
   try{
     liveDate=await getLiveDate()
     let liveMap=null
-    if(liveDate===getTodayBR()){
-      let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,variacao&data_referencia=eq.'+liveDate+'&limit=1000',{headers:H})
+    if(liveDate&&liveDate.data===getTodayBR()){
+      let r=await fetch(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio,variacao&data_referencia=eq.'+liveDate.data+'&limit=1000',{headers:H})
       if(r.ok){let d=await r.json();liveMap=new Map((d||[]).map(x=>[x.codigo_instrumento,{preco:x.preco_ultimo_negocio,variacao:x.variacao}]))}
     }
     let raw=await fetch(REST+'/Ranking_FIIs?select=ticker,tipo,segmento,cotacao,variacao,liquidez_media_30d,p_vp,dividend_yield_12m,min_52s,max_52s,historico_cotacoes,historico_dividendos,maturidade_lci&limit=1000',{headers:H})
@@ -434,13 +435,11 @@ async function load(){
     document.getElementById('loading').style.display='none'
     document.getElementById('tblWrap').style.display='block'
     render()
-    if(liveDate){
-      let p=liveDate.split('-')
-      let d=new Date(p[0],p[1]-1,p[2])
-      let label=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
-      let agora=new Date()
-      let h=agora.toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'})
-      document.getElementById('thCotacao').innerHTML='Cotação<br><span style="font-weight:400;font-size:9px">'+label+' '+h+'</span>'
+    if(liveDate&&liveDate.atualizado_em){
+      let d=new Date(liveDate.atualizado_em)
+      let data=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+      let hora=d.toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'})
+      document.getElementById('thCotacao').innerHTML='Cotação<br><span style="font-weight:400;font-size:9px">'+data+' '+hora+'</span>'
     }
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:28px;opacity:.4;margin-bottom:8px"></i><br>Erro: '+e.message
