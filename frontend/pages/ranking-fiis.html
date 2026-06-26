@@ -585,20 +585,28 @@ function render(){
     if(faMin!=null||faMax!=null)items=items.filter(it=>{let v=it.alavancagem;return v!=null&&v>=0&&(faMin==null||v>=faMin/100)&&(faMax==null||v<=faMax/100)})
   }
 
-  let mnLiq=Infinity,mxLiq=-Infinity,mnPvp=Infinity,mxPvp=-Infinity,mnDy=Infinity,mxDy=-Infinity,mnAlav=Infinity,mxAlav=-Infinity
+  let mnLiq=Infinity,mxLiq=-Infinity,mnPvp=Infinity,mxPvp=-Infinity,mnDy=Infinity,mxDy=-Infinity,mnAlav=Infinity,mxAlav=-Infinity,mnAtr=Infinity,mxAtr=-Infinity
   for(let z=0;z<items.length;z++){
     let it=items[z]
     let lv=+it.liquidez_media_30d;if(lv>0){if(lv<mnLiq)mnLiq=lv;if(lv>mxLiq)mxLiq=lv}
     let pv=it.p_vp;if(pv!=null&&pv>0){if(pv<mnPvp)mnPvp=pv;if(pv>mxPvp)mxPvp=pv}
     let dv=it.dividend_yield_12m;if(dv!=null&&dv>0){if(dv<mnDy)mnDy=dv;if(dv>mxDy)mxDy=dv}
     let av=it.alavancagem;if(av!=null&&av>=0){if(av<mnAlav)mnAlav=av;if(av>mxAlav)mxAlav=av}
+    let atr=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?Math.max(0,Math.min(1,1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s))):null
+    if(atr!=null){if(atr<mnAtr)mnAtr=atr;if(atr>mxAtr)mxAtr=atr}
   }
-  let rgLiq=mxLiq>mnLiq?mxLiq-mnLiq:1,rgPvp=mxPvp>mnPvp?mxPvp-mnPvp:1,rgDy=mxDy>mnDy?mxDy-mnDy:1,rgAlav=mxAlav>mnAlav?mxAlav-mnAlav:1
+  let rgLiq=mxLiq>mnLiq?mxLiq-mnLiq:1,rgPvp=mxPvp>mnPvp?mxPvp-mnPvp:1,rgDy=mxDy>mnDy?mxDy-mnDy:1,rgAlav=mxAlav>mnAlav?mxAlav-mnAlav:1,rgAtr=mxAtr>mnAtr?mxAtr-mnAtr:1
   let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10,walav=(+document.getElementById('wAlav').value||0)/10,wa=(+document.getElementById('wAtr').value||0)/10
 
+  function calcAtr(it){
+    if(it.min_52s==null||it.max_52s==null||it.max_52s<=it.min_52s||it.cotacao==null)return null
+    return Math.max(0,Math.min(1,1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s)))
+  }
+  function scoreAtr(v){return v!=null?(v-mnAtr)/rgAtr:0}
+
   items.sort((a,b)=>{
-    let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aalav=a.alavancagem!=null&&a.alavancagem>=0?1-(a.alavancagem-mnAlav)/rgAlav:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?Math.max(0,Math.min(1,1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s))):0
-    let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,balav=b.alavancagem!=null&&b.alavancagem>=0?1-(b.alavancagem-mnAlav)/rgAlav:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?Math.max(0,Math.min(1,1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s))):0
+    let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aalav=a.alavancagem!=null&&a.alavancagem>=0?1-(a.alavancagem-mnAlav)/rgAlav:0,aat=scoreAtr(calcAtr(a))
+    let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,balav=b.alavancagem!=null&&b.alavancagem>=0?1-(b.alavancagem-mnAlav)/rgAlav:0,bat=scoreAtr(calcAtr(b))
     let na=al*wl+ap*wp+ad*wd+aalav*walav+aat*wa,nb=bl*wl+bp*wp+bd*wd+balav*walav+bat*wa
     return nb-na
   })
@@ -666,7 +674,7 @@ function render(){
     }
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
     let salav=it.alavancagem!=null&&it.alavancagem>=0?1-(it.alavancagem-mnAlav)/rgAlav:0
-    let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?Math.max(0,Math.min(1,1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s))):0
+    let sa=scoreAtr(calcAtr(it))
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
     let nota=sl*wl+sp*wp+sd*wd+salav*walav+sa*wa
     html+='<td>'+nota.toFixed(3)+'</td>'
