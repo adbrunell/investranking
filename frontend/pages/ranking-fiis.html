@@ -824,10 +824,9 @@ function syncPanFromSli(){
     else if(m==='dy'||m==='alav')mn.value=(minV*100).toFixed(1)
     else mn.value=minV.toFixed(2)
     if(!mx)return
-    if(maxV>=maxAttr){mx.value=''}
-    else{if(m==='liq')mx.value=maxV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')
+    if(m==='liq')mx.value=maxV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')
     else if(m==='dy'||m==='alav')mx.value=(maxV*100).toFixed(1)
-    else mx.value=maxV.toFixed(2)}
+    else mx.value=maxV.toFixed(2)
   })
 }
 
