@@ -64,7 +64,7 @@
 - Intermittent 500 errors with `like` + `order` on `fnet_tudo`
 
 ## Database Schema Tips
-- `"Ranking_FIIs"` — materialized view, refreshed post-ETL via `fn_refresh_ranking_fiis()`. Reads live prices from `b3_cotacoes_aovivo` (not a bridge table). Contains `historico_cotacoes` (sparkline, 1y of closes), `historico_dividendos` (last 12 dividends), `maturidade_lci` (`A|B|C` format from liquidity/cotistas/age)
+- `"Ranking_FIIs"` — materialized view, refreshed post-ETL via `fn_refresh_ranking_fiis()`. Reads live prices from `b3_cotacoes_aovivo` (not a bridge table). Contains `historico_cotacoes` (sparkline, 1y of closes), `historico_dividendos` (last 12 dividends), `maturidade_lci` (`A|B|C` format from liquidity/cotistas/age), `alavancagem` (decimal, `(valor_ativo - patrimonio_liquido) / valor_ativo`)
 - `00_fundos_master` — curated FII list from manual Google Sheet (`atualizar_00_fundos_master.py` downloads CSV). `00_Master` is a VIEW (created outside migrations) joining this with `00_Master_cnpj`
 - `cvm_fii_*` tables have versioned rows — always `ORDER BY data_referencia DESC, versao DESC LIMIT 1`
 - CVM `percentual_*` fields are decimals (0–1), multiply by 100 for display
