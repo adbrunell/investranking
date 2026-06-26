@@ -554,8 +554,8 @@ function render(){
   let wl=(+document.getElementById('wLiq').value||0)/10,wp=(+document.getElementById('wPvp').value||0)/10,wd=(+document.getElementById('wDy').value||0)/10,wa=(+document.getElementById('wAtr').value||0)/10
 
   items.sort((a,b)=>{
-    let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s):0
-    let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s):0
+    let al=+a.liquidez_media_30d>0?(+a.liquidez_media_30d-mnLiq)/rgLiq:0,ap=a.p_vp!=null&&a.p_vp>0?1-(a.p_vp-mnPvp)/rgPvp:0,ad=a.dividend_yield_12m!=null&&a.dividend_yield_12m>0?(a.dividend_yield_12m-mnDy)/rgDy:0,aat=a.min_52s!=null&&a.max_52s!=null&&a.max_52s>a.min_52s&&a.cotacao!=null?Math.max(0,Math.min(1,1-(a.cotacao-a.min_52s)/(a.max_52s-a.min_52s))):0
+    let bl=+b.liquidez_media_30d>0?(+b.liquidez_media_30d-mnLiq)/rgLiq:0,bp=b.p_vp!=null&&b.p_vp>0?1-(b.p_vp-mnPvp)/rgPvp:0,bd=b.dividend_yield_12m!=null&&b.dividend_yield_12m>0?(b.dividend_yield_12m-mnDy)/rgDy:0,bat=b.min_52s!=null&&b.max_52s!=null&&b.max_52s>b.min_52s&&b.cotacao!=null?Math.max(0,Math.min(1,1-(b.cotacao-b.min_52s)/(b.max_52s-b.min_52s))):0
     let na=al*wl+ap*wp+ad*wd+aat*wa,nb=bl*wl+bp*wp+bd*wd+bat*wa
     return nb-na
   })
@@ -588,7 +588,7 @@ function render(){
     let max52=it.max_52s!=null?+it.max_52s:null
     let atratividade=null
     if(min52!=null&&max52!=null&&max52>min52&&it.cotacao!=null){
-      atratividade=1-(it.cotacao-min52)/(max52-min52)
+      atratividade=Math.max(0,Math.min(1,1-(it.cotacao-min52)/(max52-min52)))
     }
     if(vals&&vals.length>1){
       let n=vals.length,h=24,w=90,mn=+vals[0],mx=+vals[0]
@@ -621,7 +621,7 @@ function render(){
       html+='<td style="color:var(--muted);font-size:9px">—</td>'
     }
     let sd=it.dividend_yield_12m!=null&&it.dividend_yield_12m>0?(it.dividend_yield_12m-mnDy)/rgDy:0
-    let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s):0
+    let sa=it.min_52s!=null&&it.max_52s!=null&&it.max_52s>it.min_52s&&it.cotacao!=null?Math.max(0,Math.min(1,1-(it.cotacao-it.min_52s)/(it.max_52s-it.min_52s))):0
     let sl=+it.liquidez_media_30d>0?(+it.liquidez_media_30d-mnLiq)/rgLiq:0
     let nota=sl*wl+sp*wp+sd*wd+sa*wa
     html+='<td>'+nota.toFixed(3)+'</td>'
