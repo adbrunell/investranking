@@ -53,7 +53,7 @@ O resultado final deve ser extremamente direto, pois será armazenado em uma ún
 
 def buscar_fatos_sem_resumo() -> list[dict]:
     # Só processa fatos dos últimos 7 dias (novos)
-    data_limite = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+    data_limite = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%d")
     url = f"{SUPABASE_URL}/rest/v1/fnet_tudo"
     params = {
         "select": "fnet_documento_id,codigo_fundo,link_documento,link_visualizar",
