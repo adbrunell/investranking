@@ -1,6 +1,6 @@
 """Lê Fatos Relevantes sem Resumo_ia, extrai texto do PDF, envia para Groq e salva o resumo."""
 import os, sys, logging, time, json, io
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 _proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _proj_root not in sys.path:
@@ -52,12 +52,15 @@ O resultado final deve ser extremamente direto, pois será armazenado em uma ún
 
 
 def buscar_fatos_sem_resumo() -> list[dict]:
+    # Só processa fatos dos últimos 7 dias (novos)
+    data_limite = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
     url = f"{SUPABASE_URL}/rest/v1/fnet_tudo"
     params = {
         "select": "fnet_documento_id,codigo_fundo,link_documento,link_visualizar",
         "categoria_documento": "eq.Fato Relevante",
+        "data_entrega": f"gte.{data_limite}",
         "Resumo_ia": "is.null",
-        "limit": 10,
+        "limit": 5,
     }
     qs = "&".join(f"{k}={v}" for k, v in params.items())
     r = httpx.get(f"{url}?{qs}", headers=HEADERS, timeout=30)

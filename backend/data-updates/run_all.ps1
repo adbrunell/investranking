@@ -169,6 +169,18 @@ try {
 } catch {
   Write-Host "  [Aviso] Falha ao limpar historico B3: $_" -ForegroundColor Gray
 }
+# Processa Fatos Relevantes recentes com IA (Groq)
+try {
+  $tempFile = Join-Path $env:TEMP "FATOS_IA_run.txt"
+  & $py processar_fatos_ia.py 2>&1 | Out-File -FilePath $tempFile
+  Get-Content $tempFile | ForEach-Object { Write-Host $_ }
+  $rawResult = if (Select-String -Path $tempFile -Pattern "^RESULT:" -Quiet) { (Select-String -Path $tempFile -Pattern "^RESULT:" | Select-Object -Last 1).ToString().Replace("RESULT:", "") } else { "OK" }
+  $statuses["FATOS_IA"] = $rawResult
+  Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+} catch {
+  Write-Host "  [Aviso] Falha ao processar fatos IA: $_" -ForegroundColor Gray
+  $statuses["FATOS_IA"] = "ERRO"
+}
 $state | ConvertTo-Json | Set-Content $stateFile
 
 Write-Host ""
