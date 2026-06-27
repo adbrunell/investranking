@@ -43,10 +43,11 @@ O resultado final deve ser extremamente direto, pois será armazenado em uma ún
 * **[Risco/Oportunidade]:** [Bullet point curto com a visão analítica do especialista].
 
 ### REGRAS DE NEGÓCIO (CRÍTICAS):
-1. Substitua [CLASSIFICAÇÃO] por uma destas 3 opções exatas (em caixa alta):
-   - POSITIVO (VERDE) -> Se aumenta o dividend yield, reduz vacância, vende imóvel com lucro, etc.
-   - NEGATIVO (VERMELHO) -> Se há inadimplência, rescisão de contrato, aumento de vacância, emissão abaixo do VP, etc.
-   - INDIFERENTE (BRANCO) -> Para trocas de administradora sem custos, desdobramentos, ou fatos puramente burocráticos.
+1. A classificação deve ser feita na **perspectiva do investidor cotista**, não do fundo. Pergunte-se: "Isso é bom, ruim ou indiferente para quem tem cotas deste FII?"
+   Substitua [CLASSIFICAÇÃO] por uma destas 3 opções exatas (em caixa alta):
+   - POSITIVO (VERDE) -> Beneficia o cotista: aumento de dividendos, venda de imóvel com lucro, redução de vacância, aquisição de ativo com bom cap rate, etc.
+   - NEGATIVO (VERMELHO) -> Prejudica o cotista: inadimplência, rescisão de contrato, aumento de vacância, emissão de cotas abaixo do VP, endividamento excessivo, etc.
+   - INDIFERENTE (BRANCO) -> Não afeta o bolso do cotista: trocas de administradora sem custos, desdobramentos, alterações burocráticas sem impacto financeiro direto.
 2. Seja cirúrgico. Evite jargões jurídicos ou textões copiados do documento original. Traduza o "juridiquês" para o impacto no bolso do investidor.
 3. Se o fato relevante não trouxer dados de alguma das bullets (ex: sem impacto financeiro imediato), omita a linha correspondente."""
 
