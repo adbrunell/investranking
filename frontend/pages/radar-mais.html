@@ -235,7 +235,7 @@ async function apiAllRadar(url){
 function buildItems(rel,fat,rend,vid){
   let items=[]
   for(let r of rel||[]){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'doc',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento})}
-  for(let r of fat||[]){if(r.codigo_fundo&&r.link_visualizar)items.push({type:'fato',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento,resumo:r.Resumo_ia})}
+  for(let r of fat||[]){if(r.codigo_fundo&&r.link_visualizar){let rsm=r.Resumo_ia,cor='';if(rsm){let cm=rsm.match(/^\*\*\[?([A-ZÇ]+)\]?/i);if(cm){let cl=cm[1].toUpperCase();cor=cl==='POSITIVO'?'rgb(106,168,79)':cl==='NEGATIVO'?'rgb(255,0,0)':'#888'}}items.push({type:'fato',ticker:r.codigo_fundo,date:r.data_entrega,refDate:r.data_referencia,url:r.link_visualizar,urlDownload:r.link_documento,resumo:rsm,resumoCor:cor})}}
   for(let r of rend||[]){if(r.codigo_fundo&&r.link_visualizar){let val=r.rendimento?fmtBRL(r.rendimento):'';let com=r.data_com?fmtDateStr(r.data_com):'-';let pgto=r.data_pagamento?fmtDateStr(r.data_pagamento):'-';let dy=r.dividend_yield!=null?r.dividend_yield.toFixed(2):null;items.push({type:'rend',ticker:r.codigo_fundo,date:r.data_entrega,url:r.link_visualizar,com:com,pgto:pgto,valor:val,dy:dy,hist:r.historico_minigrafico||null,prevVal:r.rendimento_anterior,rendNum:r.rendimento})}}
   for(let v of vid||[]){if(v.ticker)items.push({type:'vid',ticker:v.ticker,date:v.publicacao,titulo:v.titulo,url:v.link,canal:v.canal,duracao:v.duracao})}
   items.sort((a,b)=>{let da=a.date||'',db=b.date||'';if(da>db)return -1;if(da<db)return 1;return(a.ticker||'').localeCompare(b.ticker||'')})
@@ -456,7 +456,7 @@ function render(noLimit){
         html+='</div><div class="card-actions">'+(it.urlDownload?'<a href="'+it.urlDownload+'" target="_blank" title="Download"><i class="fas fa-download"></i></a>':'')+'<a href="'+it.url+'" target="_blank" title="Visualizar"><i class="fas fa-external-link-alt"></i></a></div>'
       }else if(tag==='fato'){
         let ref=it.refDate?fmtDateStr(it.refDate):'-'
-        html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a>'+(isToday(it.date)?'<span class="badge-novo">NOVO</span>':'')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">Refer\u00eancia: '+ref+'</div>'
+        html+='<div class="card-ticker">'+(it.resumoCor?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+it.resumoCor+';vertical-align:middle;margin-right:5px;flex-shrink:0"></span>':'')+'<a href="'+it.url+'" target="_blank">'+it.ticker+'</a>'+(isToday(it.date)?'<span class="badge-novo">NOVO</span>':'')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">Refer\u00eancia: '+ref+'</div>'
         html+='</div><div class="card-actions">'+(it.resumo?'<a href="#" onclick="event.preventDefault();abrirResumo(\''+encodeURIComponent(it.resumo).replace(/'/g,"\\'")+'\')" title="Resumo IA" style="color:var(--accent)"><i class="fas fa-robot"></i></a>':'')+(it.urlDownload?'<a href="'+it.urlDownload+'" target="_blank" title="Download"><i class="fas fa-download"></i></a>':'')+'<a href="'+it.url+'" target="_blank" title="Visualizar"><i class="fas fa-external-link-alt"></i></a></div>'
       }else if(tag==='rend'){
         let varHtml=''
