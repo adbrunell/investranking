@@ -99,7 +99,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="nav-divider"></div>
     <div class="nav-label">Ferramentas</div>
     <a class="nav-item" href="pages/ranking-fiis.html" onclick="abrir('ranking-fiis',this);return false"><i class="fa-solid fa-ranking-star icon"></i><span class="txt">Ranking FIIs</span></a>
-    <a class="nav-item" href="pages/informes.html" onclick="abrir('informes',this);return false"><i class="fas fa-bullhorn icon"></i><span class="txt">Informes</span></a>
+    <a class="nav-item" href="pages/anuncios.html" onclick="abrir('anuncios',this);return false"><i class="fas fa-bullhorn icon"></i><span class="txt">Anúncios</span></a>
     <a class="nav-item" href="pages/analise-fii.html" onclick="abrir('analise-fii',this);return false"><i class="fas fa-chart-line icon"></i><span class="txt">Scanner</span></a>
     <a class="nav-item" href="pages/ranking.html" onclick="abrir('ranking',this);return false"><i class="fas fa-chart-simple icon"></i><span class="txt">Cotações</span></a>
     <div class="nav-divider"></div>
@@ -155,7 +155,7 @@ function abrir(pagina, el){
   document.getElementById('contentFrame').src='pages/'+src+'.html'+cache
   if (pagina!=='inicio') history.replaceState(null, '', '?p=' + pagina)
   // Update page title dynamically
-  var titles={'landing-novo':'Ranking de Fundos Imobiliários',ranking:'Cotações',informes:'Central de Informes','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar',inicio:'','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
+  var titles={'landing-novo':'Ranking de Fundos Imobiliários',ranking:'Cotações',anuncios:'Central de Anúncios','analise-fii':'Scanner','ranking-fiis':'Ranking FIIs',status:'Status',login:'Entrar',inicio:'','meus-ativos':'Meus Ativos','minha-conta':'Minha Conta'}
   document.title='Invest Ranking'+(titles[pagina]?' — '+titles[pagina]:'')
 }
 
