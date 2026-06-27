@@ -445,13 +445,7 @@ function render(noLimit){
         html+='</div><div class="card-actions">'+(it.urlDownload?'<a href="'+it.urlDownload+'" target="_blank" title="Download"><i class="fas fa-download"></i></a>':'')+'<a href="'+it.url+'" target="_blank" title="Visualizar"><i class="fas fa-external-link-alt"></i></a></div>'
       }else if(tag==='fato'){
         let ref=it.refDate?fmtDateStr(it.refDate):'-'
-        let desc=''
-        if(it.resumo){
-          let dl=it.resumo.split('\n')[0]
-          let dm=dl.match(/:\s*(.+)/)
-          if(dm)desc=dm[1].length>80?dm[1].slice(0,80)+'…':dm[1]
-        }
-        html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a>'+(isToday(it.date)?'<span class="badge-novo">NOVO</span>':'')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">Refer\u00eancia: '+ref+'</div>'+(desc?'<div style="font-size:10px;color:var(--accent);margin-top:2px;line-height:1.3">🔍 '+escHtml(desc)+'</div>':'')
+        html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a>'+(isToday(it.date)?'<span class="badge-novo">NOVO</span>':'')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">Refer\u00eancia: '+ref+'</div>'
         html+='</div><div class="card-actions">'+(it.resumo?'<a href="#" onclick="event.preventDefault();abrirResumo(\''+encodeURIComponent(it.resumo).replace(/'/g,"\\'")+'\')" title="Resumo IA" style="color:var(--accent)"><i class="fas fa-robot"></i></a>':'')+(it.urlDownload?'<a href="'+it.urlDownload+'" target="_blank" title="Download"><i class="fas fa-download"></i></a>':'')+'<a href="'+it.url+'" target="_blank" title="Visualizar"><i class="fas fa-external-link-alt"></i></a></div>'
       }else if(tag==='rend'){
         let varHtml=''
