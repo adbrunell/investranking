@@ -1,0 +1,1 @@
+ALTER TABLE fnet_tudo ADD COLUMN IF NOT EXISTS "Resumo_ia" TEXT;

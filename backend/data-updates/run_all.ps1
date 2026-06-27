@@ -10,7 +10,7 @@ Set-Location $PSScriptRoot
 $stateFile = "$PSScriptRoot\.run_state.json"
 $logFile = "$PSScriptRoot\log.txt"
 if (-not (Test-Path $logFile)) {
-  "data_hora | b3_aovivo | fnet_dados | youtube | cvm_fii | cvm_fiagro | cvm_cadastral | status_acoes | status_dividendos | b3_cotahist" | Set-Content $logFile
+  "data_hora | b3_aovivo | fnet_dados | youtube | cvm_fii | cvm_fiagro | cvm_cadastral | status_acoes | status_dividendos | b3_cotahist | fatos_ia" | Set-Content $logFile
 }
 $py = "$projectRoot\backend\.venv\Scripts\python.exe"
 $apiKey = $env:SUPABASE_SERVICE_KEY
@@ -41,7 +41,7 @@ function log-db {
     started_at = $runStarted.ToString("o")
     finished_at = (Get-Date).ToUniversalTime().ToString("o")
   }
-  foreach ($k in $scriptOrder) { $body[$k.ToLower()] = $statuses[$k] }
+  foreach ($k in $scriptOrder) { $body[$k.ToLower()] = $statuses[$k] }; $body["fatos_ia"] = $statuses["FATOS_IA"]
   try {
     Invoke-RestMethod -Uri "$supabaseUrl/rest/v1/00.log_atualizacao" -Method Post -Headers $h -Body ($body | ConvertTo-Json) -TimeoutSec 10 | Out-Null
   } catch {
@@ -145,7 +145,7 @@ foreach ($s in $status) {
   }
 }
 
-$parts = foreach ($k in $scriptOrder) { $statuses[$k] }
+$parts = foreach ($k in $scriptOrder) { $statuses[$k] }; $parts += $statuses["FATOS_IA"]
 $logLine = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | $($parts -join ' | ')"
 Add-Content -Path $logFile -Value $logLine
 log-db
@@ -168,6 +168,17 @@ try {
   Invoke-RestMethod -Uri "$supabaseUrl/rest/v1/rpc/fn_limpar_b3_historico" -Method Post -Headers @{"apikey"=$apiKey; "Authorization"="Bearer $apiKey"} -TimeoutSec 120 | Out-Null
 } catch {
   Write-Host "  [Aviso] Falha ao limpar historico B3: $_" -ForegroundColor Gray
+}
+# Processa Fatos Relevantes com IA (Gemini)
+try {
+  $tempFile = Join-Path $env:TEMP "FATOS_IA_run.txt"
+  & $py processar_fatos_ia.py 2>&1 | Out-File -FilePath $tempFile
+  Get-Content $tempFile | ForEach-Object { Write-Host $_ }
+  $statuses["FATOS_IA"] = if (Select-String -Path $tempFile -Pattern "^RESULT:" -Quiet) { (Select-String -Path $tempFile -Pattern "^RESULT:" | Select-Object -Last 1).ToString().Replace("RESULT:", "") } else { "OK" }
+  Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+} catch {
+  Write-Host "  [Aviso] Falha ao processar fatos IA: $_" -ForegroundColor Gray
+  $statuses["FATOS_IA"] = "ERRO"
 }
 $state | ConvertTo-Json | Set-Content $stateFile
 

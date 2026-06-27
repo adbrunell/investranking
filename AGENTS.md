@@ -70,7 +70,7 @@
 - CVM `percentual_*` fields are decimals (0–1), multiply by 100 for display
 - CVM date columns: `data_referencia` for period reference, `data_informacao_numero_cotistas` for cotistas snapshot date
 - DY 12m in Ranking_FIIs comes from `status_dividendos` (last 12 entries per ticker), NOT from `fnet_tudo`
-- Requirements (`requirements.txt`): `supabase>=2.0.0`, `httpx>=0.27.0`, `playwright>=1.60.0`, `pytesseract>=0.3.13`, `pillow>=12.2.0`, `google-api-python-client>=2.0.0`, `google-auth-httplib2>=0.1.0`, `google-auth-oauthlib>=1.0.0`
+- Requirements (`requirements.txt`): `supabase>=2.0.0`, `httpx>=0.27.0`, `playwright>=1.60.0`, `pytesseract>=0.3.13`, `pillow>=12.2.0`, `google-api-python-client>=2.0.0`, `google-auth-httplib2>=0.1.0`, `google-auth-oauthlib>=1.0.0`, `google-generativeai>=0.8.0`
 
 ## OpenCode Config
 - `opencode.json` at root — MCP Supabase enabled via `backend/mcp-supabase.ps1` (loads `.env` then runs `@supabase/mcp-server-supabase`). `test`/`lint`/`build` commands are generic templates only — no actual test/lint/build framework exists
