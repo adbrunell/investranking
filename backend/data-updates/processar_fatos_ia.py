@@ -1,5 +1,5 @@
-"""Lê Fatos Relevantes sem Resumo_ia, envia para Gemini e salva o resumo."""
-import os, sys, logging, time, json
+"""Lê Fatos Relevantes sem Resumo_ia, extrai texto do PDF, envia para Groq e salva o resumo."""
+import os, sys, logging, time, json, io
 from datetime import datetime, timezone
 
 _proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -15,12 +15,12 @@ if os.path.exists(_env_path):
                 os.environ.setdefault(k, v)
 
 import httpx
-from google import genai
-from google.genai import types
+from pypdf import PdfReader
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
+GROQ_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 HEADERS = {
     "apikey": SERVICE_KEY,
@@ -68,32 +68,65 @@ def buscar_fatos_sem_resumo() -> list[dict]:
 
 
 def baixar_pdf(url: str, viz_url: str = "") -> bytes | None:
+    import base64
     ua = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
     for tentativa_url in [url, viz_url]:
         if not tentativa_url:
             continue
         try:
             r = httpx.get(tentativa_url, headers=ua, timeout=120, follow_redirects=True)
-            if r.status_code == 200 and len(r.content) > 100:
-                return r.content
+            if r.status_code != 200 or len(r.content) < 100:
+                continue
+            raw = r.content
+            # FNET returns PDF as base64 string wrapped in quotes
+            if raw[0] in (0x22, 0x27):
+                txt = raw.decode("latin-1").strip().strip("\"'")
+                try:
+                    return base64.b64decode(txt)
+                except:
+                    pass
+            return raw
         except Exception as e:
             print(f"  Erro ao baixar {tentativa_url[:60]}: {e}")
     return None
 
 
-def gerar_resumo(pdf_bytes: bytes, ticker: str) -> str | None:
-    if not GEMINI_KEY:
-        print("  GEMINI_API_KEY não configurada")
-        return None
-    client = genai.Client(api_key=GEMINI_KEY)
+def extrair_texto(pdf_bytes: bytes) -> str:
     try:
-        resp = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=[PROMPT, types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")],
-        )
-        return resp.text.strip() if resp.text else None
+        reader = PdfReader(io.BytesIO(pdf_bytes))
+        texto = "\n".join(page.extract_text() or "" for page in reader.pages)
+        return texto.strip()[:8000]
     except Exception as e:
-        print(f"  Erro Gemini: {e}")
+        print(f"  Erro ao extrair texto: {e}")
+        return ""
+
+
+def gerar_resumo(texto: str, ticker: str) -> str | None:
+    if not GROQ_KEY:
+        print("  GROQ_API_KEY não configurada")
+        return None
+    headers = {
+        "Authorization": f"Bearer {GROQ_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {"role": "system", "content": PROMPT},
+            {"role": "user", "content": f"Fato Relevante do fundo {ticker}:\n\n{texto}"},
+        ],
+        "temperature": 0.3,
+        "max_tokens": 500,
+    }
+    try:
+        r = httpx.post(GROQ_URL, headers=headers, json=payload, timeout=60)
+        if r.status_code != 200:
+            print(f"  Groq erro {r.status_code}: {r.text[:200]}")
+            return None
+        data = r.json()
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print(f"  Erro Groq: {e}")
         return None
 
 
@@ -112,8 +145,8 @@ def salvar_resumo(doc_id: str, resumo: str):
 def main():
     print("\n=== Processar Fatos Relevantes com IA ===")
 
-    if not GEMINI_KEY:
-        print("  GEMINI_API_KEY não encontrada. Pule este script ou configure .env")
+    if not GROQ_KEY:
+        print("  GROQ_API_KEY não encontrada. Configure .env")
         print("RESULT:SKIP")
         return
 
@@ -138,7 +171,13 @@ def main():
             erros += 1
             continue
 
-        resumo = gerar_resumo(pdf, ticker)
+        texto = extrair_texto(pdf)
+        if not texto:
+            print(f"    Texto vazio, pulando")
+            erros += 1
+            continue
+
+        resumo = gerar_resumo(texto, ticker)
         if not resumo:
             print(f"    Falha ao gerar resumo")
             erros += 1
