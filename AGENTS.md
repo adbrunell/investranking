@@ -58,7 +58,7 @@
 
 ## PostgREST API Quirks
 - `like` uses `*` wildcard: `like.*Relat*rio*`
-- `limit` defaults to 1000 — paginate with `limit=N&offset=M` + `Prefer: count=exact`. `apiAll()` (defined per-page in `pages/analise-fii.html`) and `apiAllRadar()` (in `pages/radar-mais.html`) handle this automatically
+- `limit` defaults to 1000 — paginate with `limit=N&offset=M` + `Prefer: count=exact`. `apiAll()` (defined per-page in `pages/analise-fii.html`) and `apiAllRadar()` (in `pages/informes.html`) handle this automatically
 - `tipo=neq.` means `tipo != ''`
 - Table names with dots (e.g. `"00.log_atualizacao"`) — use directly as path (`00.log_atualizacao`) which works despite PostgREST dot ambiguity
 - Intermittent 500 errors with `like` + `order` on `fnet_tudo`
