@@ -212,12 +212,11 @@ async function apiAllRadar(url){
   if(cr){let m=cr.match(/\/(\d+)$/);if(m)total=+m[1]}
   all.push(...await r.json())
   if(total>PAGE){
-    let offsets=[]
-    for(let i=PAGE;i<total;i+=PAGE)offsets.push(i)
-    for(let o of offsets){
-      try{r=await fetch(url+'&limit='+PAGE+'&offset='+o,{headers:H})}catch{r={ok:false}}
-      if(r&&r.ok)all.push(...await r.json())
-    }
+    let fetches=[]
+    for(let i=PAGE;i<total;i+=PAGE)
+      fetches.push(fetch(url+'&limit='+PAGE+'&offset='+i,{headers:H}).catch(()=>null))
+    let ress=await Promise.all(fetches)
+    for(let r2 of ress){if(r2&&r2.ok)all.push(...await r2.json())}
   }
   return all
 }
@@ -258,7 +257,7 @@ async function load(){
     document.getElementById('loading').style.display='none'
     if(partial)document.getElementById('feed').insertAdjacentHTML('afterbegin','<div style="padding:8px 16px;font-size:11px;color:var(--orange);background:rgba(245,166,35,.1);border-bottom:1px solid var(--border)"><i class="fas fa-exclamation-triangle"></i> Alguns dados não puderam ser carregados (timeout). Atualize a página para tentar novamente.</div>')
     render()
-    loadFull()
+    setTimeout(loadFull,50)
   }catch(e){
     document.getElementById('loading').innerHTML='<i class="fas fa-exclamation-triangle" style="font-size:24px;opacity:.5;margin-bottom:8px"></i><br>Erro: '+e.message
   }
@@ -286,7 +285,7 @@ async function loadFull(){
     allChannels=[...new Set((vid.length?vid:old.filter(i=>i.type==='vid').map(i=>i.canal)).filter(Boolean))].sort()
     buildChanDropdown()
     populateDatalist()
-    render(true)
+    setTimeout(()=>render(true),10)
   }catch(e){/*silent*/}
 }
 
