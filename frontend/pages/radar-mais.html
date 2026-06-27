@@ -150,8 +150,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 <div class="modal-overlay" id="resumoModal" onclick="closeResumoModal()">
   <div class="modal-content" onclick="event.stopPropagation()" style="max-width:520px">
-    <div class="modal-header" style="color:var(--accent)"><i class="fas fa-robot"></i> Resumo IA <button onclick="closeResumoModal()"><i class="fas fa-times"></i></button></div>
-    <div class="modal-search" id="resumoBody" style="padding:14px 16px;font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--text)"></div>
+    <div class="modal-header" style="color:var(--accent);font-size:13px"><i class="fas fa-robot"></i> Análise IA <button onclick="closeResumoModal()"><i class="fas fa-times"></i></button></div>
+    <div class="modal-search" id="resumoBody" style="padding:14px 16px;font-size:12px;line-height:1.6;color:var(--text);overflow-y:auto;max-height:60vh"></div>
   </div>
 </div>
 
@@ -348,8 +348,47 @@ function closeChanModal(e){
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.getElementById('chanModal').style.display='none';document.getElementById('resumoModal').style.display='none'}})
 function abrirResumo(texto){
-  document.getElementById('resumoBody').textContent=decodeURIComponent(texto)
+  let raw=decodeURIComponent(texto)
+  let html=''
+  // Parse classification and first line: **[CLASSIFICAÇÃO] - [Ticker]:** [desc]
+  let m=raw.match(/^\*\*\[?([A-ZÇ]+)\]?/i)
+  if(m){
+    let cls=m[1].toUpperCase()
+    let cor=cls==='POSITIVO'?'rgb(106,168,79)':cls==='NEGATIVO'?'rgb(255,0,0)':'var(--text)'
+    html+='<div style="font-size:16px;font-weight:700;color:'+cor+';margin-bottom:8px">'+cls+'</div>'
+    // Remove the first line from raw
+    raw=raw.replace(/^.*?\n/,'')
+  }
+  // Parse rest of lines: handle **bold:** and * bullets
+  let inBullets=false
+  for(let line of raw.split('\n')){
+    line=line.trim()
+    if(!line)continue
+    // *Resumo:* (no bullet)
+    let rm=line.match(/^\*Resumo:\*(.*)/)
+    if(rm){
+      html+='<div style="margin:8px 0;line-height:1.6;color:var(--text);font-size:13px">'+escHtml(rm[1])+'</div>'
+      continue
+    }
+    // Bullet lines: * **[Label]:** text
+    let bm=line.match(/^\*\s\*\*\[([^\]]+)\]\*\*:\s?(.*)/)
+    if(!bm) bm=line.match(/^\*\s\*\*([^:]+):\*\*\s?(.*)/)
+    if(bm){
+      if(!inBullets){html+='<div style="margin-top:10px">';inBullets=true}
+      html+='<div style="display:flex;gap:6px;margin-bottom:6px;line-height:1.5;font-size:12px"><span style="font-weight:700;color:var(--accent);white-space:nowrap">'+escHtml(bm[1])+':</span><span style="color:var(--text)">'+escHtml(bm[2])+'</span></div>'
+      continue
+    }
+    // Any other line
+    html+='<div style="margin:4px 0;line-height:1.5;color:var(--muted);font-size:12px">'+escHtml(line)+'</div>'
+  }
+  if(inBullets)html+='</div>'
+  document.getElementById('resumoBody').innerHTML=html
   document.getElementById('resumoModal').style.display='flex'
+}
+function escHtml(s){
+  let d=document.createElement('div')
+  d.textContent=s
+  return d.innerHTML
 }
 function closeResumoModal(){
   document.getElementById('resumoModal').style.display='none'
