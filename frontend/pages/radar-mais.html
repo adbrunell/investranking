@@ -351,23 +351,28 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.ge
 function abrirResumo(texto){
   let raw=decodeURIComponent(texto)
   let cls='',cor='var(--text)',html=''
-  // Parse classification from first line
+  let trigger=''
+  // Parse classification and trigger from first line
   let m=raw.match(/^\*\*\[?([A-ZÇ]+)\]?/i)
   if(m){
     cls=m[1].toUpperCase()
     cor=cls==='POSITIVO'?'rgb(106,168,79)':cls==='NEGATIVO'?'rgb(255,0,0)':'var(--text)'
+    let tl=raw.match(/:\s*(.+?)(?:\n|$)/)
+    if(tl)trigger=tl[1]
     raw=raw.replace(/^.*?\n/,'')
   }
   // Set header
   document.getElementById('resumoHeader').innerHTML='<span style="font-weight:700;color:'+cor+';margin:0 auto">'+(cls||'Resumo')+'</span><button onclick="closeResumoModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:6px;position:absolute;right:12px"><i class="fas fa-times"></i></button>'
+  // Show trigger as first line
+  if(trigger)html+='<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.4">'+escHtml(trigger)+'</div>'
   // Parse lines
   for(let line of raw.split('\n')){
     line=line.trim()
     if(!line)continue
-    // *Resumo:*
+    // *Resumo:* → exibe como "O que aconteceu"
     let rm=line.match(/^\*Resumo:\*(.*)/)
     if(rm){
-      html+='<div style="margin-bottom:12px;line-height:1.6;font-size:13px;color:var(--text)">'+escHtml(rm[1])+'</div>'
+      html+='<div style="display:flex;gap:6px;margin-bottom:10px;line-height:1.5;font-size:12px"><span style="font-weight:700;color:var(--accent);white-space:nowrap;flex-shrink:0">O que aconteceu:</span><span style="color:var(--text)">'+escHtml(rm[1])+'</span></div>'
       continue
     }
     // Bullet: * **[Label]:** text  or * **Label:** text
