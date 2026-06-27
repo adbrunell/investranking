@@ -195,6 +195,10 @@ function isToday(dateStr){
   return (agora-item)<=10800000
 }
 
+function data30d(){
+  let d=new Date();d.setDate(d.getDate()-30)
+  return d.toISOString().slice(0,10)
+}
 function groupLabel(r,dateStr){
   return dateStr?fmtDateStr(dateStr):''
 }
@@ -242,7 +246,7 @@ async function load(){
     let results=await Promise.allSettled([
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Relat%C3%B3rios&situacao_documento=eq.A&order=data_entrega.desc&limit=1000'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Fato%20Relevante&situacao_documento=eq.A&order=data_entrega.desc&limit=1000'),
-      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&situacao_documento=eq.A&order=data_entrega.desc&limit=1000'),
+      api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&situacao_documento=eq.A&data_entrega=gte.'+data30d()+'&order=data_entrega.desc&limit=500'),
       api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&order=publicacao.desc&limit=80').catch(()=>[])
     ])
     let rel=results[0].status==='fulfilled'?results[0].value:[]
