@@ -1,5 +1,5 @@
 """Lê Fatos Relevantes sem Resumo_ia, extrai texto do PDF, envia para Groq e salva o resumo."""
-import os, sys, logging, time, json, io
+import os, sys, logging, time, json, io, re
 from datetime import datetime, timezone, timedelta
 
 _proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -38,9 +38,9 @@ O resultado final deve ser extremamente direto, pois será armazenado em uma ún
 
 *Resumo:* [Escreva um resumo executivo de no máximo 2 frases explicando o impacto real para o cotista].
 
-* **[Impacto Financeiro]:** [Bullet point curto sobre valores, dividendos ou yields envolvidos, se houver].
-* **[Próximos Passos]:** [Bullet point curto sobre o que o fundo ou o investidor precisa fazer agora].
-* **[Risco/Oportunidade]:** [Bullet point curto com a visão analítica do especialista].
+* **[Impacto Financeiro]:** [Texto direto, sem traço ou bullet. Apenas o conteúdo].
+* **[Próximos Passos]:** [Texto direto, sem traço ou bullet. Apenas o conteúdo].
+* **[Risco/Oportunidade]:** [Texto direto, sem traço ou bullet. Apenas o conteúdo].
 
 ### REGRAS DE NEGÓCIO (CRÍTICAS):
 1. A classificação deve ser feita na **perspectiva do investidor cotista**, não do fundo. Pergunte-se: "Isso é bom, ruim ou indiferente para quem tem cotas deste FII?"
@@ -54,7 +54,7 @@ O resultado final deve ser extremamente direto, pois será armazenado em uma ún
 
 def buscar_fatos_sem_resumo() -> list[dict]:
     # Só processa fatos dos últimos 7 dias (novos)
-    data_limite = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%d")
+    data_limite = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     url = f"{SUPABASE_URL}/rest/v1/fnet_tudo"
     params = {
         "select": "fnet_documento_id,codigo_fundo,link_documento,link_visualizar",
@@ -187,6 +187,8 @@ def main():
             erros += 1
             continue
 
+        # Remove bullet dashes that LLM sometimes adds
+        resumo = re.sub(r'^(\*{0,2}\s*\[[^\]]+\]:\*{0,2}\s*)-\s+', r'\1', resumo, flags=re.MULTILINE)
         salvar_resumo(doc_id, resumo)
         processados += 1
         print(f"    Resumo salvo ({len(resumo)} chars)")
