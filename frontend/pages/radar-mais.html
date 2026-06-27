@@ -362,10 +362,10 @@ function abrirResumo(texto){
     raw=raw.replace(/^.*?\n/,'')
   }
   // Set header with colored background
-  let bgCor=cls==='POSITIVO'?'rgb(106,168,79)':cls==='NEGATIVO'?'rgb(255,0,0)':'var(--bg)'
+  let bgCor=cls==='POSITIVO'?'rgb(106,168,79)':cls==='NEGATIVO'?'rgb(255,0,0)':'#fff'
   let txtCor=cls==='INDIFERENTE'?'#000':'#fff'
   let headerHtml='<span style="font-weight:700;color:'+txtCor+';margin:0 auto">'+(cls||'Resumo')+'</span>'
-  headerHtml+='<button onclick="closeResumoModal()" style="background:none;border:none;color:'+(cls==='INDIFERENTE'?'var(--muted)':'rgba(255,255,255,0.7)')+';cursor:pointer;font-size:18px;padding:2px 6px;border-radius:6px;position:absolute;right:12px"><i class="fas fa-times"></i></button>'
+  headerHtml+='<button onclick="closeResumoModal()" style="background:none;border:none;color:'+(cls==='INDIFERENTE'?'#666':'rgba(255,255,255,0.7)')+';cursor:pointer;font-size:18px;padding:2px 6px;border-radius:6px;position:absolute;right:12px"><i class="fas fa-times"></i></button>'
   document.getElementById('resumoHeader').innerHTML=headerHtml
   document.getElementById('resumoHeader').style.background=bgCor
   document.getElementById('resumoHeader').style.borderBottom='none'
