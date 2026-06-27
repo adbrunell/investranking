@@ -357,7 +357,7 @@ function abrirResumo(texto){
   if(m){
     cls=m[1].toUpperCase()
     cor=cls==='POSITIVO'?'rgb(106,168,79)':cls==='NEGATIVO'?'rgb(255,0,0)':'var(--text)'
-    let tl=raw.match(/:\s*(.+?)(?:\n|$)/)
+    let tl=raw.match(/:\*{0,2}\s*(.+?)(?:\n|$)/)
     if(tl)trigger=tl[1]
     raw=raw.replace(/^.*?\n/,'')
   }
