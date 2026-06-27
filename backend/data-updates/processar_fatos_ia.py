@@ -47,7 +47,7 @@ O resultado final deve ser extremamente direto, pois será armazenado em uma ún
    Substitua [CLASSIFICAÇÃO] por uma destas 3 opções exatas (em caixa alta):
    - POSITIVO (VERDE) -> Beneficia o cotista: aumento de dividendos, venda de imóvel com lucro, redução de vacância, aquisição de ativo com bom cap rate, etc.
    - NEGATIVO (VERMELHO) -> Prejudica o cotista: inadimplência, rescisão de contrato, aumento de vacância, emissão de cotas abaixo do VP, endividamento excessivo, etc.
-   - INDIFERENTE (BRANCO) -> Não afeta o bolso do cotista: trocas de administradora sem custos, desdobramentos, alterações burocráticas sem impacto financeiro direto.
+   - NEUTRO (BRANCO) -> Não afeta o bolso do cotista: trocas de administradora sem custos, desdobramentos, alterações burocráticas sem impacto financeiro direto.
 2. Seja cirúrgico. Evite jargões jurídicos ou textões copiados do documento original. Traduza o "juridiquês" para o impacto no bolso do investidor.
 3. Se o fato relevante não trouxer dados de alguma das bullets (ex: sem impacto financeiro imediato), omita a linha correspondente."""
 
