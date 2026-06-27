@@ -331,15 +331,23 @@ function toggleFilter(el){
 function buildChanDropdown(){
   let btn=document.getElementById('channelBtn')
   if(!allChannels.length){btn.style.display='none';return}
-  btn.style.display=''
+  btn.style.display='inline-flex'
   document.getElementById('channelLabel').textContent=Object.keys(activeChannels).length?'Canais ('+Object.keys(activeChannels).length+')':'Canais'
 }
 function openChanModal(){
   let body=document.getElementById('chanModalBody')
-  body.innerHTML=allChannels.map(c=>{
-    let esc=c.replace(/"/g,'&quot;').replace(/'/g,'&#39;')
-    return '<label data-chan="'+esc+'"><input type="checkbox" '+(activeChannels[c]?'checked':'')+' onchange="toggleChan(this)"> '+c+'</label>'
-  }).join('')
+  body.innerHTML=''
+  for(let c of allChannels){
+    let label=document.createElement('label')
+    label.dataset.chan=c
+    let cb=document.createElement('input')
+    cb.type='checkbox'
+    cb.checked=!!activeChannels[c]
+    cb.onchange=function(){toggleChan(this)}
+    label.appendChild(cb)
+    label.append(' '+c)
+    body.appendChild(label)
+  }
   document.getElementById('chanSearch').value=''
   document.getElementById('chanModal').style.display='flex'
 }
@@ -405,7 +413,7 @@ function closeResumoModal(){
 function filterChanModal(){
   let q=document.getElementById('chanSearch').value.toLowerCase().trim()
   document.querySelectorAll('#chanModalBody label').forEach(l=>{
-    l.style.display=q?l.textContent.toLowerCase().includes(q)?'flex':'none':'flex'
+    l.style.display=q?l.textContent.toLowerCase().includes(q)?'':'none':''
   })
 }
 function toggleChan(el){
