@@ -360,7 +360,6 @@ class MainWindow(QMainWindow):
             self._add_table_row(sc)
 
         self._scheduler.load_config(config)
-        self._scheduler.start()
 
         if scripts:
             self._table.selectRow(0)
@@ -520,12 +519,7 @@ class MainWindow(QMainWindow):
         )
 
         self._repo.add_script(sc)
-
-        old_sc = self._scheduler._configs.get(sc.name)
-        if old_sc:
-            self._scheduler.update_script(sc)
-        else:
-            self._scheduler.add_script(sc)
+        self._scheduler.update_script(sc)
 
         # Update table row
         if sc.name in self._items:
@@ -586,7 +580,7 @@ class MainWindow(QMainWindow):
             if name and path:
                 sc = ScriptConfig(name=name, path=path)
                 self._repo.add_script(sc)
-                self._scheduler.add_script(sc)
+                self._scheduler.update_script(sc)
                 self._add_table_row(sc)
                 for r in range(self._table.rowCount()):
                     if self._table.item(r, 2) and self._table.item(r, 2).text() == name:

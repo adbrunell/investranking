@@ -1,13 +1,9 @@
 from __future__ import annotations
-import os
-import subprocess
-import json
-from datetime import datetime, time as dtime
+import os, subprocess, json
+from datetime import datetime, time as dtime, timedelta
 from pathlib import Path
 
-from PyQt6.QtCore import QObject, QProcess, QProcessEnvironment, pyqtSignal
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.interval import IntervalTrigger
+from PyQt6.QtCore import QObject, QProcess, QProcessEnvironment, QTimer, pyqtSignal
 
 from .models import ScriptConfig, AppConfig, SCRIPTS_DIR, PYTHON
 
@@ -18,60 +14,44 @@ class ScriptScheduler(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._scheduler = BackgroundScheduler(daemon=True)
         self._processes: dict[str, QProcess] = {}
         self._buffers: dict[str, str] = {}
         self._configs: dict[str, ScriptConfig] = {}
         self._post_run_rpcs: list[str] = []
-        self._paused = False
         self._last_runs: dict[str, datetime] = {}
-        self._next_runs: dict[str, datetime] = {}
+        self._paused = False
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._tick)
+        self._timer.start(1000)
 
     def load_config(self, config: AppConfig):
-        self._clear_jobs()
         self._configs.clear()
         self._post_run_rpcs = config.post_run_rpcs[:]
         for sc in config.scripts:
             self._configs[sc.name] = sc
-            if sc.enabled:
-                self._schedule_script(sc)
+        self._run_startup_scripts()
 
-    def _clear_jobs(self):
-        for job_id in [j.id for j in self._scheduler.get_jobs()]:
-            self._scheduler.remove_job(job_id)
+    def start(self):
+        pass
 
-    def _schedule_script(self, sc: ScriptConfig):
-        trigger = IntervalTrigger(minutes=sc.interval_minutes)
-        self._scheduler.add_job(
-            self._try_run,
-            trigger,
-            args=[sc.name],
-            id=sc.name,
-            replace_existing=True,
-            name=sc.name,
-        )
-        self._update_next_run(sc.name)
-        self.log_line.emit("INFO", sc.name, f"Agendado: a cada {sc.interval_minutes}min")
-
-    def _try_run(self, name: str):
-        sc = self._configs.get(name)
-        if not sc:
-            self.log_line.emit("WARN", name, "Ignorado: config nao encontrada")
-            return
-        if not sc.enabled:
-            self.log_line.emit("INFO", name, "Ignorado: desabilitado")
-            return
+    def _tick(self):
         if self._paused:
-            self.log_line.emit("INFO", name, "Ignorado: sistema pausado")
             return
-        if not self._is_active(sc):
-            self.log_line.emit("INFO", name, "Ignorado: fora do horario/dia ativo")
-            return
-        if name in self._processes and self._processes[name].state() == QProcess.ProcessState.Running:
-            self.log_line.emit("INFO", name, "Ignorado: ja esta rodando")
-            return
-        from PyQt6.QtCore import QTimer
-        QTimer.singleShot(0, lambda n=name: self._run_script(self._configs[n]))
+        now = datetime.now()
+        for name, sc in list(self._configs.items()):
+            if not sc.enabled:
+                continue
+            if not self._is_active(sc):
+                continue
+            last = self._last_runs.get(name)
+            if last and (now - last).total_seconds() < sc.interval_minutes * 60:
+                continue
+            if name in self._processes:
+                p = self._processes[name]
+                if p.state() == QProcess.ProcessState.Running:
+                    continue
+                del self._processes[name]
+            self._run_script(sc)
 
     def _is_active(self, sc: ScriptConfig) -> bool:
         now = datetime.now()
@@ -138,7 +118,6 @@ class ScriptScheduler(QObject):
             self.log_line.emit(None, name, buf.strip())
 
         self._last_runs[name] = datetime.now()
-        self._update_next_run(name)
 
         if code == 0:
             self.log_line.emit("OK", name, "Concluido")
@@ -149,10 +128,7 @@ class ScriptScheduler(QObject):
 
         self._processes.pop(name, None)
 
-        running = [
-            n for n, p in self._processes.items()
-            if p.state() == QProcess.ProcessState.Running
-        ]
+        running = [n for n, p in self._processes.items() if p.state() == QProcess.ProcessState.Running]
         if not running:
             self._run_post_rpcs()
 
@@ -165,42 +141,40 @@ class ScriptScheduler(QObject):
             return
         for rpc in self._post_run_rpcs:
             try:
-                headers = {
-                    "apikey": api_key,
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                }
-                req = (
-                    f"import urllib.request,json;"
-                    f"req=urllib.request.Request('{supabase_url}/rest/v1/rpc/{rpc}',"
-                    f"data=b'{{}}',headers={json.dumps(headers)},method='POST');"
-                    f"urllib.request.urlopen(req,timeout=120).read()"
-                )
-                subprocess.run(
-                    [str(PYTHON), "-c", req],
-                    capture_output=True, timeout=130, cwd=str(SCRIPTS_DIR),
-                )
+                headers = {"apikey": api_key, "Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                req = (f"import urllib.request,json;"
+                       f"req=urllib.request.Request('{supabase_url}/rest/v1/rpc/{rpc}',"
+                       f"data=b'{{}}',headers={json.dumps(headers)},method='POST');"
+                       f"urllib.request.urlopen(req,timeout=120).read()")
+                subprocess.run([str(PYTHON), "-c", req], capture_output=True, timeout=130, cwd=str(SCRIPTS_DIR))
                 self.log_line.emit("OK", f"RPC:{rpc}", "Executado")
             except Exception as e:
                 self.log_line.emit("WARN", f"RPC:{rpc}", str(e)[:120])
 
-    def _update_next_run(self, name: str):
-        try:
-            job = self._scheduler.get_job(name)
-            if job and job.next_run_time:
-                self._next_runs[name] = job.next_run_time
-        except Exception:
-            pass
+    def _run_startup_scripts(self):
+        for name, sc in self._configs.items():
+            if sc.enabled and self._is_active(sc):
+                self._run_script(sc)
 
     def get_last_run(self, name: str):
         return self._last_runs.get(name)
 
     def get_next_run(self, name: str):
-        return self._next_runs.get(name)
+        last = self._last_runs.get(name)
+        sc = self._configs.get(name)
+        if last and sc:
+            return last + timedelta(minutes=sc.interval_minutes)
+        if sc:
+            return datetime.now() + timedelta(seconds=5)
+        return None
 
     def run_now(self, name: str):
         sc = self._configs.get(name)
         if sc:
+            if name in self._processes:
+                p = self._processes[name]
+                if p.state() == QProcess.ProcessState.Running:
+                    return
             self._run_script(sc)
 
     def stop_script(self, name: str):
@@ -211,34 +185,22 @@ class ScriptScheduler(QObject):
 
     def pause(self):
         self._paused = True
-        self._scheduler.pause()
         self.log_line.emit("INFO", "Sistema", "Pausado")
 
     def resume(self):
         self._paused = False
-        self._scheduler.resume()
         self.log_line.emit("INFO", "Sistema", "Retomado")
 
     @property
     def is_paused(self) -> bool:
         return self._paused
 
-    def start(self):
-        self._scheduler.start()
-        self._run_startup_scripts()
-
-    def _run_startup_scripts(self):
-        from PyQt6.QtCore import QTimer
-        for name, sc in self._configs.items():
-            if sc.enabled and self._is_active(sc):
-                QTimer.singleShot(0, lambda n=name: self._try_run(n))
-
     def shutdown(self):
+        self._timer.stop()
         for name, process in list(self._processes.items()):
             if process.state() == QProcess.ProcessState.Running:
                 process.terminate()
                 process.waitForFinished(3000)
-        self._scheduler.shutdown(wait=False)
 
     def get_status(self, name: str) -> str:
         process = self._processes.get(name)
@@ -248,15 +210,9 @@ class ScriptScheduler(QObject):
 
     def add_script(self, sc: ScriptConfig):
         self._configs[sc.name] = sc
-        if sc.enabled:
-            self._schedule_script(sc)
 
     def remove_script(self, name: str):
         self._configs.pop(name, None)
-        try:
-            self._scheduler.remove_job(name)
-        except Exception:
-            pass
         stop = self._processes.pop(name, None)
         if stop and stop.state() == QProcess.ProcessState.Running:
             stop.terminate()
@@ -264,12 +220,6 @@ class ScriptScheduler(QObject):
     def update_script(self, sc: ScriptConfig):
         old = self._configs.get(sc.name)
         self._configs[sc.name] = sc
-        try:
-            self._scheduler.remove_job(sc.name)
-        except Exception:
-            pass
-        if sc.enabled:
-            self._schedule_script(sc)
         if old and old.path != sc.path:
             stop = self._processes.pop(sc.name, None)
             if stop and stop.state() == QProcess.ProcessState.Running:
