@@ -115,6 +115,7 @@ class MainWindow(QMainWindow):
         self._scheduler = scheduler
         self._repo = repository
         self._script_status: dict[str, str] = {}
+        self._current_editing: str | None = None
         self._items: dict[str, int] = {}  # name -> table row
 
         self._log_buffer: list[str] = []
