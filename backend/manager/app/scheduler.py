@@ -55,11 +55,20 @@ class ScriptScheduler(QObject):
 
     def _try_run(self, name: str):
         sc = self._configs.get(name)
-        if not sc or not sc.enabled or self._paused:
+        if not sc:
+            self.log_line.emit("WARN", name, "Ignorado: config nao encontrada")
+            return
+        if not sc.enabled:
+            self.log_line.emit("INFO", name, "Ignorado: desabilitado")
+            return
+        if self._paused:
+            self.log_line.emit("INFO", name, "Ignorado: sistema pausado")
             return
         if not self._is_active(sc):
+            self.log_line.emit("INFO", name, "Ignorado: fora do horario/dia ativo")
             return
         if name in self._processes and self._processes[name].state() == QProcess.ProcessState.Running:
+            self.log_line.emit("INFO", name, "Ignorado: ja esta rodando")
             return
         from PyQt6.QtCore import QTimer
         QTimer.singleShot(0, lambda n=name: self._run_script(self._configs[n]))
