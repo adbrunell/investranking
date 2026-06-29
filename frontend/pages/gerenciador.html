@@ -72,6 +72,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <div class="info">
   <span class="tag" id="tickerTag">⏱ -</span>
   <span id="statusText"></span>
+  <span id="managerBadge" style="margin-left:auto;font-size:11px;display:flex;align-items:center;gap:4px">⋯ manager</span>
 </div>
 
 <table>
@@ -152,6 +153,22 @@ function esc(s) {
   return d.innerHTML
 }
 
+async function checkManager() {
+  const el = $('managerBadge')
+  try {
+    const r = await fetch('http://127.0.0.1:8081/api/status', { signal: AbortSignal.timeout(2000) })
+    if (r.ok) {
+      const data = await r.json()
+      const running = Object.values(data.scripts || {}).filter(s => s.running).length
+      el.innerHTML = `<span style="color:var(--green)">●</span> manager ativo${running ? ' (' + running + ' rodando)' : ''}`
+    } else {
+      el.innerHTML = `<span style="color:var(--red)">●</span> manager offline`
+    }
+  } catch {
+    el.innerHTML = `<span style="color:#555">●</span> manager offline`
+  }
+}
+
 async function load() {
   try {
     const r = await fetch(SUPABASE_URL + '/rest/v1/log_atualizacao?select=*&order=id.desc&limit=150', { headers: HEADERS })
@@ -217,7 +234,9 @@ function render(rows) {
 }
 
 load()
+checkManager()
 setInterval(load, 30000)
+setInterval(checkManager, 10000)
 </script>
 </body>
 </html>
