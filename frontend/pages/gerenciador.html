@@ -49,6 +49,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .histo-title{font-size:13px;color:var(--heading);font-weight:600;padding:12px 14px 6px}
 .histo table{margin-bottom:0;border:none;border-radius:0}
 
+@keyframes pulse{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
 .empty{color:var(--text-muted);text-align:center;padding:30px;font-size:13px}
 @media(max-width:640px){
   body{padding:12px}
@@ -116,6 +117,8 @@ const SUPABASE_URL = 'https://oaqmnaekrpukwmrxjtud.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'
 const HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
 
+let managerStatus = null  // { scripts: { nome: { running: bool, status: str } } }
+
 const S = [
   { id:'b3_aovivo', label:'B3 Ao Vivo', abv:'B3 Ao Vivo' },
   { id:'b3_cotahist', label:'B3 Hist.', abv:'B3 Hist.' },
@@ -158,13 +161,16 @@ async function checkManager() {
   try {
     const r = await fetch('http://127.0.0.1:8081/api/status', { signal: AbortSignal.timeout(2000) })
     if (r.ok) {
-      const data = await r.json()
-      const running = Object.values(data.scripts || {}).filter(s => s.running).length
+      managerStatus = await r.json()
+      const running = Object.values(managerStatus.scripts || {}).filter(s => s.running).length
       el.innerHTML = `<span style="color:var(--green)">●</span> manager ativo${running ? ' (' + running + ' rodando)' : ''}`
+      renderTable()  // re-render to show live status
     } else {
+      managerStatus = null
       el.innerHTML = `<span style="color:var(--red)">●</span> manager offline`
     }
   } catch {
+    managerStatus = null
     el.innerHTML = `<span style="color:#555">●</span> manager offline`
   }
 }
@@ -181,6 +187,7 @@ async function load() {
 }
 
 function render(rows) {
+  window._rows = rows
   if (!rows || !rows.length) {
     $('statusBar').textContent = 'Nenhuma execu&ccedil;&atilde;o encontrada'
     $('tableBody').innerHTML = '<tr><td colspan="5"><div class="empty">Vazio</div></td></tr>'
@@ -193,6 +200,7 @@ function render(rows) {
   $('statusBar').innerHTML = '&Uacute;ltima atualiza&ccedil;&atilde;o: <strong>' + esc(ft ? new Date(ft).toLocaleString('pt-BR') : '-') + '</strong>'
   $('tickerTag').textContent = '⏱ ' + fmt(new Date().toISOString())
 
+  // Stats (only from DB)
   let ok = 0, erro = 0, skip = 0
   for (const s of S) {
     const c = dot(last[s.id])
@@ -206,20 +214,9 @@ function render(rows) {
   $('statusText').textContent = pend > 0 ? pend + ' pendente' : 'OK'
   $('statusText').style.color = pend > 0 ? 'var(--accent)' : 'var(--green)'
 
-  // Tabela: status atual de cada script
-  $('tableBody').innerHTML = S.map(s => {
-    const v = last[s.id]
-    const c = dot(v)
-    return `<tr>
-      <td><span class="dot ${c}"></span></td>
-      <td class="dot-title"><span class="dot ${c}"></span>${s.label}</td>
-      <td>${c === 'ok' ? 'OK' : c === 'erro' ? 'Erro' : c === 'skip' ? 'Pulado' : 'Pend.'}</td>
-      <td class="col-time">${fmt(last.finished_at)}</td>
-      <td class="col-dur">${v && v !== 'SKIP' ? esc(v) : '-'}</td>
-    </tr>`
-  }).join('')
+  renderTable()
 
-  // Histórico: tabela horizontal (mais recentes primeiro)
+  // Histórico
   $('histoBody').innerHTML = rows.map(r => {
     const t = r.finished_at || r.started_at || ''
     return `<tr>
@@ -229,6 +226,44 @@ function render(rows) {
         const c = dot(v)
         return `<td><span class="dot ${c}" title="${esc(v || '')}"></span></td>`
       }).join('')}
+    </tr>`
+  }).join('')
+}
+
+function renderTable() {
+  const rows = window._rows
+  if (!rows || !rows.length) return
+
+  const last = rows[0]
+
+  $('tableBody').innerHTML = S.map(s => {
+    const live = managerStatus && managerStatus.scripts && managerStatus.scripts[s.id]
+    const isRunning = live && live.running
+
+    let c, label, time, dur
+    if (isRunning) {
+      c = 'running'
+      label = 'Rodando'
+      time = 'agora'
+      dur = ''
+    } else {
+      const v = last[s.id]
+      c = dot(v)
+      label = c === 'ok' ? 'OK' : c === 'erro' ? 'Erro' : c === 'skip' ? 'Pulado' : 'Pend.'
+      time = fmt(last.finished_at)
+      dur = v && v !== 'SKIP' ? esc(v) : '-'
+    }
+
+    const dotStyle = isRunning
+      ? 'background:var(--blue);animation:pulse .8s infinite'
+      : ''
+
+    return `<tr>
+      <td><span class="dot" style="${dotStyle};width:8px;height:8px;border-radius:50%;display:inline-block"></span></td>
+      <td class="dot-title"><span class="dot" style="${dotStyle};width:8px;height:8px;border-radius:50%;display:inline-block"></span>${s.label}</td>
+      <td style="${isRunning ? 'color:var(--blue);font-weight:600' : ''}">${label}</td>
+      <td class="col-time">${time}</td>
+      <td class="col-dur">${dur}</td>
     </tr>`
   }).join('')
 }
