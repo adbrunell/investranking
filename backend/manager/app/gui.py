@@ -147,16 +147,18 @@ class MainWindow(QMainWindow):
 
         # === TABELA ===
         self._table = QTableWidget()
-        self._table.setColumnCount(7)
-        self._table.setHorizontalHeaderLabels(["", "Ativo", "Nome", "Repetir", "Dias", "Horario", ""])
+        self._table.setColumnCount(9)
+        self._table.setHorizontalHeaderLabels(["", "Ativo", "Nome", "Repetir", "Dias", "Horario", "Ultima", "Proxima", ""])
         hh = self._table.horizontalHeader()
         hh.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self._table.setColumnWidth(0, 16)
         self._table.setColumnWidth(1, 40)
-        self._table.setColumnWidth(3, 130)
-        self._table.setColumnWidth(4, 200)
-        self._table.setColumnWidth(5, 130)
-        self._table.setColumnWidth(6, 80)
+        self._table.setColumnWidth(3, 120)
+        self._table.setColumnWidth(4, 160)
+        self._table.setColumnWidth(5, 100)
+        self._table.setColumnWidth(6, 120)
+        self._table.setColumnWidth(7, 120)
+        self._table.setColumnWidth(8, 50)
         hh.setStretchLastSection(False)
         hh.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self._table.verticalHeader().setVisible(False)
@@ -397,11 +399,19 @@ class MainWindow(QMainWindow):
             hours_text = "24h"
         self._table.setItem(row, 5, QTableWidgetItem(hours_text))
 
+        last_run = self._scheduler.get_last_run(sc.name)
+        last_text = last_run.strftime("%H:%M %d/%m/%Y") if last_run else "-"
+        self._table.setItem(row, 6, QTableWidgetItem(last_text))
+
+        next_run = self._scheduler.get_next_run(sc.name)
+        next_text = next_run.strftime("%H:%M %d/%m/%Y") if next_run else "-"
+        self._table.setItem(row, 7, QTableWidgetItem(next_text))
+
         run_btn = QPushButton("▶")
         run_btn.setFixedSize(26, 22)
         run_btn.setStyleSheet(f"QPushButton {{ color: {C['green']}; border: 1px solid {C['green']}; border-radius: 3px; font-size: 11px; background: transparent; }} QPushButton:hover {{ background: rgba(74,222,128,0.15); }} QPushButton:disabled {{ color: {C['border']}; border-color: {C['border']}; }}")
         run_btn.clicked.connect(lambda checked, n=sc.name: self._scheduler.run_now(n))
-        self._table.setCellWidget(row, 6, run_btn)
+        self._table.setCellWidget(row, 8, run_btn)
 
         self._items[sc.name] = row
 
@@ -690,6 +700,9 @@ class MainWindow(QMainWindow):
             s = self._scheduler.get_status(name)
             if s == "running":
                 self._refresh_table_row_status(name)
+            nr = self._scheduler.get_next_run(name)
+            if nr:
+                self._table.item(row, 7).setText(nr.strftime("%H:%M %d/%m/%Y"))
 
     def _apply_theme(self):
         self.setStyleSheet(f"""

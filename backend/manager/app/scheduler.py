@@ -24,6 +24,8 @@ class ScriptScheduler(QObject):
         self._configs: dict[str, ScriptConfig] = {}
         self._post_run_rpcs: list[str] = []
         self._paused = False
+        self._last_runs: dict[str, datetime] = {}
+        self._next_runs: dict[str, datetime] = {}
 
     def load_config(self, config: AppConfig):
         self._clear_jobs()
@@ -48,6 +50,7 @@ class ScriptScheduler(QObject):
             replace_existing=True,
             name=sc.name,
         )
+        self._update_next_run(sc.name)
         self.log_line.emit("INFO", sc.name, f"Agendado: a cada {sc.interval_minutes}min")
 
     def _try_run(self, name: str):
@@ -124,6 +127,9 @@ class ScriptScheduler(QObject):
         if buf.strip():
             self.log_line.emit(None, name, buf.strip())
 
+        self._last_runs[name] = datetime.now()
+        self._update_next_run(name)
+
         if code == 0:
             self.log_line.emit("OK", name, "Concluido")
             self.script_status.emit(name, "ok")
@@ -167,6 +173,20 @@ class ScriptScheduler(QObject):
                 self.log_line.emit("OK", f"RPC:{rpc}", "Executado")
             except Exception as e:
                 self.log_line.emit("WARN", f"RPC:{rpc}", str(e)[:120])
+
+    def _update_next_run(self, name: str):
+        try:
+            job = self._scheduler.get_job(name)
+            if job and job.next_run_time:
+                self._next_runs[name] = job.next_run_time
+        except Exception:
+            pass
+
+    def get_last_run(self, name: str):
+        return self._last_runs.get(name)
+
+    def get_next_run(self, name: str):
+        return self._next_runs.get(name)
 
     def run_now(self, name: str):
         sc = self._configs.get(name)
