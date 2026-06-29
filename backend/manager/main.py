@@ -36,8 +36,7 @@ def main():
     window = MainWindow(scheduler, repository)
     tray = TrayManager(window, scheduler)
 
-    # Inicia oculto na bandeja — usa o icone no tray
-    window.hide()
+    window.showMaximized()
 
     return app.exec()
 
