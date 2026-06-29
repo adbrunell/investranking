@@ -35,11 +35,19 @@
 - `"00.log_atualizacao"` — ETL run log (table name has a dot; `run_all.ps1` accesses as `00.log_atualizacao` directly)
 - `fn_deletar_conta()` — SECURITY DEFINER, deletes user + all data
 - All public data tables (CVM, B3, FNET) are **read-only for anon** — ETL uses service_role key (bypasses RLS)
-- `database/migrations/` — 22 timestamped SQL migration files (e.g. `20260613000001_create_fiagro_tables.sql`)
+- `database/migrations/` — 26 timestamped SQL migration files (e.g. `20260613000001_create_fiagro_tables.sql`)
 - Views `00_Master` (columns: Ticker, Classe, CNPJ) and `vw_b3_tickers` exist in Supabase but have **no migration file** in repo — created manually in dashboard
 
-## ETL Orchestration — `backend/data-updates/run_all.ps1`
-- Canonical runner. Manages scheduling via `.run_state.json`
+## Scheduler Manager — `backend/manager/`
+- **New**: system tray app (`backend/manager/app.py`) replaces Task Scheduler. `run_all.ps1` kept as fallback for manual runs
+- **Launch**: double-click `backend/manager/start_manager.bat` or pin to Startup. Uses `pythonw.exe` (no console window). Icon appears in system tray
+- **Web dashboard**: `/?p=gerenciador` (page `frontend/pages/gerenciador.html`). Communicates with the manager's HTTP API on `127.0.0.1:8081` (CORS enabled)
+- **Config**: `backend/manager/config.json` — per-script: interval, active hours, active days (0=Sun..6=Sat), enable/disable, timeout
+- **Scheduling**: manager checks every 10s whether each script should run. Respects active hours + days + interval. Pause/resume via tray menu or dashboard
+- **Post-run RPCs**: `fn_atualizar_minigrafico`, `fn_refresh_ranking_fiis`, `fn_limpar_b3_historico` run after all scripts complete
+
+## Legacy ETL Orchestration — `backend/data-updates/run_all.ps1`
+- Old canonical runner (used before manager existed). Still usable for manual runs
 - Python: `backend/.venv/Scripts/python.exe`
 - `.env` at project root — loaded by `run_all.ps1` (Get-Content split on `=`) and by ETL scripts (manual file read)
 - 5 required env vars in `.env.example`: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`
@@ -52,8 +60,8 @@
 
 - `fnet_dados` always calls `fnet_rendimentos` at the end (inline import in the same process)
 - Post-run RPCs: `fn_atualizar_minigrafico`, `fn_refresh_ranking_fiis`, `fn_limpar_b3_historico`
-- Task Scheduler runs every 30min (`\InvestRanking-Update` trigger ONLOGON). `gdrive_cotahist` substituiu o captcha por Google Drive
-- `.run_state.json` prevents re-running CVM/StatusInvest scripts <2h — delete to force re-run
+- Task Scheduler ran every 30min (`\InvestRanking-Update` trigger ONLOGON). Obsolete — manager handles this now
+- `.run_state.json` prevents re-running CVM/StatusInvest scripts <2h — delete to force re-run (only relevant for run_all.ps1)
 - **CRITICAL**: `atualizar_fnet_dados.py` strips `tipo`, `rendimento`, `data_com`, `data_pagamento` before upsert — otherwise overwrites values from `fnet_rendimentos.py`
 
 ## PostgREST API Quirks
@@ -70,7 +78,6 @@
 - CVM `percentual_*` fields are decimals (0–1), multiply by 100 for display
 - CVM date columns: `data_referencia` for period reference, `data_informacao_numero_cotistas` for cotistas snapshot date
 - DY 12m in Ranking_FIIs comes from `status_dividendos` (last 12 entries per ticker), NOT from `fnet_tudo`
-- Requirements (`requirements.txt`): `supabase>=2.0.0`, `httpx>=0.27.0`, `playwright>=1.60.0`, `pytesseract>=0.3.13`, `pillow>=12.2.0`, `google-api-python-client>=2.0.0`, `google-auth-httplib2>=0.1.0`, `google-auth-oauthlib>=1.0.0`, `pypdf>=5.0.0`
 
 ## OpenCode Config
 - `opencode.json` at root — MCP Supabase enabled via `backend/mcp-supabase.ps1` (loads `.env` then runs `@supabase/mcp-server-supabase`). `test`/`lint`/`build` commands are generic templates only — no actual test/lint/build framework exists

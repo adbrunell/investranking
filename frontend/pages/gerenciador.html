@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invest Ranking — Gerenciador</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#111318;--surface:#1a1d24;--surface2:#1f232b;--border:#2a2e36;
+  --text:#e2e5e9;--text-muted:#8a909a;--heading:#eef0f3;
+  --accent:#ffde59;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;
+  --radius:8px;--font:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;padding:24px;min-height:100vh}
+h1{font-size:20px;color:var(--heading);margin-bottom:2px;font-weight:600}
+.sub{color:var(--text-muted);font-size:13px;margin-bottom:20px}
+
+/* Stats bar */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.stat-val{font-size:26px;font-weight:700;line-height:1.2}
+.stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.stat.total .stat-val{color:var(--text)}
+.stat.running .stat-val{color:var(--blue)}
+.stat.ok .stat-val{color:var(--green)}
+.stat.error .stat-val{color:var(--red)}
+
+/* Controls */
+.controls{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.controls button,.tag{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:var(--radius);border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s}
+.btn-accent{background:var(--accent);color:#111}
+.btn-accent:hover{opacity:.85}
+.btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface2)}
+.tag{background:var(--border);color:var(--text-muted);font-size:11px;cursor:default;padding:5px 12px}
+#statusText{font-size:12px;color:var(--text-muted)}
+
+/* Table */
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+thead{background:var(--surface2)}
+th{padding:10px 12px;text-align:left;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:8px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;margin-right:6px;vertical-align:middle}
+.dot.idle{background:var(--text-muted)}
+.dot.running{background:var(--blue);animation:pulse 1s infinite}
+.dot.ok{background:var(--green)}
+.dot.error{background:var(--red)}
+@keyframes pulse{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
+
+.col-status{width:20px}
+.col-name{font-weight:600;color:var(--heading)}
+.col-rec{color:var(--text)}
+.col-days{color:var(--text-muted);font-size:12px}
+.col-last{color:var(--text-muted);font-size:12px}
+.col-next{color:var(--text-muted);font-size:12px}
+.col-action{width:50px;text-align:center}
+
+.action-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:26px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:13px;transition:all .12s}
+.action-btn:hover{background:var(--surface2);color:var(--green);border-color:var(--green)}
+.action-btn:disabled{opacity:.3;cursor:not-allowed}
+.action-btn.running{color:var(--blue);border-color:var(--blue);animation:pulse 1s infinite}
+
+/* Log */
+.log-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.log-header h3{font-size:13px;color:var(--heading);font-weight:600}
+.log-header button{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer}
+.log-header button:hover{background:var(--surface2);color:var(--text)}
+#logContainer{max-height:200px;overflow-y:auto;font-family:'Cascadia Code','Consolas',monospace;font-size:12px;line-height:1.6}
+#logContainer::-webkit-scrollbar{width:4px}
+#logContainer::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.log-entry{display:flex;gap:8px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+.log-time{color:var(--text-muted);flex-shrink:0}
+.log-name{color:var(--accent);flex-shrink:0;min-width:70px}
+.log-msg{color:var(--text);word-break:break-all}
+.log-ERRO .log-msg,.log-ERR .log-msg{color:var(--red)}
+.log-WARN .log-msg{color:var(--yellow)}
+.log-OK .log-msg{color:var(--green)}
+.log-RUN .log-msg{color:var(--blue)}
+.empty{color:var(--text-muted);text-align:center;padding:30px;font-size:13px}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 18px;font-size:13px;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{border-left:3px solid var(--green)}
+.toast.err{border-left:3px solid var(--red)}
+</style>
+</head>
+<body>
+
+<h1>Gerenciador de Atualiza&ccedil;&otilde;es</h1>
+<p class="sub" id="statusBar">Conectando ao manager...</p>
+
+<div class="stats" id="statsBar">
+  <div class="stat total"><div class="stat-val" id="statTotal">-</div><div class="stat-label">Total</div></div>
+  <div class="stat running"><div class="stat-val" id="statRunning">0</div><div class="stat-label">Rodando</div></div>
+  <div class="stat ok"><div class="stat-val" id="statOk">0</div><div class="stat-label">OK</div></div>
+  <div class="stat error"><div class="stat-val" id="statError">0</div><div class="stat-label">Erros</div></div>
+</div>
+
+<div class="controls">
+  <button class="btn-accent" onclick="runAll()">▶ Executar Todos</button>
+  <button class="btn-ghost" id="btnPause" onclick="togglePause()">⏸ Pausar</button>
+  <button class="btn-ghost" onclick="fetchStatus()">↻ Atualizar</button>
+  <span class="tag" id="tickerTag">⏱ -</span>
+  <span id="statusText">✅ Monitorando</span>
+</div>
+
+<table id="scriptTable">
+  <thead>
+    <tr>
+      <th class="col-status"></th>
+      <th class="col-name">Script</th>
+      <th class="col-rec">Recorr&ecirc;ncia</th>
+      <th class="col-days">Dias</th>
+      <th class="col-last">&Uacute;ltima</th>
+      <th class="col-next">Pr&oacute;xima</th>
+      <th class="col-action"></th>
+    </tr>
+  </thead>
+  <tbody id="tableBody">
+    <tr><td colspan="7"><div class="empty">Nenhum script configurado</div></td></tr>
+  </tbody>
+</table>
+
+<div class="log-box">
+  <div class="log-header">
+    <h3>&Uacute;ltimas execu&ccedil;&otilde;es</h3>
+    <button onclick="clearLog()">Limpar</button>
+  </div>
+  <div id="logContainer"><div class="empty">Nenhum log ainda</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://127.0.0.1:8081'
+let state = { scripts: {}, pause: false }
+
+function $(id) { return document.getElementById(id) }
+
+async function api(path, opts) {
+  const r = await fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...opts?.headers },
+  })
+  if (!r.ok) throw new Error(await r.text())
+  return r.json()
+}
+
+function toast(msg, type) {
+  const t = $('toast')
+  t.textContent = msg
+  t.className = 'toast ' + type + ' show'
+  clearTimeout(t._hide)
+  t._hide = setTimeout(() => t.classList.remove('show'), 2500)
+}
+
+const DIAS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab']
+
+function daysText(days) {
+  if (!days || !days.length) return '-'
+  const d = [...days].sort()
+  if (d.length === 7) return 'Todos'
+  if (d.length === 5 && d[0] === 0 && d[4] === 4) return 'Seg-Sex'
+  return d.map(i => DIAS[i]).join(' ')
+}
+
+async function fetchStatus() {
+  try {
+    state = await api('/api/status')
+    renderTable()
+    renderStats()
+    updateBar()
+  } catch (e) {
+    $('statusBar').textContent = 'Manager offline - ' + e.message.slice(0, 60)
+    $('tickerTag').textContent = '⏱ offline'
+  }
+}
+
+async function fetchLogs() {
+  try {
+    const logs = await api('/api/logs')
+    renderLogs(logs)
+  } catch (_) {}
+}
+
+function renderStats() {
+  const scripts = Object.values(state.scripts)
+  $('statTotal').textContent = scripts.length
+  $('statRunning').textContent = scripts.filter(s => s.running).length
+  $('statOk').textContent = scripts.filter(s => s.status === 'ok' && !s.running).length
+  $('statError').textContent = scripts.filter(s => s.status === 'error' && !s.running).length
+}
+
+function updateBar() {
+  const now = new Date(state.now)
+  const running = Object.values(state.scripts).filter(s => s.running).length
+  const statusText = $('statusText')
+  if (state.pause) {
+    statusText.textContent = '⏸ Pausado'
+    statusText.style.color = 'var(--yellow)'
+  } else if (running) {
+    statusText.textContent = `▶ ${running} rodando`
+    statusText.style.color = 'var(--blue)'
+  } else {
+    statusText.textContent = '✅ Aguardando'
+    statusText.style.color = 'var(--green)'
+  }
+  $('tickerTag').textContent = '⏱ ' + now.toLocaleTimeString('pt-BR')
+  $('btnPause').textContent = state.pause ? '▶ Retomar' : '⏸ Pausar'
+  $('statusBar').textContent = state.pause
+    ? 'Sistema pausado — nenhuma atualizacao sera executada'
+    : 'Monitorando — scripts rodam conforme agendamento'
+}
+
+function renderTable() {
+  const tbody = $('tableBody')
+  const names = Object.keys(state.scripts)
+  if (!names.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty">Nenhum script configurado</div></td></tr>'
+    return
+  }
+  tbody.innerHTML = names.map(name => {
+    const s = state.scripts[name]
+    const dotClass = s.running ? 'running' : (s.status === 'ok' ? 'ok' : (s.status === 'error' ? 'error' : 'idle'))
+    const statusLabel = s.running ? 'Executando' : (s.status === 'ok' ? 'OK' : (s.status === 'error' ? 'Erro' : 'Parado'))
+    const recText = s.interval_minutes ? `${s.interval_minutes} min` : '-'
+    const days = daysText(s.active_days)
+    const lastStr = s.last_run ? new Date(s.last_run + 'Z').toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) : '-'
+    const nextStr = s.next_run ? new Date(s.next_run + 'Z').toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) : '-'
+    const canRun = !s.running && !state.pause
+    return `<tr>
+      <td class="col-status"><span class="dot ${dotClass}" title="${statusLabel}"></span></td>
+      <td class="col-name">${escHtml(s.label)}</td>
+      <td class="col-rec">${recText}</td>
+      <td class="col-days">${days}</td>
+      <td class="col-last">${lastStr}${s.last_duration ? ' <span style="color:var(--text-muted);font-size:11px">' + s.last_duration + 's</span>' : ''}</td>
+      <td class="col-next">${nextStr}</td>
+      <td class="col-action">
+        <button class="action-btn ${s.running ? 'running' : ''}" ${canRun ? '' : 'disabled'}
+          onclick="runNow('${name}')" title="Executar agora">${s.running ? '◉' : '▶'}</button>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+function renderLogs(logs) {
+  const c = $('logContainer')
+  if (!logs || !logs.length) {
+    c.innerHTML = '<div class="empty">Nenhum log ainda</div>'
+    return
+  }
+  c.innerHTML = logs.slice().reverse().map(e => {
+    const cls = e.level && e.level !== 'INFO' ? 'log-' + e.level : ''
+    return `<div class="log-entry ${cls}">
+      <span class="log-time">${e.time}</span>
+      <span class="log-name">[${e.name}]</span>
+      <span class="log-msg">${escHtml(e.message)}</span>
+    </div>`
+  }).join('')
+  c.scrollTop = 0
+}
+
+function escHtml(s) {
+  const d = document.createElement('div')
+  d.textContent = s
+  return d.innerHTML
+}
+
+async function runNow(name) {
+  try {
+    await api('/api/run', { method: 'POST', body: JSON.stringify({ name }) })
+    toast(`${state.scripts[name].label} iniciado`, 'ok')
+    fetchStatus()
+  } catch (e) {
+    toast('Erro: ' + e.message, 'err')
+  }
+}
+
+async function runAll() {
+  const names = Object.keys(state.scripts)
+  for (const n of names) {
+    try { await api('/api/run', { method: 'POST', body: JSON.stringify({ name: n }) }) } catch {}
+  }
+  toast(`${names.length} script(s) iniciados`, 'ok')
+  fetchStatus()
+}
+
+async function togglePause() {
+  try {
+    if (state.pause) {
+      await api('/api/resume', { method: 'POST' })
+      state.pause = false
+      toast('Sistema retomado', 'ok')
+    } else {
+      await api('/api/pause', { method: 'POST' })
+      state.pause = true
+      toast('Sistema pausado', 'ok')
+    }
+    updateBar()
+    fetchStatus()
+  } catch (e) {
+    toast('Erro: ' + e.message, 'err')
+  }
+}
+
+function clearLog() {
+  $('logContainer').innerHTML = '<div class="empty">Nenhum log ainda</div>'
+}
+
+async function init() {
+  await fetchStatus()
+  await fetchLogs()
+  setInterval(() => { fetchStatus(); fetchLogs() }, 5000)
+}
+document.addEventListener('DOMContentLoaded', init)
+</script>
+</body>
+</html>
