@@ -195,6 +195,13 @@ class ScriptScheduler(QObject):
 
     def start(self):
         self._scheduler.start()
+        self._run_startup_scripts()
+
+    def _run_startup_scripts(self):
+        from PyQt6.QtCore import QTimer
+        for name, sc in self._configs.items():
+            if sc.enabled and self._is_active(sc):
+                QTimer.singleShot(0, lambda n=name: self._try_run(n))
 
     def shutdown(self):
         for name, process in list(self._processes.items()):
