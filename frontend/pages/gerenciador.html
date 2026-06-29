@@ -65,9 +65,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
 <div class="stats">
   <div class="stat total"><div class="stat-val" id="statTotal">-</div><div class="stat-label">Scripts</div></div>
+  <div class="stat" style="--stat-color:var(--blue)"><div class="stat-val" id="statRunning" style="color:var(--blue)">-</div><div class="stat-label">Rodando</div></div>
   <div class="stat ok"><div class="stat-val" id="statOk">-</div><div class="stat-label">OK</div></div>
   <div class="stat erro"><div class="stat-val" id="statErro">-</div><div class="stat-label">Erro</div></div>
-  <div class="stat skip"><div class="stat-val" id="statSkip">-</div><div class="stat-label">Pulado</div></div>
 </div>
 
 <div class="info">
@@ -120,17 +120,17 @@ const HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY 
 let managerStatus = null  // { scripts: { nome: { running: bool, status: str } } }
 
 const S = [
-  { id:'b3_aovivo', label:'B3 Ao Vivo', abv:'B3 Ao Vivo' },
-  { id:'b3_cotahist', label:'B3 Hist.', abv:'B3 Hist.' },
-  { id:'fnet_dados', label:'FNET Dados', abv:'FNET' },
-  { id:'fnet_rendimentos', label:'FNET Rend.', abv:'FNET R.' },
-  { id:'youtube', label:'YouTube', abv:'YouTube' },
-  { id:'cvm_fii', label:'CVM FII', abv:'CVM FII' },
-  { id:'cvm_fiagro', label:'CVM Fiagro', abv:'CVM Fiag.' },
-  { id:'cvm_cadastral', label:'CVM Cad.', abv:'CVM Cad.' },
-  { id:'status_acoes', label:'St. Ações', abv:'St. Ações' },
-  { id:'status_dividendos', label:'St. Div.', abv:'St. Div.' },
-  { id:'fatos_ia', label:'Fatos IA', abv:'Fatos IA' },
+  { id:'b3_aovivo', mid:'B3_COTACOES', label:'B3 Ao Vivo' },
+  { id:'b3_cotahist', mid:'B3_COTAHIST', label:'B3 Hist.' },
+  { id:'fnet_dados', mid:'FNET_DADOS', label:'FNET Dados' },
+  { id:'fnet_rendimentos', mid:'FNET_RENDIMENTOS', label:'FNET Rend.' },
+  { id:'youtube', mid:'YOUTUBE', label:'YouTube' },
+  { id:'cvm_fii', mid:'CVM_FII', label:'CVM FII' },
+  { id:'cvm_fiagro', mid:'CVM_FIAGRO', label:'CVM Fiagro' },
+  { id:'cvm_cadastral', mid:'CVM_CADASTRAL', label:'CVM Cad.' },
+  { id:'status_acoes', mid:'STATUS_ACOES', label:'St. Ações' },
+  { id:'status_dividendos', mid:'STATUS_DIVIDENDOS', label:'St. Div.' },
+  { id:'fatos_ia', mid:'FATOS_IA', label:'Fatos IA' },
 ]
 
 function $(id) { return document.getElementById(id) }
@@ -176,31 +176,128 @@ async function checkManager() {
 }
 
 async function load() {
+  // Sempre carrega historico do banco
+  let dbRows = []
   try {
     const r = await fetch(SUPABASE_URL + '/rest/v1/log_atualizacao?select=*&order=id.desc&limit=150', { headers: HEADERS })
-    if (!r.ok) throw new Error(String(r.status))
-    const rows = await r.json()
-    render(rows)
-  } catch (e) {
-    $('statusBar').textContent = 'Erro: ' + e.message
+    if (r.ok) dbRows = await r.json()
+  } catch (_) {}
+
+  const hasManager = managerStatus && managerStatus.scripts
+  const now = new Date()
+  $('tickerTag').textContent = '⏱ ' + now.toLocaleTimeString('pt-BR')
+
+  if (hasManager) {
+    // Manager online: usa dados EM TEMPO REAL do manager
+    renderFromManager(dbRows)
+  } else if (dbRows.length) {
+    // Manager offline: usa ultimos dados do banco
+    renderFromDB(dbRows)
+  } else {
+    // Nada disponivel
+    $('statusBar').textContent = 'Nenhum dado disponivel'
+    $('tableBody').innerHTML = '<tr><td colspan="5"><div class="empty">Manager offline e banco sem dados</div></td></tr>'
+    $('histoBody').innerHTML = '<tr><td colspan="12"><div class="empty">Vazio</div></td></tr>'
+  }
+
+  // Historico sempre do banco (se tiver)
+  if (dbRows.length) {
+    $('histoBody').innerHTML = dbRows.map(r => {
+      const t = r.finished_at || r.started_at || ''
+      return `<tr>
+        <td class="col-time">${fmt(t)}</td>
+        ${S.map(s => {
+          const v = r[s.id]
+          return `<td><span class="dot ${dot(v)}" title="${esc(v || '')}"></span></td>`
+        }).join('')}
+      </tr>`
+    }).join('')
   }
 }
 
-function render(rows) {
-  window._rows = rows
-  if (!rows || !rows.length) {
-    $('statusBar').textContent = 'Nenhuma execu&ccedil;&atilde;o encontrada'
-    $('tableBody').innerHTML = '<tr><td colspan="5"><div class="empty">Vazio</div></td></tr>'
-    $('histoBody').innerHTML = '<tr><td colspan="12"><div class="empty">Vazio</div></td></tr>'
-    return
-  }
+function renderFromManager(dbRows) {
+  const ms = managerStatus.scripts
+  const now = new Date()
 
+  // Stats
+  let running = 0, ok = 0, erro = 0, total = 0
+  for (const s of S) {
+    const m = ms[s.mid]
+    if (!m) continue
+    total++
+    if (m.running) running++
+    else if (m.status === 'ok') ok++
+    else if (m.status === 'error') erro++
+  }
+  $('statTotal').textContent = total
+  $('statRunning') ? ($('statRunning').textContent = running) : 0
+  $('statOk').textContent = ok
+  $('statErro').textContent = erro
+  $('statSkip').textContent = S.length - total - running
+  $('statusText').textContent = running ? running + ' rodando' : 'OK'
+  $('statusText').style.color = running ? 'var(--blue)' : 'var(--green)'
+
+  // Data mais recente entre DB e manager
+  const lastDb = dbRows && dbRows.length ? dbRows[0] : null
+  const lastManagerTime = Object.values(ms).reduce((latest, s) => {
+    const t = s.last_run ? new Date(s.last_run).getTime() : 0
+    return t > latest ? t : latest
+  }, 0)
+  const lastDbTime = lastDb && (lastDb.finished_at || lastDb.started_at) ? new Date(lastDb.finished_at || lastDb.started_at).getTime() : 0
+  const newestTime = Math.max(lastManagerTime, lastDbTime)
+  $('statusBar').innerHTML = '&Uacute;ltima atualiza&ccedil;&atilde;o: <strong>' + (newestTime ? new Date(newestTime).toLocaleString('pt-BR') : '-') + '</strong>'
+
+  // Tabela
+  $('tableBody').innerHTML = S.map(s => {
+    const m = ms[s.mid]
+    const isRunning = m && m.running
+    const isOnline = !!m
+
+    let c, label, time, dur
+    if (!isOnline) {
+      c = 'pend'
+      label = 'N/A'
+      time = '-'
+      dur = '-'
+    } else if (isRunning) {
+      c = 'running'
+      label = 'Rodando'
+      time = 'agora'
+      dur = (m.last_duration || 0) + 's'
+    } else if (m.status === 'ok') {
+      c = 'ok'
+      label = 'OK'
+      time = m.last_run ? fmt(m.last_run) : '-'
+      dur = (m.last_duration || 0) + 's'
+    } else if (m.status === 'error') {
+      c = 'erro'
+      label = 'Erro'
+      time = m.last_run ? fmt(m.last_run) : '-'
+      dur = (m.last_duration || 0) + 's'
+    } else {
+      c = 'pend'
+      label = 'Pend.'
+      time = '-'
+      dur = '-'
+    }
+
+    const dotStyle = isRunning ? 'background:var(--blue);animation:pulse .8s infinite' : ''
+
+    return `<tr>
+      <td><span class="dot" style="${dotStyle};width:8px;height:8px;border-radius:50%;display:inline-block"></span></td>
+      <td class="dot-title"><span class="dot" style="${dotStyle};width:8px;height:8px;border-radius:50%;display:inline-block"></span>${s.label}</td>
+      <td style="${isRunning ? 'color:var(--blue);font-weight:600' : ''}">${label}</td>
+      <td class="col-time">${time}</td>
+      <td class="col-dur">${dur}</td>
+    </tr>`
+  }).join('')
+}
+
+function renderFromDB(rows) {
   const last = rows[0]
   const ft = last.finished_at || last.started_at
   $('statusBar').innerHTML = '&Uacute;ltima atualiza&ccedil;&atilde;o: <strong>' + esc(ft ? new Date(ft).toLocaleString('pt-BR') : '-') + '</strong>'
-  $('tickerTag').textContent = '⏱ ' + fmt(new Date().toISOString())
 
-  // Stats (only from DB)
   let ok = 0, erro = 0, skip = 0
   for (const s of S) {
     const c = dot(last[s.id])
@@ -214,56 +311,15 @@ function render(rows) {
   $('statusText').textContent = pend > 0 ? pend + ' pendente' : 'OK'
   $('statusText').style.color = pend > 0 ? 'var(--accent)' : 'var(--green)'
 
-  renderTable()
-
-  // Histórico
-  $('histoBody').innerHTML = rows.map(r => {
-    const t = r.finished_at || r.started_at || ''
-    return `<tr>
-      <td class="col-time">${fmt(t)}</td>
-      ${S.map(s => {
-        const v = r[s.id]
-        const c = dot(v)
-        return `<td><span class="dot ${c}" title="${esc(v || '')}"></span></td>`
-      }).join('')}
-    </tr>`
-  }).join('')
-}
-
-function renderTable() {
-  const rows = window._rows
-  if (!rows || !rows.length) return
-
-  const last = rows[0]
-
   $('tableBody').innerHTML = S.map(s => {
-    const live = managerStatus && managerStatus.scripts && managerStatus.scripts[s.id]
-    const isRunning = live && live.running
-
-    let c, label, time, dur
-    if (isRunning) {
-      c = 'running'
-      label = 'Rodando'
-      time = 'agora'
-      dur = ''
-    } else {
-      const v = last[s.id]
-      c = dot(v)
-      label = c === 'ok' ? 'OK' : c === 'erro' ? 'Erro' : c === 'skip' ? 'Pulado' : 'Pend.'
-      time = fmt(last.finished_at)
-      dur = v && v !== 'SKIP' ? esc(v) : '-'
-    }
-
-    const dotStyle = isRunning
-      ? 'background:var(--blue);animation:pulse .8s infinite'
-      : ''
-
+    const v = last[s.id]
+    const c = dot(v)
     return `<tr>
-      <td><span class="dot" style="${dotStyle};width:8px;height:8px;border-radius:50%;display:inline-block"></span></td>
-      <td class="dot-title"><span class="dot" style="${dotStyle};width:8px;height:8px;border-radius:50%;display:inline-block"></span>${s.label}</td>
-      <td style="${isRunning ? 'color:var(--blue);font-weight:600' : ''}">${label}</td>
-      <td class="col-time">${time}</td>
-      <td class="col-dur">${dur}</td>
+      <td><span class="dot ${c}"></span></td>
+      <td class="dot-title"><span class="dot ${c}"></span>${s.label}</td>
+      <td>${c === 'ok' ? 'OK' : c === 'erro' ? 'Erro' : c === 'skip' ? 'Pulado' : 'Pend.'}</td>
+      <td class="col-time">${fmt(last.finished_at)}</td>
+      <td class="col-dur">${v && v !== 'SKIP' ? esc(v) : '-'}</td>
     </tr>`
   }).join('')
 }
