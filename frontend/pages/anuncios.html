@@ -294,7 +294,7 @@ async function loadFull(){
       vid.length?vid:old.filter(i=>i.type==='vid')
     )
     allItems=newItems
-    allChannels=[...new Set((vid.length?vid:old.filter(i=>i.type==='vid').map(i=>i.canal)).filter(Boolean))].sort()
+    allChannels=[...new Set((vid.length?vid.map(v=>v.canal):old.filter(i=>i.type==='vid').map(i=>i.canal)).filter(Boolean))].sort()
     buildChanDropdown()
     populateDatalist()
     setTimeout(()=>render(true),10)
