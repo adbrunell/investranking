@@ -61,7 +61,8 @@ class ScriptScheduler(QObject):
             return
         if name in self._processes and self._processes[name].state() == QProcess.ProcessState.Running:
             return
-        self._run_script(sc)
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(0, lambda n=name: self._run_script(self._configs[n]))
 
     def _is_active(self, sc: ScriptConfig) -> bool:
         now = datetime.now()
