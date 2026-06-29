@@ -16,94 +16,98 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 h1{font-size:20px;color:var(--heading);margin-bottom:2px;font-weight:600}
 .sub{color:var(--text-muted);font-size:13px;margin-bottom:20px}
 
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
-.stat-val{font-size:26px;font-weight:700;line-height:1.2}
-.stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:700;line-height:1.2}
+.stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
 .stat.total .stat-val{color:var(--text)}
 .stat.ok .stat-val{color:var(--green)}
-.stat.error .stat-val{color:var(--red)}
+.stat.erro .stat-val{color:var(--red)}
 .stat.skip .stat-val{color:var(--text-muted)}
 
-.controls{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
-.tag{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--radius);border:none;font-size:11px;cursor:default;font-family:inherit;background:var(--border);color:var(--text-muted)}
-#statusText{font-size:12px;color:var(--text-muted)}
+.info{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)}
+.info .tag{background:var(--border);padding:4px 10px;border-radius:6px;font-size:11px}
 
 table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
 thead{background:var(--surface2)}
-th{padding:10px 12px;text-align:left;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600;border-bottom:1px solid var(--border)}
-td{padding:8px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+th{padding:8px 10px;text-align:left;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:6px 10px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.02);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(255,255,255,.02)}
 
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 .dot.ok{background:var(--green)}
 .dot.erro{background:var(--red)}
 .dot.skip{background:#555}
 .dot.pend{background:var(--accent)}
+.dot-title{display:inline-flex;align-items:center;gap:6px}
 
-.col-status{width:16px}
-.col-name{font-weight:600;color:var(--heading)}
-.col-rec{color:var(--text)}
-.col-last{color:var(--text-muted);font-size:12px}
-.col-dur{color:var(--text-muted);font-size:12px}
+.col-time{color:var(--text-muted);white-space:nowrap;width:50px}
+.col-dur{color:var(--text-muted);font-size:11px;width:40px}
 
-.log-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
-.log-box h3{font-size:13px;color:var(--heading);font-weight:600;margin-bottom:10px}
+.histo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.histo-title{font-size:13px;color:var(--heading);font-weight:600;padding:12px 14px 6px}
+.histo table{margin-bottom:0;border:none;border-radius:0}
 
-.exec-list{display:flex;flex-direction:column;gap:6px}
-.exec-group{margin-bottom:4px}
-.exec-date{font-size:12px;color:var(--heading);font-weight:600;margin-bottom:4px;padding:4px 0}
-.exec-row{display:flex;gap:6px;padding:3px 0;font-size:12px;font-family:'Cascadia Code','Consolas',monospace;border-bottom:1px solid rgba(255,255,255,.02)}
-.exec-time{color:var(--text-muted);flex-shrink:0;min-width:40px}
-.exec-cell{display:flex;align-items:center;gap:4px;min-width:70px}
-.exec-label{color:var(--text-muted);font-size:10px}
-
-.empty{color:var(--text-muted);text-align:center;padding:40px;font-size:13px}
-
+.empty{color:var(--text-muted);text-align:center;padding:30px;font-size:13px}
 @media(max-width:640px){
   body{padding:12px}
   .stats{grid-template-columns:repeat(2,1fr)}
-  table{font-size:12px}
-  th,td{padding:6px 8px}
+  th,td{padding:5px 6px;font-size:11px}
 }
 </style>
 </head>
 <body>
 
-<h1>Gerenciador de Atualiza&ccedil;&otilde;es</h1>
-<p class="sub" id="statusBar">Carregando status da base de dados...</p>
+<h1>Gerenciador</h1>
+<p class="sub" id="statusBar">Carregando...</p>
 
 <div class="stats">
-  <div class="stat total"><div class="stat-val" id="statTotal">-</div><div class="stat-label">Total de scripts</div></div>
-  <div class="stat ok"><div class="stat-val" id="statOk">-</div><div class="stat-label">&Uacute;ltima: OK</div></div>
-  <div class="stat error"><div class="stat-val" id="statError">-</div><div class="stat-label">&Uacute;ltima: Erro</div></div>
-  <div class="stat skip"><div class="stat-val" id="statSkip">-</div><div class="stat-label">&Uacute;ltima: Skip</div></div>
+  <div class="stat total"><div class="stat-val" id="statTotal">-</div><div class="stat-label">Scripts</div></div>
+  <div class="stat ok"><div class="stat-val" id="statOk">-</div><div class="stat-label">OK</div></div>
+  <div class="stat erro"><div class="stat-val" id="statErro">-</div><div class="stat-label">Erro</div></div>
+  <div class="stat skip"><div class="stat-val" id="statSkip">-</div><div class="stat-label">Pulado</div></div>
 </div>
 
-<div class="controls">
-  <span class="tag" id="tickerTag">⏱ atualizando...</span>
+<div class="info">
+  <span class="tag" id="tickerTag">⏱ -</span>
   <span id="statusText"></span>
 </div>
 
 <table>
-  <thead>
-    <tr>
-      <th class="col-status"></th>
-      <th class="col-name">Script</th>
-      <th class="col-rec">Status</th>
-      <th class="col-last">Hor&aacute;rio</th>
-      <th class="col-dur">Dura&ccedil;&atilde;o</th>
-    </tr>
-  </thead>
+  <thead><tr>
+    <th style="width:14px"></th>
+    <th>Script</th>
+    <th style="width:60px">Status</th>
+    <th class="col-time">Hor&aacute;rio</th>
+    <th class="col-dur">Dur.</th>
+  </tr></thead>
   <tbody id="tableBody">
     <tr><td colspan="5"><div class="empty">Carregando...</div></td></tr>
   </tbody>
 </table>
 
-<div class="log-box">
-  <h3>&Uacute;ltimas execu&ccedil;&otilde;es</h3>
-  <div id="execContainer"><div class="empty">Carregando...</div></div>
+<div class="histo">
+  <div class="histo-title">Execu&ccedil;&otilde;es recentes</div>
+  <table>
+    <thead><tr>
+      <th style="width:50px">Hora</th>
+      <th>B3 Ao Vivo</th>
+      <th>B3 Hist.</th>
+      <th>FNET</th>
+      <th>FNET R.</th>
+      <th>YouTube</th>
+      <th>CVM FII</th>
+      <th>CVM Fiag.</th>
+      <th>CVM Cad.</th>
+      <th>St. A&ccedil;&otilde;es</th>
+      <th>St. Div.</th>
+      <th>Fatos IA</th>
+    </tr></thead>
+    <tbody id="histoBody">
+      <tr><td colspan="12"><div class="empty">Carregando...</div></td></tr>
+    </tbody>
+  </table>
 </div>
 
 <script>
@@ -111,23 +115,23 @@ const SUPABASE_URL = 'https://oaqmnaekrpukwmrxjtud.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'
 const HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
 
-const SCRIPTS = [
-  { id:'b3_aovivo', label:'B3 Ao Vivo' },
-  { id:'b3_cotahist', label:'B3 Hist.' },
-  { id:'fnet_dados', label:'FNET Dados' },
-  { id:'fnet_rendimentos', label:'FNET Rend.' },
-  { id:'youtube', label:'YouTube' },
-  { id:'cvm_fii', label:'CVM FII' },
-  { id:'cvm_fiagro', label:'CVM Fiagro' },
-  { id:'cvm_cadastral', label:'CVM Cad.' },
-  { id:'status_acoes', label:'St. A&ccedil;&otilde;es' },
-  { id:'status_dividendos', label:'St. Div.' },
-  { id:'fatos_ia', label:'Fatos IA' },
+const S = [
+  { id:'b3_aovivo', label:'B3 Ao Vivo', abv:'B3 Ao Vivo' },
+  { id:'b3_cotahist', label:'B3 Hist.', abv:'B3 Hist.' },
+  { id:'fnet_dados', label:'FNET Dados', abv:'FNET' },
+  { id:'fnet_rendimentos', label:'FNET Rend.', abv:'FNET R.' },
+  { id:'youtube', label:'YouTube', abv:'YouTube' },
+  { id:'cvm_fii', label:'CVM FII', abv:'CVM FII' },
+  { id:'cvm_fiagro', label:'CVM Fiagro', abv:'CVM Fiag.' },
+  { id:'cvm_cadastral', label:'CVM Cad.', abv:'CVM Cad.' },
+  { id:'status_acoes', label:'St. Ações', abv:'St. Ações' },
+  { id:'status_dividendos', label:'St. Div.', abv:'St. Div.' },
+  { id:'fatos_ia', label:'Fatos IA', abv:'Fatos IA' },
 ]
 
 function $(id) { return document.getElementById(id) }
 
-function dotClass(v) {
+function dot(v) {
   if (!v) return 'pend'
   const l = String(v).toLowerCase()
   if (l.startsWith('ok')) return 'ok'
@@ -136,121 +140,84 @@ function dotClass(v) {
   return 'pend'
 }
 
-function fmtTime(s) {
-  if (!s) return '&mdash;'
+function fmt(s) {
+  if (!s) return '-'
   const d = new Date(s.includes('T') ? s : s.replace(' ', 'T'))
-  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })
 }
 
-function fmtFull(s) {
-  if (!s) return '&mdash;'
-  const d = new Date(s.includes('T') ? s : s.replace(' ', 'T'))
-  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-}
-
-function escHtml(s) {
-  if (!s) return ''
+function esc(s) {
   const d = document.createElement('div')
-  d.textContent = s
+  d.textContent = s || ''
   return d.innerHTML
 }
 
-async function carregar() {
+async function load() {
   try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/log_atualizacao?select=*&order=id.desc&limit=200', { headers: HEADERS })
+    const r = await fetch(SUPABASE_URL + '/rest/v1/log_atualizacao?select=*&order=id.desc&limit=150', { headers: HEADERS })
     if (!r.ok) throw new Error(String(r.status))
     const rows = await r.json()
     render(rows)
   } catch (e) {
-    $('statusBar').textContent = 'Erro ao carregar: ' + e.message
-    $('tableBody').innerHTML = '<tr><td colspan="5"><div class="empty">Falha ao conectar com a base de dados</div></td></tr>'
+    $('statusBar').textContent = 'Erro: ' + e.message
   }
 }
 
 function render(rows) {
   if (!rows || !rows.length) {
-    $('statusBar').textContent = 'Nenhum registro encontrado'
-    $('tableBody').innerHTML = '<tr><td colspan="5"><div class="empty">Nenhuma execu&ccedil;&atilde;o registrada ainda</div></td></tr>'
-    $('execContainer').innerHTML = '<div class="empty">Nenhuma execu&ccedil;&atilde;o registrada ainda</div>'
+    $('statusBar').textContent = 'Nenhuma execu&ccedil;&atilde;o encontrada'
+    $('tableBody').innerHTML = '<tr><td colspan="5"><div class="empty">Vazio</div></td></tr>'
+    $('histoBody').innerHTML = '<tr><td colspan="12"><div class="empty">Vazio</div></td></tr>'
     return
   }
 
-  const latest = rows[0]
-  const finishedAt = latest.finished_at || latest.started_at
-  $('statusBar').innerHTML = '&Uacute;ltima atualiza&ccedil;&atilde;o: <strong>' + escHtml(fmtFull(finishedAt)) + '</strong>'
-  $('tickerTag').textContent = '⏱ ' + fmtTime(new Date().toISOString())
+  const last = rows[0]
+  const ft = last.finished_at || last.started_at
+  $('statusBar').innerHTML = '&Uacute;ltima atualiza&ccedil;&atilde;o: <strong>' + esc(ft ? new Date(ft).toLocaleString('pt-BR') : '-') + '</strong>'
+  $('tickerTag').textContent = '⏱ ' + fmt(new Date().toISOString())
 
-  // Stats
   let ok = 0, erro = 0, skip = 0
-  for (const s of SCRIPTS) {
-    const cls = dotClass(latest[s.id])
-    if (cls === 'ok') ok++
-    else if (cls === 'erro') erro++
-    else if (cls === 'skip') skip++
+  for (const s of S) {
+    const c = dot(last[s.id])
+    if (c === 'ok') ok++; else if (c === 'erro') erro++; else if (c === 'skip') skip++
   }
-  const pend = SCRIPTS.length - ok - erro - skip
-  $('statTotal').textContent = SCRIPTS.length
+  $('statTotal').textContent = S.length
   $('statOk').textContent = ok
-  $('statError').textContent = erro
+  $('statErro').textContent = erro
   $('statSkip').textContent = skip
-  $('statusText').textContent = pend > 0 ? pend + ' pendente(s)' : ''
+  const pend = S.length - ok - erro - skip
+  $('statusText').textContent = pend > 0 ? pend + ' pendente' : 'OK'
   $('statusText').style.color = pend > 0 ? 'var(--accent)' : 'var(--green)'
 
-  // Table - latest status per script
-  const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab']
-  function dayName(n) { return dias[n] || '' }
-
-  // Determinar se esta rodando (se ultima exec foi a menos de 15min)
-  const now = new Date()
-  const runningThreshold = 15 * 60 * 1000
-
-  $('tableBody').innerHTML = SCRIPTS.map(s => {
-    const val = latest[s.id]
-    const cls = dotClass(val)
-    const isRunning = latest.finished_at && (now - new Date(latest.finished_at)) < runningThreshold && cls === 'ok'
-    const statusLabel = cls === 'ok' ? (isRunning ? 'Rodando' : 'OK') : (cls === 'erro' ? 'Erro' : (cls === 'skip' ? 'Pulado' : 'Pendente'))
+  // Tabela: status atual de cada script
+  $('tableBody').innerHTML = S.map(s => {
+    const v = last[s.id]
+    const c = dot(v)
     return `<tr>
-      <td class="col-status"><span class="dot ${cls}" title="${statusLabel}"></span></td>
-      <td class="col-name">${s.label}</td>
-      <td>${statusLabel}</td>
-      <td class="col-last">${fmtTime(latest.finished_at)}</td>
-      <td class="col-dur">${val && val !== 'SKIP' ? escHtml(val) : '-'}</td>
+      <td><span class="dot ${c}"></span></td>
+      <td class="dot-title"><span class="dot ${c}"></span>${s.label}</td>
+      <td>${c === 'ok' ? 'OK' : c === 'erro' ? 'Erro' : c === 'skip' ? 'Pulado' : 'Pend.'}</td>
+      <td class="col-time">${fmt(last.finished_at)}</td>
+      <td class="col-dur">${v && v !== 'SKIP' ? esc(v) : '-'}</td>
     </tr>`
   }).join('')
 
-  // Execution history by date
-  const groups = {}
-  for (const r of rows) {
-    const key = (r.finished_at || r.started_at || '').slice(0, 10)
-    if (!groups[key]) groups[key] = []
-    groups[key].push(r)
-  }
-
-  const keys = Object.keys(groups).sort().reverse()
-  let html = '<div class="exec-list">'
-  for (const k of keys) {
-    const items = groups[k]
-    html += '<div class="exec-group">'
-    html += '<div class="exec-date">' + k.split('-').reverse().join('/') + ' &mdash; ' + items.length + ' execu&ccedil;&otilde;es</div>'
-    for (const r of items) {
-      const t = r.finished_at || r.started_at || ''
-      html += '<div class="exec-row">'
-      html += '<span class="exec-time">' + fmtTime(t) + '</span>'
-      for (const s of SCRIPTS) {
+  // Histórico: tabela horizontal (mais recentes primeiro)
+  $('histoBody').innerHTML = rows.map(r => {
+    const t = r.finished_at || r.started_at || ''
+    return `<tr>
+      <td class="col-time">${fmt(t)}</td>
+      ${S.map(s => {
         const v = r[s.id]
-        const cls = dotClass(v)
-        html += '<span class="exec-cell"><span class="dot ' + cls + '"></span><span class="exec-label">' + s.label + '</span></span>'
-      }
-      html += '</div>'
-    }
-    html += '</div>'
-  }
-  html += '</div>'
-  $('execContainer').innerHTML = html
+        const c = dot(v)
+        return `<td><span class="dot ${c}" title="${esc(v || '')}"></span></td>`
+      }).join('')}
+    </tr>`
+  }).join('')
 }
 
-carregar()
-setInterval(carregar, 30000)
+load()
+setInterval(load, 30000)
 </script>
 </body>
 </html>
