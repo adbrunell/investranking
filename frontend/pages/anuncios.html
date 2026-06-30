@@ -430,7 +430,7 @@ function render(noLimit){
       }else if(tag==='rend'){
         let varHtml=''
         if(it.prevVal!=null&&it.prevVal>0&&it.rendNum!=null){
-          let pct=((it.rendNum-it.prevVal)/it.prevVal*100).toFixed(2),sig=pct>=0?'+':'',col=pct>=0?'var(--green)':'var(--red)'
+          let pct=((it.rendNum-it.prevVal)/it.prevVal*100).toFixed(2),sig=pct>0?'+':'',col=pct>0?'var(--green)':pct<0?'var(--red)':'var(--text-muted)'
           varHtml='<div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;margin:0 4px"><span style="font-size:12px;font-weight:600;color:'+col+'">'+sig+pct+'%</span><span style="font-size:9px;color:var(--muted)">'+it.prevVal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+'</span></div>'
         }
         html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a>'+(isToday(it.date)?'<span class="badge-novo">NOVO</span>':'')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">COM: '+(it.com||'-')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">Pgto: '+(it.pgto||'-')+'</div>'
