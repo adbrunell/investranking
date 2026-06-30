@@ -198,9 +198,10 @@ function getDateRank(dateStr){
 
 function isToday(dateStr){
   if(!dateStr)return false
-  let agora=new Date(),item=new Date(dateStr)
+  let item=new Date(dateStr)
   if(isNaN(item.getTime()))return false
-  return (agora-item)<=10800000
+  let agora=new Date()
+  return item.getFullYear()===agora.getFullYear()&&item.getMonth()===agora.getMonth()&&item.getDate()===agora.getDate()
 }
 
 function data30d(){
