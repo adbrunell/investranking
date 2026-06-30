@@ -160,7 +160,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 const REST='https://oaqmnaekrpukwmrxjtud.supabase.co/rest/v1'
 const H={apikey:'sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR',Authorization:'Bearer sb_publishable_ekx47MbcOg-C1uoAPJnKWg_c9t9ndQR'}
 
-let allItems=[],activeChannels={},allChannels=[],searchTerm=''
+let allItems=[],activeChannels={},allChannels=[],searchTerm='',precoMap={}
 let activeFilters=(function(){
   try{let s=localStorage.getItem('radar_filters');return s?JSON.parse(s):{doc:true,fato:true,rend:true}}catch(e){return{doc:true,fato:true,rend:true}}
 })()
@@ -242,12 +242,15 @@ async function load(){
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento&categoria_documento=eq.Relat%C3%B3rios&situacao_documento=eq.A&order=data_entrega.desc&limit=5000'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_referencia,link_visualizar,link_documento,tipo_documento,Resumo_ia&categoria_documento=eq.Fato%20Relevante&situacao_documento=eq.A&order=data_entrega.desc&limit=5000'),
       api(REST+'/fnet_tudo?select=codigo_fundo,data_entrega,data_com,data_pagamento,rendimento,tipo,link_visualizar,dividend_yield,historico_minigrafico,rendimento_anterior&tipo_documento=like.*Rendimentos*&situacao_documento=eq.A&data_entrega=gte.'+data30d()+'&limit=2000'),
-      api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&order=publicacao.desc&limit=200').catch(()=>[])
+      api(REST+'/youtube_videos?select=ticker,publicacao,canal,titulo,link,duracao&order=publicacao.desc&limit=200').catch(()=>[]),
+      api(REST+'/b3_cotacoes_aovivo?select=codigo_instrumento,preco_ultimo_negocio&data_referencia=eq.'+new Date().toISOString().slice(0,10)+'&limit=2000').catch(()=>[])
     ])
     let rel=results[0].status==='fulfilled'?results[0].value:[]
     let fat=results[1].status==='fulfilled'?results[1].value:[]
     let rend=results[2].status==='fulfilled'?results[2].value:[]
     let vid=results[3].status==='fulfilled'?results[3].value:[]
+    let precos=results[4].status==='fulfilled'?results[4].value:[]
+    precoMap={};for(let p of precos||[]){if(p.codigo_instrumento&&p.preco_ultimo_negocio!=null)precoMap[p.codigo_instrumento]=parseFloat(p.preco_ultimo_negocio)}
     let partial=results.slice(0,3).some(r=>r.status==='rejected')
     allItems=buildItems(rel,fat,rend,vid)
     allChannels=[...new Set((vid||[]).map(v=>v.canal).filter(Boolean))].sort()
@@ -435,7 +438,8 @@ function render(noLimit){
         }
         html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a>'+(isToday(it.date)?'<span class="badge-novo">NOVO</span>':'')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">COM: '+(it.com||'-')+'</div><div class="card-meta" style="color:var(--muted);font-size:11px">Pgto: '+(it.pgto||'-')+'</div>'
         let sparkVals=it.hist?it.hist.slice():[];if(it.rendNum!=null)sparkVals.push(parseFloat(it.rendNum))
-html+='</div>'+(it.valor?'<div class="card-valor" style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:10px;color:var(--muted);font-weight:400">'+(it.tipo||'Valor')+'</span><span>'+it.valor+'</span>'+(it.dy?'<span style="font-size:10px;color:var(--green);font-weight:500;margin-top:2px">DY: '+it.dy+'%</span>':'')+'</div>':'')+varHtml+'<canvas class="spark" data-vals=\''+JSON.stringify(sparkVals).replace(/'/g,"&#39;")+'\' width="100" height="28" style="flex-shrink:0;margin-left:0;border-radius:3px"></canvas>'
+let dyCalc=it.rendNum&&precoMap[it.ticker]?(parseFloat(it.rendNum)/precoMap[it.ticker]*100).toFixed(2):null
+html+='</div>'+(it.valor?'<div class="card-valor" style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:10px;color:var(--muted);font-weight:400">'+(it.tipo||'Valor')+'</span><span>'+it.valor+'</span>'+(dyCalc?'<span style="font-size:10px;color:var(--green);font-weight:500;margin-top:2px">DY: '+dyCalc+'%</span>':'')+'</div>':'')+varHtml+'<canvas class="spark" data-vals=\''+JSON.stringify(sparkVals).replace(/'/g,"&#39;")+'\' width="100" height="28" style="flex-shrink:0;margin-left:0;border-radius:3px"></canvas>'
       }else{
         let dur=fmtDuracao(it.duracao)
         html+='<div class="card-ticker"><a href="'+it.url+'" target="_blank">'+it.ticker+'</a>'+(isToday(it.date)?'<span class="badge-novo">NOVO</span>':'')+'</div><div class="card-meta">Canal: '+(it.canal||'')+'</div><div class="card-meta">T\u00edtulo: '+(it.titulo||'')+' ('+dur+')</div>'
