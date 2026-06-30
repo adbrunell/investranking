@@ -49,6 +49,7 @@ class AppConfig:
         "fn_atualizar_minigrafico",
         "fn_refresh_ranking_fiis",
         "fn_limpar_b3_historico",
+        "fn_atualizar_dividend_yield",
     ])
 
     def to_dict(self) -> dict:
