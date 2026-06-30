@@ -128,6 +128,12 @@ class ScriptScheduler(QObject):
 
         self._processes.pop(name, None)
 
+        if name == "FNET_DADOS" and code == 0:
+            rend = self._configs.get("FNET_RENDIMENTOS")
+            if rend and rend.enabled and self._is_active(rend):
+                self.log_line.emit("RUN", "FNET_RENDIMENTOS", "disparado apos FNET_DADOS")
+                self._run_script(rend)
+
         running = [n for n, p in self._processes.items() if p.state() == QProcess.ProcessState.Running]
         if not running:
             self._run_post_rpcs()
