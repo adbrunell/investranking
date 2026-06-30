@@ -131,6 +131,30 @@ class ScriptScheduler(QObject):
         running = [n for n, p in self._processes.items() if p.state() == QProcess.ProcessState.Running]
         if not running:
             self._run_post_rpcs()
+            self._log_to_db()
+
+    def _log_to_db(self):
+        env = self._read_env()
+        api_key = env.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY")
+        supabase_url = env.get("SUPABASE_URL") or os.environ.get("SUPABASE_URL")
+        if not api_key or not supabase_url:
+            return
+        try:
+            now_utc = datetime.utcnow().isoformat()
+            body = {"started_at": now_utc, "finished_at": now_utc}
+            for name in self._configs:
+                last = self._last_runs.get(name)
+                body[name.lower()] = "OK" if last else "SKIP"
+            body_json = json.dumps(body)
+            inline = f"import urllib.request,json; "
+            inline += f"d={json.dumps(body_json)}.encode(); "
+            inline += f"h={json.dumps({'apikey': api_key, 'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'})}; "
+            inline += f"r=urllib.request.Request('{supabase_url}/rest/v1/00.log_atualizacao',data=d,headers=h,method='POST'); "
+            inline += f"urllib.request.urlopen(r,timeout=30).read()"
+            subprocess.run([str(PYTHON), "-c", inline], capture_output=True, timeout=40, cwd=str(SCRIPTS_DIR))
+            self.log_line.emit("OK", "DB_LOG", "Log registrado")
+        except Exception as e:
+            self.log_line.emit("WARN", "DB_LOG", str(e)[:120])
 
     def _run_post_rpcs(self):
         env = self._read_env()
@@ -160,13 +184,15 @@ class ScriptScheduler(QObject):
         return self._last_runs.get(name)
 
     def get_next_run(self, name: str):
-        last = self._last_runs.get(name)
         sc = self._configs.get(name)
-        if last and sc:
-            return last + timedelta(minutes=sc.interval_minutes)
-        if sc:
-            return datetime.now() + timedelta(seconds=5)
-        return None
+        if not sc:
+            return None
+        last = self._last_runs.get(name)
+        if last:
+            next_time = last + timedelta(minutes=sc.interval_minutes)
+            if next_time > datetime.now():
+                return next_time
+        return datetime.now() + timedelta(seconds=5)
 
     def run_now(self, name: str):
         sc = self._configs.get(name)
