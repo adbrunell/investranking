@@ -218,17 +218,19 @@ async function api(url){
 }
 async function apiAllRadar(url){
   let PAGE=1000,all=[],r
-  r=await fetch(url+'&limit='+PAGE,{headers:{...H,Prefer:'count=exact'}})
-  if(!r.ok){r=await fetch(url+'&limit='+PAGE,{headers:H});if(!r.ok)return all}
+  try{
+    r=await fetch(url+'&limit='+PAGE,{headers:{...H,Prefer:'count=exact'},signal:AbortSignal.timeout(15000)})
+  }catch(e){r=await fetch(url+'&limit='+PAGE,{headers:H,signal:AbortSignal.timeout(15000)}).catch(()=>null)}
+  if(!r||!r.ok)return all
   let total=0,cr=r.headers.get('content-range')
   if(cr){let m=cr.match(/\/(\d+)$/);if(m)total=+m[1]}
-  all.push(...await r.json())
+  try{all.push(...await r.json())}catch(e){return all}
   if(total>PAGE){
     let fetches=[]
     for(let i=PAGE;i<total;i+=PAGE)
-      fetches.push(fetch(url+'&limit='+PAGE+'&offset='+i,{headers:H}).catch(()=>null))
+      fetches.push(fetch(url+'&limit='+PAGE+'&offset='+i,{headers:H,signal:AbortSignal.timeout(15000)}).catch(()=>null))
     let ress=await Promise.all(fetches)
-    for(let r2 of ress){if(r2&&r2.ok)all.push(...await r2.json())}
+    for(let r2 of ress){if(r2&&r2.ok)try{all.push(...await r2.json())}catch(e){}}
   }
   return all
 }
@@ -287,11 +289,12 @@ async function loadFull(){
     let rend=results[2].status==='fulfilled'?results[2].value:[]
     let vid=results[3].status==='fulfilled'?results[3].value:[]
     let old=allItems
+    let oldDoc=old.filter(i=>i.type==='doc'),oldFato=old.filter(i=>i.type==='fato'),oldRend=old.filter(i=>i.type==='rend'),oldVid=old.filter(i=>i.type==='vid')
     let newItems=buildItems(
-      rel.length?rel:old.filter(i=>i.type==='doc'),
-      fat.length?fat:old.filter(i=>i.type==='fato'),
-      rend.length?rend:old.filter(i=>i.type==='rend'),
-      vid.length?vid:old.filter(i=>i.type==='vid')
+      rel.length>=oldDoc.length?rel:oldDoc,
+      fat.length>=oldFato.length?fat:oldFato,
+      rend.length>=oldRend.length?rend:oldRend,
+      vid.length>=oldVid.length?vid:oldVid
     )
     allItems=newItems
     allChannels=[...new Set((vid.length?vid.map(v=>v.canal):old.filter(i=>i.type==='vid').map(i=>i.canal)).filter(Boolean))].sort()
